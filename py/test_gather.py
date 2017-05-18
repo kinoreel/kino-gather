@@ -19,7 +19,6 @@ class TestGather(unittest.TestCase):
         pg.pg_cur.execute("insert into gather.kino_movies values ('tt2562232')")
         pg.pg_cur.execute("insert into gather.kino_movies values ('tt0245712')")
         pg.pg_conn.commit()
-
         self.omdb_tables = ['omdb_cast', 'omdb_crew', 'omdb_main', 'omdb_ratings']
 
     def tearDown(self):
