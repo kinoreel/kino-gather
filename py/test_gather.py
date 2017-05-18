@@ -8,7 +8,8 @@ with open('db_auth.json') as auth_file:
     auth = json.load(auth_file)['postgres_dev']
 
 pg = Postgres(auth)
-
+#TODO: Move to test folder
+#TODO: test_insert_data_omdb fails
 class TestGather(unittest.TestCase):
 
     def setUp(self):

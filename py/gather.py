@@ -1,18 +1,20 @@
 import json
 
+import GLOBALS
+
 from get_omdb import GetOMDB
 from get_tmdb import GetTMDB
 from get_youtube import GetYoutube
 from postgres import Postgres
 
 
+
 class Gather(object):
 
     def __init__(self, db_conn):
 
-        with open('api_keys.json') as keys_file:
-            youtube_films_api_key = json.load(keys_file)['youtube_api']
-            tmdb_api_key = json.load(keys_file)['tmdb_api']
+        youtube_films_api_key = GLOBALS.YOUTUBE_FILMS_API
+        tmdb_api_key = GLOBALS.TMDB_API
 
         self.pg = Postgres(db_conn)
         self.omdb = GetOMDB()
@@ -70,7 +72,6 @@ class Gather(object):
         for api in self.apis:
             movie_data.append(api.get_info(imdb_id))
         return movie_data
-
 
 
 if __name__ =='__main__':

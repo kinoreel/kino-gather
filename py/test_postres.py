@@ -6,6 +6,7 @@ from postgres import Postgres
 with open('db_auth.json') as auth_file:
     auth = json.load(auth_file)['postgres_dev']
 
+#TODO: Move to test folder
 class TestPostgres(unittest.TestCase):
 
     def test_connect(self):
