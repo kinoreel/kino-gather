@@ -1,20 +1,15 @@
 import json
 import requests
 
-class GetTMDB:
+class GetTMDB(object):
 
     def __init__(self, api_key):
         self.api_key = api_key
 
-    def get_info(self, imdb_id):
-        jdata = self.get_tmdb_json(imdb_id)
-        all_data = self.split_movie_data(jdata)
-        return all_data
-
-    def get_tmdb_json(self, imdb_id):
+    def get_tmdb_json(self, id):
 
         request_url = "https://api.themoviedb.org/3/movie/" \
-          + imdb_id + "?api_key=" + self.api_key
+          + id + "?api_key=" + api_key
 
         request_url = request_url + "&append_to_response=alternative_titles" \
           + ",release_dates,credits,images,similar,translations,trailers," \
@@ -24,7 +19,7 @@ class GetTMDB:
 
         return json.loads(html.text)
 
-    def split_movie_data(self, api_data):
+    def split_movie_data(self, imdb_id, api_data):
 
         cast_data = api_data["credits"]["cast"]
         crew_data = api_data["credits"]["crew"]
@@ -75,4 +70,16 @@ class GetTMDB:
                     "tmdb_trailers":trailers,
                     "tmdb_release_dates":release_dates}
 
+        for data_type, jlist in all_data.iteritems():
+            if data_type <> "tmdb_main":
+                for item in jlist:
+                    item["imdb_id"] = imdb_id
+
         return all_data
+
+
+   def get_info(self, imdb_id):
+
+       jdata = self.get_tmdb_json(imdb_id)
+       all_data = self.split_movie_data(jdata)
+       return all_data
