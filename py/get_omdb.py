@@ -9,6 +9,8 @@ class GetOMDB(object):
 
     def get_info(self, imdb_id):
         data = self.get_omdbapi_json(imdb_id)
+        if data['Response'] == 'False':
+            return None
         all_data = self.split_data(data, imdb_id)
         return all_data
 
@@ -24,7 +26,6 @@ class GetOMDB(object):
     def split_data(self, api_data, imdb_id):
 
         api_data = self.lower_keys(api_data)
-
         bad_fields = [ 'response'
                       , 'season'
                       , 'totalseasons'
@@ -60,8 +61,9 @@ class GetOMDB(object):
 
         ratings_data=[]
 
-        ratings_data.append({'source':'metascore', 'imdbid':imdb_id, 'value':api_data['metascore']})
-        del api_data['metascore']
+        if 'metascore' in api_data.keys():
+            ratings_data.append({'source':'metascore', 'imdbid':imdb_id, 'value':api_data['metascore']})
+            del api_data['metascore']
         ratings_data.append({'source':'imdb', 'imdbid':imdb_id, 'value':api_data['imdbrating']})
         del api_data['imdbrating']
         if 'ratings' in api_data.keys():
