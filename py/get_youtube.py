@@ -10,7 +10,9 @@ class GetYoutube:
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
         self.youtube = build('youtube', 'v3', developerKey=api_key)
 
-    def get_info(self, imdb_id, title):
+    def get_info(self, api_param):
+        imdb_id = api_param[0]
+        title = api_param[1]
         data = self.search_youtube(title)
         youtube_main = [self.get_movie_info(imdb_id, title, data[0])]
         youtube_other = []

@@ -33,20 +33,33 @@ class Gather(object):
         self.tmdb = GetTMDB(tmdb_api_key)
         self.tmdb.mbad_table = 'tmdb_bad'
         self.youtube_films = GetYoutube(youtube_films_api_key)
-        self.youtube_films.main_table = 'youtube_films_main'
-
+        self.youtube_films.main_table = 'youtube_films_bad'
+        self.youtube_films.sql = 'select ids_to_get.imdb_id, y.title ' \
+                                  'from ( select imdb_id ' \
+                                           'from gather.kino_movies ' \
+                                         'except ' \
+                                         'select imdb_id ' \
+                                           'from ( select imdb_id ' \
+                                                    'from gather.youtube_films_main ' \
+                                                   'union ' \
+                                                  'select imdb_id ' \
+                                                    'from gather.youtube_films_bad ' \
+                                                ') as tried_ids ' \
+                                        ') as ids_to_get ' \
+                                  'join gather.omdb_main y ' \
+                                    'on ids_to_get.imdb_id = y.imdbid'
 
         self.apis = [ self.omdb
-                    #, self.tmdb
-                    #, self.youtube_films
+                    , self.tmdb
+                    , self.youtube_films
                     ]
 
     def get_imdb_ids(self, api):
-        imdb_ids = [e[0] for e in self.pg.run_query(api.sql)]
+        imdb_ids = self.pg.run_query(api.sql)
         return imdb_ids
 
-    def get_movie_data(self, api, imdb_id):
-        data = api.get_info(imdb_id)
+    def get_movie_data(self, api, api_param):
+        data = api.get_info(api_param)
         return data
 
     def insert_data(self, data):
