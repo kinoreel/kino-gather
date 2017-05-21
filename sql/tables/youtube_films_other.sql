@@ -1,4 +1,4 @@
-create table gather.youtube_films_others
+create table gather.youtube_films_other
     ( imdb_id varchar(10)
     , orig_title varchar(1000)
     , video_id varchar(30)
