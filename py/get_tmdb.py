@@ -35,7 +35,7 @@ class GetTMDB(object):
         lists = api_data["lists"]["results"]
         changes = api_data["changes"]["changes"]
         trailers = api_data["trailers"]["youtube"]
-        release_dates = api_data["release_dates"]["results"]
+        release_dates_raw = api_data["release_dates"]["results"]["release_dates"]
 
         del api_data["credits"]
         del api_data["release_dates"]
