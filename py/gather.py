@@ -19,11 +19,17 @@ class Gather(object):
         self.pg = Postgres(db_conn)
         self.omdb = GetOMDB()
         self.omdb.bad_table = 'omdb_bad'
-        self.omdb.sql = "select imdb_id " \
-                        "  from gather.kino_movies " \
-                        "except " \
-                        "select imdbid " \
-                        "  from gather.omdb_main"
+        self.omdb.sql = 'select imdb_id ' \
+                          'from gather.kino_movies ' \
+                         'except ' \
+                         'select imdbid ' \
+                           'from ( select imdbid ' \
+                                    'from gather.omdb_main ' \
+                                   'union ' \
+                                  'select imdb_id ' \
+                                    'from gather.omdb_bad ' \
+                                ') as tried_ids'
+
         self.tmdb = GetTMDB(tmdb_api_key)
         self.tmdb.mbad_table = 'tmdb_bad'
         self.youtube_films = GetYoutube(youtube_films_api_key)
