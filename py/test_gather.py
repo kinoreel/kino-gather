@@ -39,6 +39,15 @@ class TestGather(unittest.TestCase):
         imdb_ids = self.get.get_imdb_ids(omdb)
         self.assertEqual(sorted(imdb_ids), ['tt0245712', 'tt2562232', 'tt4285496'])
 
+    def test_get_imdb_ids_omdb_with_bad(self):
+        pg.pg_cur.execute("insert into gather.omdb_bad values ('tt0245712')")
+        pg.pg_conn.commit()
+        omdb = self.get.apis[0]
+        imdb_ids = self.get.get_imdb_ids(omdb)
+        self.assertEqual(sorted(imdb_ids), ['tt2562232', 'tt4285496'])
+        pg.pg_cur.execute("delete from gather.omdb_bad where imdb_id = 'tt0245712'")
+        pg.pg_conn.commit()
+
     def test_get_movie_data_omdb(self):
         omdb = self.get.apis[0]
         data = self.get.get_movie_data(omdb, 'tt4285496')
