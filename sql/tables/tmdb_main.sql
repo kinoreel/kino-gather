@@ -15,4 +15,6 @@ create table gather.tmdb_main
    , vote_average varchar(100)
    , vote_count  varchar(100)
    , homepage varchar(100)
-   , adult  varchar(100));
+   , adult  varchar(100)
+   , tstamp date not null default CURRENT_DATE   
+   );

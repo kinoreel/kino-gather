@@ -1,22 +1,28 @@
 import json
 import requests
 
+#TODO create tables for trailers/changes on gather.kino@kino, then uncomment in split_data
 class GetTMDB(object):
 
     def __init__(self, api_key):
         self.api_key = api_key
 
-    def get_tmdb_json(self, id):
+    def get_info(self, api_param):
+        imdb_id = api_param[0]
+        data = self.get_tmdb_json(imdb_id)
+        all_data = self.split_movie_data(imdb_id, data)
+        return all_data
+
+    def get_tmdb_json(self, imdb_id):
 
         request_url = "https://api.themoviedb.org/3/movie/" \
-          + id + "?api_key=" + api_key
+          + imdb_id + "?api_key=" + self.api_key
 
         request_url = request_url + "&append_to_response=alternative_titles" \
           + ",release_dates,credits,images,similar,translations,trailers," \
           + "videos,keywords,lists,changes"
 
         html = requests.get(request_url)
-
         return json.loads(html.text)
 
     def split_movie_data(self, imdb_id, api_data):
@@ -29,13 +35,13 @@ class GetTMDB(object):
         images_data = api_data["images"]["posters"]
         backdrops_data = api_data["images"]["backdrops"]
         similar_movies = api_data["similar"]["results"]
-        alternate_languages = api_data["translations"]["translations"]
+        translations = api_data["translations"]["translations"]
         videos = api_data["videos"]["results"]
-        keywords = api_data["kewords"]["keywords"]
+        keywords = api_data["keywords"]["keywords"]
         lists = api_data["lists"]["results"]
         changes = api_data["changes"]["changes"]
         trailers = api_data["trailers"]["youtube"]
-        release_dates_raw = api_data["release_dates"]["results"]["release_dates"]
+        release_dates = api_data["release_dates"]["results"][0]["release_dates"]
 
         del api_data["credits"]
         del api_data["release_dates"]
@@ -57,29 +63,24 @@ class GetTMDB(object):
                     "tmdb_cast":cast_data,
                     "tmdb_crew":crew_data,
                     "tmdb_main":main_data,
-                    "tmdb_genre":genre_data,
+                    "tmdb_genres":genre_data,
                     "tmdb_alternative_titles":alternative_titles,
                     "tmdb_posters":images_data,
-                    "tmdb_similar_movies":similar_movies,
-                    "tmdb_alternate_languages":alternate_languages,
+                    "tmdb_similar":similar_movies,
+                    "tmdb_translations":translations,
                     "tmdb_videos":videos,
-                    "tmdb_changes":changes,
+                    #"tmdb_changes":changes,
                     "tmdb_lists":lists,
                     "tmdb_keywords":keywords,
                     "tmdb_backdrops":backdrops_data,
-                    "tmdb_trailers":trailers,
+                    #"tmdb_trailers":trailers,
                     "tmdb_release_dates":release_dates}
 
-        for data_type, jlist in all_data.iteritems():
-            if data_type <> "tmdb_main":
+        for data_type, jlist in all_data.items():
+            if data_type != "tmdb_main":
                 for item in jlist:
                     item["imdb_id"] = imdb_id
 
         return all_data
 
 
-   def get_info(self, imdb_id):
-
-       jdata = self.get_tmdb_json(imdb_id)
-       all_data = self.split_movie_data(jdata)
-       return all_data
