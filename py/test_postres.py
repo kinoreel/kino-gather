@@ -36,7 +36,6 @@ class TestPostgres(unittest.TestCase):
         sql = 'drop table ut_test_insert'
         pg.pg_cur.execute(sql)
 
-
     def test_run_query_minus(self):
         pg = Postgres(auth)
         sql = 'create table ut_test_1(col_1 varchar(10), col_2 smallint)'

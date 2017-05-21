@@ -9,11 +9,15 @@ with open('db_auth.json') as auth_file:
 
 pg = Postgres(auth)
 #TODO: Move to test folder
-#TODO: test_insert_data_omdb fails
 class TestGather(unittest.TestCase):
 
     def setUp(self):
         self.get = Gather(auth)
+        pg.pg_cur.execute("delete from gather.omdb_bad")
+        pg.pg_cur.execute("delete from gather.omdb_main")
+        pg.pg_cur.execute("delete from gather.omdb_crew")
+        pg.pg_cur.execute("delete from gather.omdb_cast")
+        pg.pg_cur.execute("delete from gather.omdb_ratings")
         pg.pg_cur.execute("delete from gather.kino_movies")
         pg.pg_cur.execute("insert into gather.kino_movies values ('tt4285496')")
         pg.pg_cur.execute("insert into gather.kino_movies values ('tt2562232')")
@@ -22,11 +26,13 @@ class TestGather(unittest.TestCase):
         self.omdb_tables = ['omdb_cast', 'omdb_crew', 'omdb_main', 'omdb_ratings']
 
     def tearDown(self):
-        pg.pg_cur.execute("delete from gather.kino_movies where imdb_id = 'tt4285496'")
-        pg.pg_cur.execute("delete from gather.kino_movies where imdb_id = 'tt2562232'")
-        pg.pg_cur.execute("delete from gather.kino_movies where imdb_id = 'tt0245712'")
+        pg.pg_cur.execute("delete from gather.omdb_bad")
+        pg.pg_cur.execute("delete from gather.omdb_main")
+        pg.pg_cur.execute("delete from gather.omdb_crew")
+        pg.pg_cur.execute("delete from gather.omdb_cast")
+        pg.pg_cur.execute("delete from gather.omdb_ratings")
+        pg.pg_cur.execute("delete from gather.kino_movies")
         pg.pg_conn.commit()
-
 
     def test_get_imdb_ids_omdb(self):
         omdb = self.get.apis[0]
@@ -53,32 +59,33 @@ class TestGather(unittest.TestCase):
         for key in dict_keys:
             sql = 'select count(*) from {0}.{1}'.format('gather', key)
             pg.pg_cur.execute(sql)
-            table_count = pg.pg_cur.fetchall()
-            print(table_count)
+            table_count = pg.pg_cur.fetchall()[0][0]
+            if key == 'omdb_main':
+                self.assertEqual(table_count, 1)
+            else:
+                self.assertGreaterEqual(table_count, 1)
+        pg.pg_cur.execute("delete from gather.omdb_main")
+        pg.pg_cur.execute("delete from gather.omdb_crew")
+        pg.pg_cur.execute("delete from gather.omdb_cast")
+        pg.pg_cur.execute("delete from gather.omdb_ratings")
+        pg.pg_cur.execute("delete from gather.omdb_bad")
+        pg.pg_conn.commit()
 
     def test_update_gather_table_omdb(self):
         omdb = self.get.apis[0]
         self.get.update_gather_table(omdb)
+        sql = 'select imdb_id from gather.omdb_bad'
+        pg.pg_cur.execute(sql)
+        imdb_ids = [e[0] for e in pg.pg_cur.fetchall()]
+        self.assertEqual(imdb_ids, ['tt2562232'])
         for table_name in self.omdb_tables:
-            sql = 'select imdbid from {0} group by imdbid'.format(table_name)
+            sql = 'select imdbid from {0}.{1} group by imdbid'.format('gather', table_name)
             pg.pg_cur.execute(sql)
-            imdb_ids = [ e[0] for e in pg.pg_cur.fetchall() ]
-            self.assertEqual(imdb_ids,  ['tt0245712', 'tt2562232', 'tt4285496'])
-            sql = 'delete from {0}'.format(table_name)
+            imdb_ids = [e[0] for e in pg.pg_cur.fetchall()]
+            self.assertEqual(sorted(imdb_ids),  ['tt0245712', 'tt4285496'])
+            sql = 'delete from {0}.{1}'.format('gather', table_name)
             pg.pg_cur.execute(sql)
 
-            #def do the same with youtube_films
-            #change api so that api takes a dictionary of what it needs
-            # learn how to commit
-            # then i can commit mine
-            # joe - jenkins project to deploy everything stuff
-            # rob - implement tmdb and guidebox into gather /test
-            # talk about a scheduler.
-            # how do we deal with bad imdb_ids, maybe a not found table?
-            # talk over gather
-            # compile jenkins project locally
-
-            # talk about what is next?
 
 
 

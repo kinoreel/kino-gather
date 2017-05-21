@@ -34,8 +34,6 @@ class Postgres:
         sql = "insert into {0}.{1} " \
               "select {2}" \
               "  from json_populate_recordset( NULL::{0}.{1}, %s)".format(schema, table, columns)
-        print(sql)
-        print(data)
         self.pg_cur.execute(sql, (json.dumps(data), ))
 
     def select_data(self, schema, table, cols):

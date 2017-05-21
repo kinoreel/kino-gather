@@ -18,17 +18,17 @@ class Gather(object):
 
         self.pg = Postgres(db_conn)
         self.omdb = GetOMDB()
-        self.omdb.main_table = 'omdb_main'
-        self.tmdb = GetTMDB(tmdb_api_key)
-        self.tmdb.main_table = 'tmdb_main'
-        self.youtube_films = GetYoutube(youtube_films_api_key)
-        self.youtube_films.main_table = 'youtube_films_main'
-
+        self.omdb.bad_table = 'omdb_bad'
         self.omdb.sql = "select imdb_id " \
                         "  from gather.kino_movies " \
                         "except " \
                         "select imdbid " \
                         "  from gather.omdb_main"
+        self.tmdb = GetTMDB(tmdb_api_key)
+        self.tmdb.mbad_table = 'tmdb_bad'
+        self.youtube_films = GetYoutube(youtube_films_api_key)
+        self.youtube_films.main_table = 'youtube_films_main'
+
 
         self.apis = [ self.omdb
                     #, self.tmdb
@@ -52,6 +52,7 @@ class Gather(object):
             self.pg.pg_cur.execute(sql, (table,))
             cols = self.pg.pg_cur.fetchall()[0][0]
             self.pg.insert_json('gather', table, cols, rows)
+        self.pg.pg_conn.commit()
 
     def update_gather_table(self, api):
         imdb_ids = self.get_imdb_ids(api)
@@ -59,9 +60,16 @@ class Gather(object):
         for id in imdb_ids:
             c +=1
             movie_info = self.get_movie_data(api, id)
-            self.insert_data(movie_info)
+            if movie_info:
+                self.insert_data(movie_info)
+            else:
+                self.insert_bad_id(api, id)
             if divmod(c, 15) == 0:
                 self.pg.commit()
+
+    def insert_bad_id(self, api, imdb_id):
+        sql = "insert into gather.{0} values (%s)".format(api.bad_table)
+        self.pg.pg_cur.execute(sql, (imdb_id, ))
 
     def gather_new_kino_movies(self):
         for api in self.apis:
