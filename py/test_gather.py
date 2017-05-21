@@ -8,8 +8,14 @@ with open('db_auth.json') as auth_file:
     auth = json.load(auth_file)['postgres_dev']
 
 pg = Postgres(auth)
+#TODO: Fix test_get_movie_data_tmdb. See below
+# Change tmdb tables, so that the column names are identical (case sensitive)
+# the keys in the api data. This is necessary for the postgres function json_populate_records which loads
+# json data into the postgres tables
 #TODO: Move to test folder
-#TODO: Better test imdb_ids so we can better predict results.
+#TODO: Better test imdb_ids so we can better predict results. See below
+# We would like to have the same results across each test, currently it is different for each api.
+
 class TestGatherOMDB(unittest.TestCase):
 
     def setUp(self):
@@ -264,7 +270,7 @@ class TestGatherTMDB(unittest.TestCase):
         pg.pg_cur.execute("delete from gather.tmdb_bad where imdb_id = 'tt0245712'")
         pg.pg_conn.commit()
 
-    def test_get_movie_data_omdb(self):
+    def test_get_movie_data_tmdb(self):
         tmdb = self.get.apis[1]
         api_param = ('tt4285496',)
         data = self.get.get_movie_data(tmdb, api_param)
