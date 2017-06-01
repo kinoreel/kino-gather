@@ -61,7 +61,6 @@ class TestGatherOMDB(unittest.TestCase):
         omdb = self.get.apis[0]
         api_param = ('tt4285496',)
         data = self.get.get_movie_data(omdb, api_param)
-        print(data)
         dict_keys = sorted(list(data.keys()))
         self.assertEqual(dict_keys, self.omdb_tables )
         for key in dict_keys:
