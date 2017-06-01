@@ -1,6 +1,6 @@
 create table gather.tmdb_lists
   ( imdb_id varchar(100)
-  , description varchar(100)
+  , description varchar(4000)
   , favorite_count varchar(100)
   , id varchar(100)
   , item_count varchar(100)

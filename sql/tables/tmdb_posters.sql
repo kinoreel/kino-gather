@@ -3,7 +3,7 @@ create table gather.tmdb_posters
   , aspect_ratio varchar(100)
   , file_path varchar(100)
   , height varchar(100)
-  , iso_code varchar(3)
+  , iso_639_1 varchar(3)
   , vote_average varchar(100)
   , vote_count varchar(100)
   , width varchar(100)

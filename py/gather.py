@@ -79,6 +79,8 @@ class Gather(object):
                   "  from information_schema.columns " \
                   " where table_name = %s" \
                   "   and column_name <> 'tstamp'"
+            #print(table)
+            #print(rows)
             self.pg.pg_cur.execute(sql, (table,))
             cols = self.pg.pg_cur.fetchall()[0][0]
             self.pg.insert_json('gather', table, cols, rows)

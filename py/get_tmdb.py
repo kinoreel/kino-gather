@@ -43,6 +43,10 @@ class GetTMDB(object):
         trailers = api_data["trailers"]["youtube"]
         release_dates = api_data["release_dates"]["results"][0]["release_dates"]
 
+        for dict in cast_data:
+            dict["order_of_appearance"] = dict["order"]
+            del dict["order"]
+
         del api_data["credits"]
         del api_data["release_dates"]
         del api_data["genres"]
@@ -57,6 +61,10 @@ class GetTMDB(object):
         del api_data["lists"]
         del api_data["changes"]
         del api_data["trailers"]
+        #TODO We actually want data for spoken languages and belongs_to_collection, but they are dictionarys.
+        #TODO we to create their own tables
+        del api_data['spoken_languages']
+        del api_data['belongs_to_collection']
         main_data = [api_data]
 
         all_data = {"tmdb_companies":company_data,
@@ -82,5 +90,3 @@ class GetTMDB(object):
                     item["imdb_id"] = imdb_id
 
         return all_data
-
-
