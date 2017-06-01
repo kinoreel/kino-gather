@@ -1,5 +1,7 @@
-create table gather.alternative_titles(
+create table gather.tmdb_alternative_titles(
 imdb_id varchar(100) not null,
-iso_code varchar(3),
+iso_3166_1 varchar(3),
 title varchar(100)
+  , tstamp date not null default CURRENT_DATE
 );
+

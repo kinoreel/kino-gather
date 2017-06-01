@@ -32,6 +32,17 @@ class Gather(object):
 
         self.tmdb = GetTMDB(tmdb_api_key)
         self.tmdb.mbad_table = 'tmdb_bad'
+        self.tmdb.sql = 'select imdb_id ' \
+                          'from gather.kino_movies ' \
+                         'except ' \
+                         'select imdb_id ' \
+                           'from ( select imdb_id ' \
+                                    'from gather.tmdb_main ' \
+                                   'union ' \
+                                  'select imdb_id ' \
+                                    'from gather.tmdb_bad ' \
+                                ') as tried_ids'
+
         self.youtube_films = GetYoutube(youtube_films_api_key)
         self.youtube_films.main_table = 'youtube_films_bad'
         self.youtube_films.sql = 'select ids_to_get.imdb_id, y.title ' \
