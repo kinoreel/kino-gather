@@ -1,5 +1,5 @@
 create table gather.omdb_main
-  ( imdbid varchar(10) not null
+  ( imdb_id varchar(10) not null
   , title varchar(250) not null
   , year varchar(10)
   , plot varchar(4000)
@@ -16,6 +16,6 @@ create table gather.omdb_main
   , website varchar(1000)
   , imdbvotes varchar(1000)
   , tstamp date not null default CURRENT_DATE
-  , PRIMARY KEY (imdbid)
-  , FOREIGN KEY (imdbid) references gather.kino_movies(imdb_id) 
+  , PRIMARY KEY (imdb_id)
+  , FOREIGN KEY (imdb_id) references gather.kino_movies(imdb_id)
   )

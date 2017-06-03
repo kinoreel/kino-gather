@@ -2,6 +2,8 @@ import re
 #from fuzzywuzzy import fuzz
 from apiclient.discovery import build
 
+# TODO: Introduce fuzzy logic to ensure that the film returned matches the film we requested.
+
 
 class GetYoutube:
 
@@ -103,10 +105,3 @@ class GetYoutube:
         stats['dislikes']=data['items'][0]['statistics']['dislikeCount']
         stats['comments'] = data['items'][0]['statistics']['commentCount']
         return stats
-
-if __name__=='__main__':
-    get = GetYoutube('AIzaSyARIbJk7JA_hqfRFMC13fdLGQ4G1neusDQ')
-    data = get.get_info('tt2562232', 'Birdman')
-    print(data['youtube_films_other'])
-    print(data['youtube_films_main'])
-    #print(data['youtube_films_other'])

@@ -53,7 +53,3 @@ class Postgres:
         self.pg_cur.execute(sql)
         result = self.pg_cur.fetchall()
         return result
-
-
-if __name__=='__main__':
-    pg = Postgres()
