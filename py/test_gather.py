@@ -3,13 +3,12 @@ import json
 
 from gather import Gather
 from postgres import Postgres
+import GLOBALS
 
-with open('db_auth.json') as auth_file:
-    auth = json.load(auth_file)['postgres_dev']
+auth = GLOBALS.POSTGRES_DEV
 
 pg = Postgres(auth)
 #TODO: Move to test folder
-#TODO: Put db_auth.json into a GLOBALS file.
 
 #
 class TestGatherOMDB(unittest.TestCase):

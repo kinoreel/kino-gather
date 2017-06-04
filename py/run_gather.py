@@ -1,10 +1,10 @@
 import json
 
+import GLOBALS
+
 from gather import Gather
 
-
-with open('db_auth.json') as auth_file:
-    auth = json.load(auth_file)['postgres_dev']
+auth = GLOBALS.POSTGRES_DEV
 
 get = Gather(auth)
 
