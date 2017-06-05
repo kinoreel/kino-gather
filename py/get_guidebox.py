@@ -6,7 +6,8 @@ class GetGuidebox:
     def __init__(self, api_key):
         guidebox.api_key = api_key
 
-    def get_info(self, imdb_id):
+    def get_info(self, api_param):
+        imdb_id = api_param[0]
         result = {}
         movie = guidebox.Search.movies(field='id', id_type='imdb', query=imdb_id, region='gb')
         try:
@@ -18,8 +19,9 @@ class GetGuidebox:
         result['guidebox_main'] = [dict({key: movie_info[key] for key in main_keys}, **{'imdb_id': imdb_id})]
 
         result['guidebox_cast'] = [{'name': x['name'],
-                                    'movie_imdb_id': imdb_id,
-                                    'imdb_id': x['imdb']}
+                                    'imdb_id': imdb_id,
+                                    'person_imdb_id': x['imdb']}
+
                                    for x in movie_info['cast']]
 
         result['guidebox_genres'] = [{'genre': x['title'],
@@ -29,8 +31,8 @@ class GetGuidebox:
         result['guidebox_crew'] = []
         for role in ('directors', 'writers'):
             for person in movie_info[role]:
-                result['guidebox_crew'].append({'movie_imdb_id': imdb_id,
-                                                'imdb_id': person['imdb'],
+                result['guidebox_crew'].append({'imdb_id': imdb_id,
+                                                'person_imdb_id': person['imdb'],
                                                 'name': person['name'],
                                                 'job': role[:-1]})
 
@@ -64,13 +66,4 @@ class GetGuidebox:
                     result['guidebox_prices'].append(dict(format, **{'imdb_id': imdb_id, 'source': 'youtube'}))
 
         return result
-
-    # DB TABLES
-    # guidebox_cast: imdb_id, movie_imdb_id, name
-    # guidebox_main: imdb_id, id, rating, duration, overview, title, release_date, wikipedia_id, metacritic
-    # guidebox_genres: imdb_id, genre
-    # guidebox_prices: imdb_id, price, pre_order, format, type, source
-    # guidebox_trailers: imdb_id, source, embed, display_name, link, type
-    # guidebox_crew: imdb_id, job, name, movie_imdb_id
-    # guidebox_sources: imdb_id, source, link, display_name, type
 

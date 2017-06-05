@@ -5,6 +5,7 @@ import GLOBALS
 from get_omdb import GetOMDB
 from get_tmdb import GetTMDB
 from get_youtube import GetYoutube
+from get_guidebox import GetGuidebox
 from postgres import Postgres
 
 
@@ -13,17 +14,19 @@ class Gather(object):
 
     def __init__(self, db_conn):
 
+        omdb_key = GLOBALS.OMDB_API
         youtube_films_api_key = GLOBALS.YOUTUBE_FILMS_API
         tmdb_api_key = GLOBALS.TMDB_API
+        guidebox_api_key = GLOBALS.GUIDEBOX_API
 
         self.pg = Postgres(db_conn)
-        self.omdb = GetOMDB()
-        self.omdb.bad_table = 'omdb_bad'
+        self.omdb = GetOMDB(omdb_key)
+        self.omdb.name = 'omdb'
         self.omdb.sql = 'select imdb_id ' \
                           'from gather.kino_movies ' \
                          'except ' \
-                         'select imdbid ' \
-                           'from ( select imdbid ' \
+                         'select imdb_id ' \
+                           'from ( select imdb_id ' \
                                     'from gather.omdb_main ' \
                                    'union ' \
                                   'select imdb_id ' \
@@ -31,7 +34,7 @@ class Gather(object):
                                 ') as tried_ids'
 
         self.tmdb = GetTMDB(tmdb_api_key)
-        self.tmdb.mbad_table = 'tmdb_bad'
+        self.tmdb.name = 'tmdb'
         self.tmdb.sql = 'select imdb_id ' \
                           'from gather.kino_movies ' \
                          'except ' \
@@ -44,7 +47,7 @@ class Gather(object):
                                 ') as tried_ids'
 
         self.youtube_films = GetYoutube(youtube_films_api_key)
-        self.youtube_films.main_table = 'youtube_films_bad'
+        self.youtube_films.name = 'youtube_films'
         self.youtube_films.sql = 'select ids_to_get.imdb_id, y.title ' \
                                   'from ( select imdb_id ' \
                                            'from gather.kino_movies ' \
@@ -57,13 +60,28 @@ class Gather(object):
                                                     'from gather.youtube_films_bad ' \
                                                 ') as tried_ids ' \
                                         ') as ids_to_get ' \
-                                  'join gather.omdb_main y ' \
-                                    'on ids_to_get.imdb_id = y.imdbid'
+                                  'join gather.tmdb_main y ' \
+                                    'on ids_to_get.imdb_id = y.imdb_id'
 
-        self.apis = [ self.omdb
-                    , self.tmdb
-                    , self.youtube_films
-                    ]
+        self.guidebox = GetGuidebox(guidebox_api_key)
+        self.guidebox.name = 'guidebox'
+        self.guidebox.sql = 'select imdb_id ' \
+                        'from gather.kino_movies ' \
+                        'except ' \
+                        'select imdb_id ' \
+                        'from ( select imdb_id ' \
+                        'from gather.guidebox_main ' \
+                        'union ' \
+                        'select imdb_id ' \
+                        'from gather.guidebox_bad ' \
+                        ') as tried_ids'
+
+
+        self.apis = { 'omdb': self.omdb
+                    , 'tmdb': self.tmdb
+                    , 'youtube_films': self.youtube_films
+                    , 'guidebox' : self.guidebox
+                    }
 
     def get_imdb_ids(self, api):
         imdb_ids = self.pg.run_query(api.sql)
@@ -85,35 +103,30 @@ class Gather(object):
         self.pg.pg_conn.commit()
 
     def update_gather_table(self, api):
-        imdb_ids = self.get_imdb_ids(api)
+        api_params = self.get_imdb_ids(api)
         c = 0
-        for id in imdb_ids:
+        for param in api_params:
             c +=1
-            movie_info = self.get_movie_data(api, id)
+            movie_info = self.get_movie_data(api, param)
             if movie_info:
                 self.insert_data(movie_info)
             else:
-                self.insert_bad_id(api, id)
+                self.insert_bad_id(api, param[0])
             if divmod(c, 15) == 0:
-                self.pg.commit()
+                self.pg.pg_conn.commit()
+        self.pg.pg_conn.commit()
 
     def insert_bad_id(self, api, imdb_id):
-        sql = "insert into gather.{0} values (%s)".format(api.bad_table)
+        sql = "insert into gather.{0} values (%s)".format(api.name+'_bad')
         self.pg.pg_cur.execute(sql, (imdb_id, ))
 
     def gather_new_kino_movies(self):
-        for api in self.apis:
+        for name, api in self.apis.items():
             self.update_gather_table(api)
 
     def gather_one_movie(self, imdb_id):
-        movie_data = []
-        for api in self.apis:
-            movie_data.append(api.get_info(imdb_id))
+        movie_data = {}
+        for name, api in self.apis.items():
+            if name in ['tmdb', 'omdb', 'guidebox']:
+                movie_data[name]= self.get_movie_data(api, (imdb_id,))
         return movie_data
-
-
-if __name__ =='__main__':
-    with open('db_auth.json') as auth_file:
-        auth = json.load(auth_file)['postgres_dev']
-    get = Gather(auth)
-
