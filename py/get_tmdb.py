@@ -60,7 +60,7 @@ class GetTMDB(object):
         del api_data["lists"]
         del api_data["changes"]
         del api_data["trailers"]
-        #TODO We actually want data for spoken languages and belongs_to_collection, but they are dictionarys.
+        #TODO We actually want data for spoken languages and belongs_to_collection, but they are dictionaries.
         del api_data['spoken_languages']
         del api_data['belongs_to_collection']
         main_data = [api_data]

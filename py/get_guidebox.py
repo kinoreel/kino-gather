@@ -15,14 +15,13 @@ class GetGuidebox:
         except KeyError:
             return result
 
-
-
         main_keys = ['duration', 'metacritic', 'title', 'overview', 'rating', 'release_date', 'id', 'wikipedia_id']
         result['guidebox_main'] = [dict({key: movie_info[key] for key in main_keys}, **{'imdb_id': imdb_id})]
 
         result['guidebox_cast'] = [{'name': x['name'],
                                     'imdb_id': imdb_id,
                                     'person_imdb_id': x['imdb']}
+
                                    for x in movie_info['cast']]
 
         result['guidebox_genres'] = [{'genre': x['title'],
@@ -67,3 +66,4 @@ class GetGuidebox:
                     result['guidebox_prices'].append(dict(format, **{'imdb_id': imdb_id, 'source': 'youtube'}))
 
         return result
+
