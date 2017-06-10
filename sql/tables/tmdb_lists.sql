@@ -8,6 +8,6 @@ create table gather.tmdb_lists
   , list_type varchar(100)
   , name varchar(100)
   , poster_path varchar(100)
-   , tstamp date not null default CURRENT_DATE   
+  , tstamp date not null default CURRENT_DATE
   );
 

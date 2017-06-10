@@ -3,4 +3,5 @@ create table gather.guidebox_crew
   , person_imdb_id varchar(10)
   , name varchar(100)
   , job varchar(100)
+  , tstamp date not null default CURRENT_DATE
   );

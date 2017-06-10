@@ -5,4 +5,5 @@ create table gather.guidebox_prices
   , format varchar(10)
   , type varchar(100)
   , source varchar(100)
+  , tstamp date not null default CURRENT_DATE
   );

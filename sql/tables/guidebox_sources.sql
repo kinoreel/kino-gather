@@ -4,4 +4,5 @@ create table gather.guidebox_sources
   , link varchar(100)
   , display_name  varchar(100)
   , type  varchar(30)
+  , tstamp date not null default CURRENT_DATE
   );

@@ -20,6 +20,8 @@ create table gather.tmdb_main
    , video varchar(1000)
    , backdrop_path varchar(100)
    , tstamp date not null default CURRENT_DATE
+   , PRIMARY KEY (imdb_id)
+   , FOREIGN KEY (imdb_id) references gather.kino_movies(imdb_id)
    );
 
 

@@ -5,4 +5,5 @@ create table gather.guidebox_trailers
   , display_name  varchar(100)
   , link  varchar(100)
   , type  varchar(100)
+  , tstamp date not null default CURRENT_DATE
   );
