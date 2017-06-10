@@ -45,8 +45,6 @@ class GetOMDB(object):
             except:
                 pass
 
-
-
         cast_data=[]
         if 'actors' in api_data.keys():
             for actor in api_data['actors'].split(','):

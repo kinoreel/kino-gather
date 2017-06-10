@@ -16,4 +16,7 @@ create table gather.youtube_films_other
     , comments varchar(10)
     , dislikes varchar(10)
     , likes varchar(10)
+    , tstamp date default current_date()
     )
+
+create index youtube_other_imdb on gather.youtube_films_other(imdb_id);

@@ -1,0 +1,7 @@
+change raw tables into correct datatypes - order by in tmdb_posters does not work becuase it is a varchar
+
+create unit tests for gather via views
+create function for gathering apis
+admire for a bit
+add indexes
+review - fix bad tables

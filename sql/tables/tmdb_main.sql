@@ -6,8 +6,8 @@ create table gather.tmdb_main
    , overview varchar(4000)
    , runtime varchar(100)
    , revenue varchar(100)
-   , budget varchar(100)
-   , release_date varchar(100)
+   , budget real
+   , release_date real
    , poster_path varchar(100)
    , original_language varchar(100)
    , original_title varchar(100)

@@ -11,3 +11,5 @@ type varchar(100)
   , tstamp date not null default CURRENT_DATE   
 
 );
+
+create index tmdb_videos_imdb on gather.tmdb_videos(imdb_id);
