@@ -9,4 +9,6 @@ create table gather.tmdb_videos
    , size varchar(100)
    , type varchar(100)
    , tstamp date not null default CURRENT_DATE
+   , PRIMARY KEY (imdb_id, id)
+   , FOREIGN KEY (imdb_id) references gather.kino_movies(imdb_id)
 );

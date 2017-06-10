@@ -8,4 +8,5 @@ create table gather.tmdb_backdrops(
    , vote_count varchar(100)
    , width varchar(100)
    , tstamp date not null default CURRENT_DATE
+   , FOREIGN KEY (imdb_id) references gather.kino_movies(imdb_id)
 );

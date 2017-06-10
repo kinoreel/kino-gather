@@ -4,4 +4,6 @@ create table gather.guidebox_crew
   , name varchar(100)
   , job varchar(100)
   , tstamp date not null default CURRENT_DATE
+  , PRIMARY KEY (imdb_id, name, job)
+  , FOREIGN KEY (imdb_id) references gather.kino_movies(imdb_id)
   );

@@ -8,5 +8,7 @@ create table gather.tmdb_cast
    , order_of_appearance varchar(100) not null
    , profile_path varchar(100)
    , tstamp date not null default CURRENT_DATE
+   , PRIMARY KEY (imdb_id, name, character)
+   , FOREIGN KEY (imdb_id) references gather.kino_movies(imdb_id)
    );
 

@@ -9,5 +9,6 @@ create table gather.tmdb_lists
   , name varchar(100)
   , poster_path varchar(100)
   , tstamp date not null default CURRENT_DATE
+  , FOREIGN KEY (imdb_id) references gather.kino_movies(imdb_id)
   );
 
