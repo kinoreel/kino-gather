@@ -16,4 +16,7 @@ create table gather.youtube_films_other
     , comments varchar(10)
     , dislikes varchar(10)
     , likes varchar(10)
+    , tstamp date default current_date()
+    , PRIMARY KEY (imdb_id, video_id)
+    , FOREIGN KEY (imdb_id) references gather.kino_movies(imdb_id)
     )

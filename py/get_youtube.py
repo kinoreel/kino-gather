@@ -3,6 +3,7 @@ import re
 from apiclient.discovery import build
 
 # TODO: Introduce fuzzy logic to ensure that the film returned matches the film we requested.
+# TODO: There are additional statistic we can be grabbing - line 106
 
 
 class GetYoutube:
@@ -101,7 +102,7 @@ class GetYoutube:
 
     def fx_stats(self, data):
         stats={}
-        stats['likes']=data['items'][0]['statistics']['likeCount']
-        stats['dislikes']=data['items'][0]['statistics']['dislikeCount']
-        stats['comments'] = data['items'][0]['statistics']['commentCount']
+        stats['likes']=data['items'][0]['statistics'].get('likeCount')
+        stats['dislikes']=data['items'][0]['statistics'].get('dislikeCount')
+        stats['comments'] = data['items'][0]['statistics'].get('commentCount')
         return stats

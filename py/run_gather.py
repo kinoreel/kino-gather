@@ -1,5 +1,3 @@
-import json
-
 import GLOBALS
 
 from gather import Gather
