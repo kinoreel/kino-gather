@@ -23,6 +23,3 @@ create table gather.tmdb_main
    , PRIMARY KEY (imdb_id)
    , FOREIGN KEY (imdb_id) references gather.kino_movies(imdb_id)
    );
-
-
-
