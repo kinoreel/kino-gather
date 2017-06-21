@@ -55,8 +55,7 @@
               <autocommit>true</autocommit>
               <srcFiles>
                 <srcFile>sql/tables/kino_movies.sql</srcFile>
-                <srcFile>sql/tables/view2kino_movies.sql</srcFile>
-                <srcFile>sql/table_data/view2kino_movies.sql</srcFile>
+                <srcFile>sql/tables/views2kino_tables.sql</srcFile>
                 <srcFile>sql/tables/guidebox_main.sql</srcFile>
                 <srcFile>sql/tables/guidebox_bad.sql</srcFile>
                 <srcFile>sql/tables/guidebox_cast.sql</srcFile>
@@ -103,7 +102,7 @@
               <delimiterType>normal</delimiterType>
               <autocommit>true</autocommit>
               <srcFiles>
-                <srcFile>sql/table_data/view2kino_movies.sql</srcFile>
+                <srcFile>sql/table_data/views2kino_tables.sql</srcFile>
               </srcFiles>
             </configuration>
           </execution>
