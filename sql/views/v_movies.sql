@@ -4,6 +4,7 @@ select imdb_id
       , runtime
       , rated
       , released
-  from gather.omdb_main
- where imdb_id not in ( select imdb_id
-                          from kino.movies );
+  from gather.omdb_main x
+  left join kino.movies y
+    on x.imdb_id = y.imdb_id
+ where y.imdb_id is null;
