@@ -1,8 +1,9 @@
 create or replace view v_person_roles as
-  from ( select name
+select role
+  from ( select role
            from gather.tmdb_cast
           union all
-         select name
+         select role
            from gather.tmdb_crew
        ) y
   left join kino.person_roles x
