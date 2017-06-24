@@ -21,6 +21,7 @@ class TestGatherOMDB(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.pg = Postgres(server, port, db, user, pw)
+        cls.get = Gather(server, port, db, user, pw, omdb_api, tmdb_api, guidebox_api, youtube_films_api)
 
         cls.pg.pg_cur.execute("delete from gather.omdb_bad")
         cls.pg.pg_cur.execute("delete from gather.omdb_main")
@@ -35,8 +36,7 @@ class TestGatherOMDB(unittest.TestCase):
         cls.omdb_tables = ['omdb_cast', 'omdb_crew', 'omdb_main', 'omdb_ratings']
 
     def setUp(self):
-        self.get = Gather(server, port, db, user, pw, omdb_api, tmdb_api, guidebox_api, youtube_films_api)
-        self.pg = Postgres(server, port, db, user, pw)
+        pass
 
     def test_get_imdb_ids_omdb(self):
         omdb = self.get.apis['omdb']
@@ -61,7 +61,7 @@ class TestGatherOMDB(unittest.TestCase):
         for key in dict_keys:
             sql = "select column_name from information_schema.columns where table_name = %s and column_name <> 'tstamp'"
             self.pg.pg_cur.execute(sql, (key,))
-            table_columns = [ e[0] for e in pg.pg_cur.fetchall() ]
+            table_columns = [ e[0] for e in self.pg.pg_cur.fetchall() ]
             table_keys = [e.lower() for e in data[key][0].keys()]
             self.assertEqual(sorted(table_keys), sorted(table_columns))
 
@@ -74,7 +74,7 @@ class TestGatherOMDB(unittest.TestCase):
         for key in dict_keys:
             sql = 'select count(*) from {0}.{1}'.format('gather', key)
             self.pg.pg_cur.execute(sql)
-            table_count = pg.pg_cur.fetchall()[0][0]
+            table_count = self.pg.pg_cur.fetchall()[0][0]
             if key == 'omdb_main':
                 self.assertEqual(table_count, 1)
             else:
@@ -92,10 +92,11 @@ class TestGatherOMDB(unittest.TestCase):
         for table_name in self.omdb_tables:
             sql = 'select imdb_id from {0}.{1} group by imdb_id'.format('gather', table_name)
             self.pg.pg_cur.execute(sql)
-            imdb_ids = [e[0] for e in pg.pg_cur.fetchall()]
+            imdb_ids = [e[0] for e in self.pg.pg_cur.fetchall()]
             self.assertEqual(sorted(imdb_ids),  ['tt0245712', 'tt2562232', 'tt4285496'])
             sql = 'delete from {0}.{1}'.format('gather', table_name)
             self.pg.pg_cur.execute(sql)
+            self.pg.pg_conn.commit()
 
     @classmethod
     def tearDownClass(cls):
@@ -110,29 +111,24 @@ class TestGatherOMDB(unittest.TestCase):
 
 class TestGatherYoutubeFilms(unittest.TestCase):
 
-    def setUp(self):
-        self.get = Gather('212.71.253.63', '8089', 'kino', 'kino', 'kino123', '6f435008', '81f115d2babb0cbe8c8317e92909c180', 'ff94f31a565d34f210d5f3a8d9774e06389f4b27', 'AIzaSyARIbJk7JA_hqfRFMC13fdLGQ4G1neusDQ')
-        pg.pg_cur.execute("delete from gather.youtube_films_bad")
-        pg.pg_cur.execute("delete from gather.youtube_films_main")
-        pg.pg_cur.execute("delete from gather.youtube_films_other")
-        pg.pg_cur.execute("delete from gather.tmdb_main")
-        pg.pg_cur.execute("delete from gather.kino_movies")
-        pg.pg_cur.execute("insert into gather.kino_movies values ('tt4285496')")
-        pg.pg_cur.execute("insert into gather.kino_movies values ('tt2562232')")
-        pg.pg_cur.execute("insert into gather.kino_movies values ('tt0245712')")
-        pg.pg_cur.execute("insert into gather.tmdb_main (imdb_id, id, title) values ('tt4285496', '1', 'embrace of the serpent')")
-        pg.pg_cur.execute("insert into gather.tmdb_main (imdb_id, id, title) values ('tt2562232', '1', 'birdman or (the unexpected virtue of ignorance)')")
-        pg.pg_cur.execute("insert into gather.tmdb_main (imdb_id, id, title) values ('tt0245712', '1', 'amores perros')")
-        pg.pg_conn.commit()
-        self.youtube_films_tables = ['youtube_films_main', 'youtube_films_other']
+    @classmethod
+    def setUpClass(cls):
+        cls.pg = Postgres(server, port, db, user, pw)
+        cls.get = Gather(server, port, db, user, pw, omdb_api, tmdb_api, guidebox_api, youtube_films_api)
+        cls.pg.pg_cur.execute("delete from gather.youtube_films_bad")
+        cls.pg.pg_cur.execute("delete from gather.youtube_films_main")
+        cls.pg.pg_cur.execute("delete from gather.youtube_films_other")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_main")
+        cls.pg.pg_cur.execute("delete from gather.kino_movies")
+        cls.pg.pg_cur.execute("insert into gather.kino_movies values ('tt4285496')")
+        cls.pg.pg_cur.execute("insert into gather.kino_movies values ('tt2562232')")
+        cls.pg.pg_cur.execute("insert into gather.kino_movies values ('tt0245712')")
+        cls.pg.pg_cur.execute("insert into gather.tmdb_main (imdb_id, id, title) values ('tt4285496', '1', 'embrace of the serpent')")
+        cls.pg.pg_cur.execute("insert into gather.tmdb_main (imdb_id, id, title) values ('tt2562232', '1', 'birdman or (the unexpected virtue of ignorance)')")
+        cls.pg.pg_cur.execute("insert into gather.tmdb_main (imdb_id, id, title) values ('tt0245712', '1', 'amores perros')")
+        cls.pg.pg_conn.commit()
+        cls.youtube_films_tables = ['youtube_films_main', 'youtube_films_other']
 
-    def tearDown(self):
-        pg.pg_cur.execute("delete from gather.youtube_films_bad")
-        pg.pg_cur.execute("delete from gather.youtube_films_main")
-        pg.pg_cur.execute("delete from gather.youtube_films_other")
-        pg.pg_cur.execute("delete from gather.tmdb_main")
-        pg.pg_cur.execute("delete from gather.kino_movies")
-        pg.pg_conn.commit()
 
     def test_get_imdb_ids_youtube_films(self):
         you_films = self.get.apis['youtube_films']
@@ -140,13 +136,13 @@ class TestGatherYoutubeFilms(unittest.TestCase):
         self.assertEqual(sorted(imdb_ids),[('tt0245712', 'amores perros'), ('tt2562232', 'birdman or (the unexpected virtue of ignorance)'), ('tt4285496', 'embrace of the serpent')])
 
     def test_get_imdb_ids_with_bad_youtube_films(self):
-        pg.pg_cur.execute("insert into gather.youtube_films_bad values ('tt0245712')")
-        pg.pg_conn.commit()
+        self.pg.pg_cur.execute("insert into gather.youtube_films_bad values ('tt0245712')")
+        self.pg.pg_conn.commit()
         you_films = self.get.apis['youtube_films']
         imdb_ids = self.get.get_imdb_ids(you_films)
         self.assertEqual(sorted(imdb_ids), [('tt2562232', 'birdman or (the unexpected virtue of ignorance)'), ('tt4285496', 'embrace of the serpent')])
-        pg.pg_cur.execute("delete from gather.youtube_films_bad where imdb_id = 'tt0245712'")
-        pg.pg_conn.commit()
+        self.pg.pg_cur.execute("delete from gather.youtube_films_bad where imdb_id = 'tt0245712'")
+        self.pg.pg_conn.commit()
 
     def test_get_movie_data_youtube_films(self):
         you_films = self.get.apis['youtube_films']
@@ -156,8 +152,8 @@ class TestGatherYoutubeFilms(unittest.TestCase):
         self.assertEqual(dict_keys, self.youtube_films_tables )
         for key in dict_keys:
             sql = "select column_name from information_schema.columns where table_name = %s and column_name <> 'tstamp'"
-            pg.pg_cur.execute(sql, (key,))
-            table_columns = [ e[0] for e in pg.pg_cur.fetchall() ]
+            self.pg.pg_cur.execute(sql, (key,))
+            table_columns = [ e[0] for e in self.pg.pg_cur.fetchall() ]
             table_keys = [e.lower() for e in data[key][0].keys()]
             self.assertEqual(sorted(table_keys), sorted(table_columns))
 
@@ -169,63 +165,75 @@ class TestGatherYoutubeFilms(unittest.TestCase):
         dict_keys = sorted(list(data.keys()))
         for key in dict_keys:
             sql = 'select count(*) from {0}.{1}'.format('gather', key)
-            pg.pg_cur.execute(sql)
-            table_count = pg.pg_cur.fetchall()[0][0]
+            self.pg.pg_cur.execute(sql)
+            table_count = self.pg.pg_cur.fetchall()[0][0]
             if key == 'youtube_films_main':
                 self.assertEqual(table_count, 1)
             else:
                 self.assertGreaterEqual(table_count, 1)
-        pg.pg_cur.execute("delete from gather.youtube_films_main")
-        pg.pg_cur.execute("delete from gather.youtube_films_other")
-        pg.pg_conn.commit()
+        self.pg.pg_cur.execute("delete from gather.youtube_films_main")
+        self.pg.pg_cur.execute("delete from gather.youtube_films_other")
+        self.pg.pg_conn.commit()
 
     def test_update_gather_table_youtube_films(self):
         youtube_films = self.get.apis['youtube_films']
         self.get.update_gather_table(youtube_films)
         sql = 'select imdb_id from gather.youtube_films_bad'
-        pg.pg_cur.execute(sql)
-        imdb_ids = [e[0] for e in pg.pg_cur.fetchall()]
+        self.pg.pg_cur.execute(sql)
+        imdb_ids = [e[0] for e in self.pg.pg_cur.fetchall()]
         self.assertEqual(imdb_ids, [])
         sql = 'select imdb_id from gather.youtube_films_main group by imdb_id'
-        pg.pg_cur.execute(sql)
-        imdb_ids = [e[0] for e in pg.pg_cur.fetchall()]
+        self.pg.pg_cur.execute(sql)
+        imdb_ids = [e[0] for e in self.pg.pg_cur.fetchall()]
         self.assertEqual(sorted(imdb_ids),  ['tt0245712', 'tt2562232', 'tt4285496'])
         sql = 'delete from  gather.youtube_films_main'
-        pg.pg_cur.execute(sql)
+        self.pg.pg_cur.execute(sql)
         sql = 'select imdb_id from gather.youtube_films_other group by imdb_id'
-        pg.pg_cur.execute(sql)
-        imdb_ids = [e[0] for e in pg.pg_cur.fetchall()]
+        self.pg.pg_cur.execute(sql)
+        imdb_ids = [e[0] for e in self.pg.pg_cur.fetchall()]
         self.assertEqual(sorted(imdb_ids), ['tt0245712', 'tt4285496'])
         sql = 'delete from  gather.youtube_films_other'
-        pg.pg_cur.execute(sql)
+        self.pg.pg_cur.execute(sql)
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.pg = Postgres(server, port, db, user, pw)
+        cls.pg.pg_cur.execute("delete from gather.youtube_films_bad")
+        cls.pg.pg_cur.execute("delete from gather.youtube_films_main")
+        cls.pg.pg_cur.execute("delete from gather.youtube_films_other")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_main")
+        cls.pg.pg_cur.execute("delete from gather.kino_movies")
+        cls.pg.pg_conn.commit()
 
 class TestGatherTMDB(unittest.TestCase):
 
-    def setUp(self):
-        self.get = Gather('212.71.253.63', '8089', 'kino', 'kino', 'kino123', '6f435008', '81f115d2babb0cbe8c8317e92909c180', 'ff94f31a565d34f210d5f3a8d9774e06389f4b27', 'AIzaSyARIbJk7JA_hqfRFMC13fdLGQ4G1neusDQ')
-        pg.pg_cur.execute("delete from gather.tmdb_bad")
-        pg.pg_cur.execute("delete from gather.tmdb_alternative_titles")
-        pg.pg_cur.execute("delete from gather.tmdb_backdrops")
-        pg.pg_cur.execute("delete from gather.tmdb_cast")
-        pg.pg_cur.execute("delete from gather.tmdb_companies")
-        pg.pg_cur.execute("delete from gather.tmdb_crew")
-        pg.pg_cur.execute("delete from gather.tmdb_genres")
-        pg.pg_cur.execute("delete from gather.tmdb_keywords")
-        pg.pg_cur.execute("delete from gather.tmdb_lists")
-        pg.pg_cur.execute("delete from gather.tmdb_main")
-        pg.pg_cur.execute("delete from gather.tmdb_posters")
-        pg.pg_cur.execute("delete from gather.tmdb_release_dates")
-        pg.pg_cur.execute("delete from gather.tmdb_similar")
-        pg.pg_cur.execute("delete from gather.tmdb_translations")
-        pg.pg_cur.execute("delete from gather.tmdb_videos")
-        pg.pg_cur.execute("delete from gather.kino_movies")
-        pg.pg_cur.execute("insert into gather.kino_movies values ('tt4285496')")
-        pg.pg_cur.execute("insert into gather.kino_movies values ('tt2562232')")
-        pg.pg_cur.execute("insert into gather.kino_movies values ('tt0245712')")
-        pg.pg_conn.commit()
+    @classmethod
+    def setUpClass(cls):
+        cls.get = Gather(server, port, db, user, pw, omdb_api, tmdb_api, guidebox_api, youtube_films_api)
+        cls.pg = Postgres(server, port, db, user, pw)
 
-        self.tmdb_tables = [ 'tmdb_alternative_titles'
+        cls.pg.pg_cur.execute("delete from gather.tmdb_bad")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_alternative_titles")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_backdrops")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_cast")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_companies")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_crew")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_genres")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_keywords")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_lists")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_main")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_posters")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_release_dates")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_similar")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_translations")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_videos")
+        cls.pg.pg_cur.execute("delete from gather.kino_movies")
+        cls.pg.pg_cur.execute("insert into gather.kino_movies values ('tt4285496')")
+        cls.pg.pg_cur.execute("insert into gather.kino_movies values ('tt2562232')")
+        cls.pg.pg_cur.execute("insert into gather.kino_movies values ('tt0245712')")
+        cls.pg.pg_conn.commit()
+
+        cls.tmdb_tables = [ 'tmdb_alternative_titles'
                             , 'tmdb_backdrops'
                             , 'tmdb_cast'
                             , 'tmdb_companies'
@@ -240,38 +248,19 @@ class TestGatherTMDB(unittest.TestCase):
                             , 'tmdb_translations'
                             , 'tmdb_videos' ]
 
-    def tearDown(self):
-        pg.pg_cur.execute("delete from gather.tmdb_bad")
-        pg.pg_cur.execute("delete from gather.tmdb_alternative_titles")
-        pg.pg_cur.execute("delete from gather.tmdb_backdrops")
-        pg.pg_cur.execute("delete from gather.tmdb_cast")
-        pg.pg_cur.execute("delete from gather.tmdb_companies")
-        pg.pg_cur.execute("delete from gather.tmdb_crew")
-        pg.pg_cur.execute("delete from gather.tmdb_genres")
-        pg.pg_cur.execute("delete from gather.tmdb_keywords")
-        pg.pg_cur.execute("delete from gather.tmdb_lists")
-        pg.pg_cur.execute("delete from gather.tmdb_main")
-        pg.pg_cur.execute("delete from gather.tmdb_posters")
-        pg.pg_cur.execute("delete from gather.tmdb_release_dates")
-        pg.pg_cur.execute("delete from gather.tmdb_similar")
-        pg.pg_cur.execute("delete from gather.tmdb_translations")
-        pg.pg_cur.execute("delete from gather.tmdb_videos")
-        pg.pg_cur.execute("delete from gather.kino_movies")
-        pg.pg_conn.commit()
-
     def test_get_imdb_ids_tmdb(self):
         tmdb = self.get.apis['tmdb']
         imdb_ids = self.get.get_imdb_ids(tmdb)
         self.assertEqual(sorted(imdb_ids), [('tt0245712',), ('tt2562232',), ('tt4285496',)])
 
     def test_get_imdb_ids_tmdb_with_bad(self):
-        pg.pg_cur.execute("insert into gather.tmdb_bad values ('tt0245712')")
-        pg.pg_conn.commit()
+        self.pg.pg_cur.execute("insert into gather.tmdb_bad values ('tt0245712')")
+        self.pg.pg_conn.commit()
         tmdb = self.get.apis['tmdb']
         imdb_ids = self.get.get_imdb_ids(tmdb)
         self.assertEqual(sorted(imdb_ids), [('tt2562232',), ('tt4285496',)])
-        pg.pg_cur.execute("delete from gather.tmdb_bad where imdb_id = 'tt0245712'")
-        pg.pg_conn.commit()
+        self.pg.pg_cur.execute("delete from gather.tmdb_bad where imdb_id = 'tt0245712'")
+        self.pg.pg_conn.commit()
 
     def test_get_movie_data_tmdb(self):
         tmdb = self.get.apis['tmdb']
@@ -281,8 +270,8 @@ class TestGatherTMDB(unittest.TestCase):
         self.assertEqual(dict_keys, self.tmdb_tables)
         for key in dict_keys:
             sql = "select column_name from information_schema.columns where table_name = %s and column_name <> 'tstamp'"
-            pg.pg_cur.execute(sql, (key,))
-            table_columns = [e[0] for e in pg.pg_cur.fetchall()]
+            self.pg.pg_cur.execute(sql, (key,))
+            table_columns = [e[0] for e in self.pg.pg_cur.fetchall()]
             table_keys = [e.lower() for e in data[key][0].keys()]
             self.assertEqual(sorted(table_keys), sorted(table_columns))
 
@@ -294,61 +283,86 @@ class TestGatherTMDB(unittest.TestCase):
         dict_keys = sorted(list(data.keys()))
         for key in dict_keys:
             sql = 'select count(*) from {0}.{1}'.format('gather', key)
-            pg.pg_cur.execute(sql)
-            table_count = pg.pg_cur.fetchall()[0][0]
+            self.pg.pg_cur.execute(sql)
+            table_count = self.pg.pg_cur.fetchall()[0][0]
             if key == 'tmdb_main':
                 self.assertEqual(table_count, 1)
             else:
                 self.assertGreaterEqual(table_count, 1)
-        pg.pg_cur.execute("delete from gather.tmdb_bad")
-        pg.pg_cur.execute("delete from gather.tmdb_alternative_titles")
-        pg.pg_cur.execute("delete from gather.tmdb_backdrops")
-        pg.pg_cur.execute("delete from gather.tmdb_cast")
-        pg.pg_cur.execute("delete from gather.tmdb_companies")
-        pg.pg_cur.execute("delete from gather.tmdb_crew")
-        pg.pg_cur.execute("delete from gather.tmdb_genres")
-        pg.pg_cur.execute("delete from gather.tmdb_keywords")
-        pg.pg_cur.execute("delete from gather.tmdb_lists")
-        pg.pg_cur.execute("delete from gather.tmdb_main")
-        pg.pg_cur.execute("delete from gather.tmdb_posters")
-        pg.pg_cur.execute("delete from gather.tmdb_release_dates")
-        pg.pg_cur.execute("delete from gather.tmdb_similar")
-        pg.pg_cur.execute("delete from gather.tmdb_translations")
-        pg.pg_cur.execute("delete from gather.tmdb_videos")
-        pg.pg_cur.execute("delete from gather.kino_movies")
-        pg.pg_conn.commit()
+        self.pg.pg_cur.execute("delete from gather.tmdb_bad")
+        self.pg.pg_cur.execute("delete from gather.tmdb_alternative_titles")
+        self.pg.pg_cur.execute("delete from gather.tmdb_backdrops")
+        self.pg.pg_cur.execute("delete from gather.tmdb_cast")
+        self.pg.pg_cur.execute("delete from gather.tmdb_companies")
+        self.pg.pg_cur.execute("delete from gather.tmdb_crew")
+        self.pg.pg_cur.execute("delete from gather.tmdb_genres")
+        self.pg.pg_cur.execute("delete from gather.tmdb_keywords")
+        self.pg.pg_cur.execute("delete from gather.tmdb_lists")
+        self.pg.pg_cur.execute("delete from gather.tmdb_main")
+        self.pg.pg_cur.execute("delete from gather.tmdb_posters")
+        self.pg.pg_cur.execute("delete from gather.tmdb_release_dates")
+        self.pg.pg_cur.execute("delete from gather.tmdb_similar")
+        self.pg.pg_cur.execute("delete from gather.tmdb_translations")
+        self.pg.pg_cur.execute("delete from gather.tmdb_videos")
+        self.pg.pg_conn.commit()
 
     def test_update_gather_table_tmdb(self):
         tmdb = self.get.apis['tmdb']
         self.get.update_gather_table(tmdb)
         for table_name in self.tmdb_tables:
             sql = 'select imdb_id from {0}.{1} group by imdb_id'.format('gather', table_name)
-            pg.pg_cur.execute(sql)
-            imdb_ids = [e[0] for e in pg.pg_cur.fetchall()]
+            self.pg.pg_cur.execute(sql)
+            imdb_ids = [e[0] for e in self.pg.pg_cur.fetchall()]
             self.assertEqual(sorted(imdb_ids), ['tt0245712', 'tt2562232', 'tt4285496'])
             sql = 'delete from {0}.{1}'.format('gather', table_name)
-            pg.pg_cur.execute(sql)
+            self.pg.pg_cur.execute(sql)
+            self.pg.pg_conn.commit()
+
+    @classmethod
+    def tearDownClass(cls):
+
+        cls.get =  Gather(server, port, db, user, pw, omdb_api, tmdb_api, guidebox_api, youtube_films_api)
+        cls.pg = Postgres(server, port, db, user, pw)
+        cls.pg.pg_cur.execute("delete from gather.tmdb_bad")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_alternative_titles")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_backdrops")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_cast")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_companies")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_crew")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_genres")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_keywords")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_lists")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_main")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_posters")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_release_dates")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_similar")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_translations")
+        cls.pg.pg_cur.execute("delete from gather.tmdb_videos")
+        cls.pg.pg_cur.execute("delete from gather.kino_movies")
+        cls.pg.pg_conn.commit()
 
 
 class TestGatherGuidebox(unittest.TestCase):
 
-    def setUp(self):
-        self.get = Gather('212.71.253.63', '8089', 'kino', 'kino', 'kino123', '6f435008', '81f115d2babb0cbe8c8317e92909c180', 'ff94f31a565d34f210d5f3a8d9774e06389f4b27', 'AIzaSyARIbJk7JA_hqfRFMC13fdLGQ4G1neusDQ')
-        pg.pg_cur.execute("delete from gather.guidebox_bad")
-        pg.pg_cur.execute("delete from gather.guidebox_cast")
-        pg.pg_cur.execute("delete from gather.guidebox_main")
-        pg.pg_cur.execute("delete from gather.guidebox_genres")
-        pg.pg_cur.execute("delete from gather.guidebox_prices")
-        pg.pg_cur.execute("delete from gather.guidebox_trailers")
-        pg.pg_cur.execute("delete from gather.guidebox_crew")
-        pg.pg_cur.execute("delete from gather.guidebox_sources")
-        pg.pg_cur.execute("delete from gather.kino_movies")
-        pg.pg_cur.execute("insert into gather.kino_movies values ('tt4285496')")
-        pg.pg_cur.execute("insert into gather.kino_movies values ('tt2562232')")
-        pg.pg_cur.execute("insert into gather.kino_movies values ('tt0245712')")
-        pg.pg_conn.commit()
+    @classmethod
+    def setUpClass(cls):
+        cls.get = Gather(server, port, db, user, pw, omdb_api, tmdb_api, guidebox_api, youtube_films_api)
+        cls.pg = Postgres(server, port, db, user, pw)
+        cls.pg.pg_cur.execute("delete from gather.guidebox_bad")
+        cls.pg.pg_cur.execute("delete from gather.guidebox_cast")
+        cls.pg.pg_cur.execute("delete from gather.guidebox_main")
+        cls.pg.pg_cur.execute("delete from gather.guidebox_genres")
+        cls.pg.pg_cur.execute("delete from gather.guidebox_prices")
+        cls.pg.pg_cur.execute("delete from gather.guidebox_trailers")
+        cls.pg.pg_cur.execute("delete from gather.guidebox_crew")
+        cls.pg.pg_cur.execute("delete from gather.guidebox_sources")
+        cls.pg.pg_cur.execute("delete from gather.kino_movies")
+        cls.pg.pg_cur.execute("insert into gather.kino_movies values ('tt4285496')")
+        cls.pg.pg_cur.execute("insert into gather.kino_movies values ('tt2562232')")
+        cls.pg.pg_cur.execute("insert into gather.kino_movies values ('tt0245712')")
+        cls.pg.pg_conn.commit()
 
-        self.guidebox_tables = [ 'guidebox_main'
+        cls.guidebox_tables = [ 'guidebox_main'
                                , 'guidebox_genres'
                                , 'guidebox_prices'
                                , 'guidebox_trailers'
@@ -356,17 +370,6 @@ class TestGatherGuidebox(unittest.TestCase):
                                , 'guidebox_cast'
                                , 'guidebox_sources' ]
 
-    def tearDown(self):
-        pg.pg_cur.execute("delete from gather.guidebox_bad")
-        pg.pg_cur.execute("delete from gather.guidebox_cast")
-        pg.pg_cur.execute("delete from gather.guidebox_main")
-        pg.pg_cur.execute("delete from gather.guidebox_genres")
-        pg.pg_cur.execute("delete from gather.guidebox_prices")
-        pg.pg_cur.execute("delete from gather.guidebox_trailers")
-        pg.pg_cur.execute("delete from gather.guidebox_crew")
-        pg.pg_cur.execute("delete from gather.guidebox_sources")
-        pg.pg_cur.execute("delete from gather.kino_movies")
-        pg.pg_conn.commit()
 
     def test_get_imdb_ids_guidebox(self):
         guidebox = self.get.apis['guidebox']
@@ -374,13 +377,13 @@ class TestGatherGuidebox(unittest.TestCase):
         self.assertEqual(sorted(imdb_ids), [('tt0245712',), ('tt2562232',), ('tt4285496',)])
 
     def test_get_imdb_ids_guidebox_with_bad(self):
-        pg.pg_cur.execute("insert into gather.guidebox_bad values ('tt0245712')")
-        pg.pg_conn.commit()
+        self.pg.pg_cur.execute("insert into gather.guidebox_bad values ('tt0245712')")
+        self.pg.pg_conn.commit()
         guidebox = self.get.apis['guidebox']
         imdb_ids = self.get.get_imdb_ids(guidebox)
         self.assertEqual(sorted(imdb_ids), [('tt2562232',), ('tt4285496',)])
-        pg.pg_cur.execute("delete from gather.guidebox_bad where imdb_id = 'tt0245712'")
-        pg.pg_conn.commit()
+        self.pg.pg_cur.execute("delete from gather.guidebox_bad where imdb_id = 'tt0245712'")
+        self.pg.pg_conn.commit()
 
     def test_get_movie_data_guidebox(self):
         guidebox = self.get.apis['guidebox']
@@ -390,8 +393,8 @@ class TestGatherGuidebox(unittest.TestCase):
         self.assertEqual(dict_keys, sorted(self.guidebox_tables))
         for key in dict_keys:
             sql = "select column_name from information_schema.columns where table_name = %s and column_name <> 'tstamp'"
-            pg.pg_cur.execute(sql, (key,))
-            table_columns = [e[0] for e in pg.pg_cur.fetchall()]
+            self.pg.pg_cur.execute(sql, (key,))
+            table_columns = [e[0] for e in self.pg.pg_cur.fetchall()]
             table_keys = [e.lower() for e in data[key][0].keys()]
             self.assertEqual(sorted(table_keys), sorted(table_columns))
 
@@ -404,62 +407,68 @@ class TestGatherGuidebox(unittest.TestCase):
         dict_keys = sorted(list(data.keys()))
         for key in dict_keys:
             sql = 'select count(*) from {0}.{1}'.format('gather', key)
-            pg.pg_cur.execute(sql)
-            table_count = pg.pg_cur.fetchall()[0][0]
+            self.pg.pg_cur.execute(sql)
+            table_count = self.pg.pg_cur.fetchall()[0][0]
             if key == 'guidebox_main':
                 self.assertEqual(table_count, 1)
             else:
                 self.assertGreaterEqual(table_count, 1)
-        pg.pg_cur.execute("delete from gather.guidebox_bad")
-        pg.pg_cur.execute("delete from gather.guidebox_cast")
-        pg.pg_cur.execute("delete from gather.guidebox_main")
-        pg.pg_cur.execute("delete from gather.guidebox_genres")
-        pg.pg_cur.execute("delete from gather.guidebox_prices")
-        pg.pg_cur.execute("delete from gather.guidebox_trailers")
-        pg.pg_cur.execute("delete from gather.guidebox_crew")
-        pg.pg_cur.execute("delete from gather.guidebox_sources")
-        pg.pg_cur.execute("delete from gather.kino_movies")
-        pg.pg_conn.commit()
+        self.pg.pg_cur.execute("delete from gather.guidebox_bad")
+        self.pg.pg_cur.execute("delete from gather.guidebox_cast")
+        self.pg.pg_cur.execute("delete from gather.guidebox_main")
+        self.pg.pg_cur.execute("delete from gather.guidebox_genres")
+        self.pg.pg_cur.execute("delete from gather.guidebox_prices")
+        self.pg.pg_cur.execute("delete from gather.guidebox_trailers")
+        self.pg.pg_cur.execute("delete from gather.guidebox_crew")
+        self.pg.pg_cur.execute("delete from gather.guidebox_sources")
+        self.pg.pg_conn.commit()
 
     def test_update_gather_table_guidebox(self):
         guidebox = self.get.apis['guidebox']
         self.get.update_gather_table(guidebox)
         for table_name in self.guidebox_tables:
             sql = 'select imdb_id from {0}.{1} group by imdb_id'.format('gather', table_name)
-            pg.pg_cur.execute(sql)
-            imdb_ids = [e[0] for e in pg.pg_cur.fetchall()]
+            self.pg.pg_cur.execute(sql)
+            imdb_ids = [e[0] for e in self.pg.pg_cur.fetchall()]
             # We might not have inserted a record into every table for guidebox.
             # So we check that the set of imdb_ids inserted is a subset of our imdb_ids.
             # Not the most rigourous check, but oh well. C'est la vie.
             self.assertLessEqual(set(imdb_ids),set(['tt0245712', 'tt2562232', 'tt4285496']))
             sql = 'delete from {0}.{1}'.format('gather', table_name)
-            pg.pg_cur.execute(sql)
+            self.pg.pg_cur.execute(sql)
+            self.pg.pg_conn.commit()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.get = Gather(server, port, db, user, pw, omdb_api, tmdb_api, guidebox_api, youtube_films_api)
+        cls.pg = Postgres(server, port, db, user, pw)
+        cls.pg.pg_cur.execute("delete from gather.guidebox_bad")
+        cls.pg.pg_cur.execute("delete from gather.guidebox_cast")
+        cls.pg.pg_cur.execute("delete from gather.guidebox_main")
+        cls.pg.pg_cur.execute("delete from gather.guidebox_genres")
+        cls.pg.pg_cur.execute("delete from gather.guidebox_prices")
+        cls.pg.pg_cur.execute("delete from gather.guidebox_trailers")
+        cls.pg.pg_cur.execute("delete from gather.guidebox_crew")
+        cls.pg.pg_cur.execute("delete from gather.guidebox_sources")
+        cls.pg.pg_cur.execute("delete from gather.kino_movies")
+        cls.pg.pg_conn.commit()
 
 class TestGather(unittest.TestCase):
 
-    def setUp(self):
-        self.get = Gather('212.71.253.63', '8089', 'kino', 'kino', 'kino123', '6f435008', '81f115d2babb0cbe8c8317e92909c180', 'ff94f31a565d34f210d5f3a8d9774e06389f4b27', 'AIzaSyARIbJk7JA_hqfRFMC13fdLGQ4G1neusDQ')
+    @classmethod
+    def setUpClass(cls):
+        cls.get = Gather(server, port, db, user, pw, omdb_api, tmdb_api, guidebox_api, youtube_films_api)
+        cls.pg = Postgres(server, port, db, user, pw)
         # We have to delete from kino_movies last, due to foreign key constraints
         sql = "select tablename from pg_tables where schemaname = 'gather' and tablename <> 'kino_movies'"
-        pg.pg_cur.execute(sql)
-        tables = [e[0] for e in pg.pg_cur.fetchall()]
+        cls.pg.pg_cur.execute(sql)
+        tables = [e[0] for e in cls.pg.pg_cur.fetchall()]
         for table_name in tables:
             sql = "delete from gather.{0}".format(table_name)
-            pg.pg_cur.execute(sql)
-        pg.pg_cur.execute("delete from gather.kino_movies")
-        pg.pg_cur.execute("insert into gather.kino_movies values ('tt2562232')")
-        pg.pg_conn.commit()
-
-    def tearDown(self):
-        # We have to delete from kino_movies last, due to foreign key constraints
-        sql = "select tablename from pg_tables where schemaname = 'gather' and tablename <> 'kino_movies'"
-        pg.pg_cur.execute(sql)
-        tables = [e[0] for e in pg.pg_cur.fetchall()]
-        for table_name in tables:
-            sql = "delete from gather.{0}".format(table_name)
-            pg.pg_cur.execute(sql)
-        pg.pg_cur.execute("delete from gather.kino_movies")
-        pg.pg_conn.commit()
+            cls.pg.pg_cur.execute(sql)
+        cls.pg.pg_cur.execute("delete from gather.kino_movies")
+        cls.pg.pg_cur.execute("insert into gather.kino_movies values ('tt2562232')")
+        cls.pg.pg_conn.commit()
 
     def test_gather_one_movies(self):
         data = self.get.gather_one_movie('tt0245712')
@@ -468,20 +477,34 @@ class TestGather(unittest.TestCase):
                 self.assertIn(name, data.keys())
                 self.assertIs(type(data[name]), dict)
 
-
     def test_gather_new_kino_movies(self):
         self.get.gather_new_kino_movies()
         sql = "select tablename from pg_tables " \
               "where schemaname = 'gather' " \
               "  and tablename not like '%bad'" \
-              "  and tablename <> 'kino_movies'"
-        pg.pg_cur.execute(sql)
-        tables = [e[0] for e in pg.pg_cur.fetchall()]
+              "  and tablename not in ('kino_movies', 'views2kino_tables')"
+        self.pg.pg_cur.execute(sql)
+        tables = [e[0] for e in self.pg.pg_cur.fetchall()]
         for table_name in tables:
             sql = 'select imdb_id from {0}.{1} group by imdb_id'.format('gather', table_name)
-            pg.pg_cur.execute(sql)
-            imdb_id = [e[0] for e in pg.pg_cur.fetchall()]
+            self.pg.pg_cur.execute(sql)
+            imdb_id = [e[0] for e in self.pg.pg_cur.fetchall()]
             if len(imdb_id) != 0:
                 self.assertEqual(imdb_id, ['tt2562232'])
             sql = "delete from gather.{0}".format(table_name)
-            pg.pg_cur.execute(sql)
+            self.pg.pg_cur.execute(sql)
+
+
+    @classmethod
+    def tearDownClass(cls):
+        # We have to delete from kino_movies last, due to foreign key constraints
+        cls.get = Gather(server, port, db, user, pw, omdb_api, tmdb_api, guidebox_api, youtube_films_api)
+        cls.pg = Postgres(server, port, db, user, pw)
+        sql = "select tablename from pg_tables where schemaname = 'gather' and tablename <> 'kino_movies'"
+        cls.pg.pg_cur.execute(sql)
+        tables = [e[0] for e in cls.pg.pg_cur.fetchall()]
+        for table_name in tables:
+            sql = "delete from gather.{0}".format(table_name)
+            cls.pg.pg_cur.execute(sql)
+        cls.pg.pg_cur.execute("delete from gather.kino_movies")
+        cls.pg.pg_conn.commit()
