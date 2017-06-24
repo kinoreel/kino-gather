@@ -4,20 +4,11 @@ from get_tmdb import GetTMDB
 from get_youtube import GetYoutube
 from postgres import Postgres
 
-from py import GLOBALS
-
-
-
 class Gather(object):
 
-    def __init__(self, db_conn):
+    def __init__(self, server, port, database, username, password, omdb_key, tmdb_key, guidebox_key, youtube_films_key):
 
-        omdb_key = GLOBALS.OMDB_API
-        youtube_films_api_key = GLOBALS.YOUTUBE_FILMS_API
-        tmdb_api_key = GLOBALS.TMDB_API
-        guidebox_api_key = GLOBALS.GUIDEBOX_API
-
-        self.pg = Postgres(db_conn)
+        self.pg = Postgres(server, port, database, username, password)
         self.omdb = GetOMDB(omdb_key)
         self.omdb.name = 'omdb'
         self.omdb.sql = 'select imdb_id ' \
@@ -31,7 +22,7 @@ class Gather(object):
                                     'from gather.omdb_bad ' \
                                 ') as tried_ids'
 
-        self.tmdb = GetTMDB(tmdb_api_key)
+        self.tmdb = GetTMDB(tmdb_key)
         self.tmdb.name = 'tmdb'
         self.tmdb.sql = 'select imdb_id ' \
                           'from gather.kino_movies ' \
@@ -44,7 +35,7 @@ class Gather(object):
                                     'from gather.tmdb_bad ' \
                                 ') as tried_ids'
 
-        self.youtube_films = GetYoutube(youtube_films_api_key)
+        self.youtube_films = GetYoutube(youtube_films_key)
         self.youtube_films.name = 'youtube_films'
         self.youtube_films.sql = 'select ids_to_get.imdb_id, y.title ' \
                                   'from ( select imdb_id ' \
@@ -61,7 +52,7 @@ class Gather(object):
                                   'join gather.tmdb_main y ' \
                                     'on ids_to_get.imdb_id = y.imdb_id'
 
-        self.guidebox = GetGuidebox(guidebox_api_key)
+        self.guidebox = GetGuidebox(guidebox_key)
         self.guidebox.name = 'guidebox'
         self.guidebox.sql = 'select imdb_id ' \
                         'from gather.kino_movies ' \

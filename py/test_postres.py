@@ -1,57 +1,72 @@
 import unittest
 
+import GLOBALS
+
 from postgres import Postgres
 
-from py import GLOBALS
+server = GLOBALS.PG_SERVER
+port = GLOBALS.PG_PORT
+db = GLOBALS.PG_DB_DEV
+user = GLOBALS.PG_USERNAME
+pw = GLOBALS.PG_PASSWORD
 
-auth = GLOBALS.POSTGRES_DEV
-
-#TODO: Move to test folder
 class TestPostgres(unittest.TestCase):
 
-    def setUp(self):
-        self.pg = Postgres(auth)
+    @classmethod
+    def setUpClass(cls):
+        cls.pg = Postgres(server, port, db, user, pw)
+        cls.pg.pg_cur.execute('create schema test')
+        cls.pg.pg_conn.commit()
 
-    def test_insert_tuples(self):
-        sql = 'create table ut_test_insert (col_1 varchar(10), col_2 smallint)'
-        self.pg.pg_cur.execute(sql)
+    def test_insert_tuples(cls):
+        sql = 'create table test.ut_test_insert (col_1 varchar(10), col_2 smallint)'
+        cls.pg.pg_cur.execute(sql)
         data = [('test_1',1),('test_2', 2)]
-        self.pg.insert_data('public', 'ut_test_insert', ['col_1', 'col_2'], data)
-        self.pg.pg_cur.execute('select * from ut_test_insert')
-        result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result, [('test_1', 1), ('test_2',2)])
-        sql = 'drop table ut_test_insert'
-        self.pg.pg_cur.execute(sql)
+        cls.pg.insert_data('test', 'ut_test_insert', ['col_1', 'col_2'], data)
+        cls.pg.pg_cur.execute('select * from test.ut_test_insert')
+        result = cls.pg.pg_cur.fetchall()
+        cls.assertEqual(result, [('test_1', 1), ('test_2',2)])
+        sql = 'drop table test.ut_test_insert'
+        cls.pg.pg_cur.execute(sql)
+        cls.pg.pg_conn.commit()
 
-    def test_insert_json(self):
-        sql = 'create table ut_test_insert (col_1 varchar(10), col_2 smallint)'
-        self.pg.pg_cur.execute(sql)
+    def test_insert_json(cls):
+        sql = 'create table test.ut_test_insert (col_1 varchar(10), col_2 smallint)'
+        cls.pg.pg_cur.execute(sql)
         data = [{'col_1':'test_1','col_2':1}, {'col_1':'test_2','col_2':2},]
-        self.pg.insert_json('public', 'ut_test_insert', 'col_1, col_2', data)
-        self.pg.pg_cur.execute('select * from ut_test_insert')
-        result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result, [('test_1', 1), ('test_2', 2)])
-        sql = 'drop table ut_test_insert'
-        self.pg.pg_cur.execute(sql)
-        self.pg.pg_conn.commit()
+        cls.pg.insert_json('test', 'ut_test_insert', 'col_1, col_2', data)
+        cls.pg.pg_cur.execute('select * from test.ut_test_insert')
+        result = cls.pg.pg_cur.fetchall()
+        cls.assertEqual(result, [('test_1', 1), ('test_2', 2)])
+        sql = 'drop table test.ut_test_insert'
+        cls.pg.pg_cur.execute(sql)
+        cls.pg.pg_conn.commit()
 
-    def test_run_query_minus(self):
-        sql = 'create table ut_test_1(col_1 varchar(10), col_2 smallint)'
-        self.pg.pg_cur.execute(sql)
-        sql = 'create table ut_test_2(col_1 varchar(10), col_2 smallint)'
-        self.pg.pg_cur.execute(sql)
-        sql = "insert into ut_test_1 values ('test_1', 1)"
-        self.pg.pg_cur.execute(sql)
-        sql = "insert into ut_test_2 values ('test_1', 1)"
-        self.pg.pg_cur.execute(sql)
-        sql = "insert into ut_test_2 values ('test_2', 2)"
-        self.pg.pg_cur.execute(sql)
-        result = self.pg.run_query("select * from ut_test_2 except select * from ut_test_1")
-        self.assertEqual(result, [('test_2', 2)])
-        sql = 'drop table ut_test_1'
-        self.pg.pg_cur.execute(sql)
-        sql = 'drop table ut_test_2'
-        self.pg.pg_cur.execute(sql)
+    def test_run_query_minus(cls):
+        sql = 'create table test.ut_test_1(col_1 varchar(10), col_2 smallint)'
+        cls.pg.pg_cur.execute(sql)
+        sql = 'create table test.ut_test_2(col_1 varchar(10), col_2 smallint)'
+        cls.pg.pg_cur.execute(sql)
+        sql = "insert into test.ut_test_1 values ('test_1', 1)"
+        cls.pg.pg_cur.execute(sql)
+        sql = "insert into test.ut_test_2 values ('test_1', 1)"
+        cls.pg.pg_cur.execute(sql)
+        sql = "insert into test.ut_test_2 values ('test_2', 2)"
+        cls.pg.pg_cur.execute(sql)
+        result = cls.pg.run_query("select * from test.ut_test_2 except select * from test.ut_test_1")
+        cls.assertEqual(result, [('test_2', 2)])
+        sql = 'drop table test.ut_test_1'
+        cls.pg.pg_cur.execute(sql)
+        sql = 'drop table test.ut_test_2'
+        cls.pg.pg_cur.execute(sql)
+        cls.pg.pg_conn.commit()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.pg = Postgres(server, port, db, user, pw)
+        cls.pg.pg_cur.execute('drop schema test cascade')
+        cls.pg.pg_conn.commit()
+
 
 if __name__ == '__main__':
     unittest.main()
