@@ -3,12 +3,14 @@
   <groupId>com.kino.gather</groupId>
   <artifactId>kino-gather</artifactId>
   <version>1</version>
+
   <build>
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>sql-maven-plugin</artifactId>
         <version>1.5</version>
+
         <dependencies>
           <dependency>
             <groupId>postgresql</groupId>
@@ -16,15 +18,17 @@
             <version>9.1-901.jdbc4</version>
           </dependency>
         </dependencies>
+
         <configuration>
           <driver>org.postgresql.Driver</driver>
           <url>jdbc:postgresql://${SERVER}/${DATABASE}</url>
           <username>${USERNAME}</username>
           <password>${PASSWORD}</password>
         </configuration>
+
         <executions>
           <execution>
-            <id>test-sql</id>
+            <id>compile-schema</id>
             <phase>compile</phase>
             <goals>
               <goal>execute</goal>
@@ -34,11 +38,121 @@
               <delimiterType>normal</delimiterType>
               <autocommit>true</autocommit>
               <srcFiles>
-                <srcFile>sql/tables/test.sql</srcFile>
+                <srcFile>sql/schemas/gather.sql</srcFile>
+              </srcFiles>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>compile-tables</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <delimiter>;</delimiter>
+              <delimiterType>normal</delimiterType>
+              <autocommit>true</autocommit>
+              <srcFiles>
+                <srcFile>sql/tables/kino_movies.sql</srcFile>
+                <srcFile>sql/tables/views2kino_tables.sql</srcFile>
+                <srcFile>sql/tables/guidebox_main.sql</srcFile>
+                <srcFile>sql/tables/guidebox_bad.sql</srcFile>
+                <srcFile>sql/tables/guidebox_cast.sql</srcFile>
+                <srcFile>sql/tables/guidebox_crew.sql</srcFile>
+                <srcFile>sql/tables/guidebox_genres.sql</srcFile>
+                <srcFile>sql/tables/guidebox_prices.sql</srcFile>
+                <srcFile>sql/tables/guidebox_sources.sql</srcFile>
+                <srcFile>sql/tables/guidebox_trailers.sql</srcFile>
+                <srcFile>sql/tables/omdb_main.sql</srcFile>
+                <srcFile>sql/tables/omdb_bad.sql</srcFile>
+                <srcFile>sql/tables/omdb_cast.sql</srcFile>
+                <srcFile>sql/tables/omdb_crew.sql</srcFile>
+                <srcFile>sql/tables/omdb_ratings.sql</srcFile>
+                <srcFile>sql/tables/tmdb_main.sql</srcFile>
+                <srcFile>sql/tables/tmdb_bad.sql</srcFile>
+                <srcFile>sql/tables/tmdb_alternative_titles.sql</srcFile>
+                <srcFile>sql/tables/tmdb_backdrops.sql</srcFile>
+                <srcFile>sql/tables/tmdb_cast.sql</srcFile>
+                <srcFile>sql/tables/tmdb_companies.sql</srcFile>
+                <srcFile>sql/tables/tmdb_crew.sql</srcFile>
+                <srcFile>sql/tables/tmdb_genres.sql</srcFile>
+                <srcFile>sql/tables/tmdb_keywords.sql</srcFile>
+                <srcFile>sql/tables/tmdb_lists.sql</srcFile>
+                <srcFile>sql/tables/tmdb_posters.sql</srcFile>
+                <srcFile>sql/tables/tmdb_release_dates.sql</srcFile>
+                <srcFile>sql/tables/tmdb_similar.sql</srcFile>
+                <srcFile>sql/tables/tmdb_translations.sql</srcFile>
+                <srcFile>sql/tables/tmdb_videos.sql</srcFile>
+                <srcFile>sql/tables/youtube_films_main.sql</srcFile>
+                <srcFile>sql/tables/youtube_films_bad.sql</srcFile>
+                <srcFile>sql/tables/youtube_films_other.sql</srcFile>
+              </srcFiles>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>insert-table-data</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <delimiter>;</delimiter>
+              <delimiterType>normal</delimiterType>
+              <autocommit>true</autocommit>
+              <srcFiles>
+                <srcFile>sql/table_data/views2kino_tables.sql</srcFile>
+              </srcFiles>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>compile-views</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <delimiter>;</delimiter>
+              <delimiterType>normal</delimiterType>
+              <autocommit>true</autocommit>
+              <srcFiles>
+                <srcFile>sql/views/v_movies.sql</srcFile>
+                <srcFile>sql/views/v_companies.sql</srcFile>
+                <srcFile>sql/views/v_movies2companies.sql</srcFile>
+                <srcFile>sql/views/v_person_roles.sql</srcFile>
+                <srcFile>sql/views/v_persons.sql</srcFile>
+                <srcFile>sql/views/v_movies2persons.sql</srcFile>
+                <srcFile>sql/views/v_movies2genres.sql</srcFile>
+                <srcFile>sql/views/v_movies2keywords.sql</srcFile>
+                <srcFile>sql/views/v_movies2numbers.sql</srcFile>
+                <srcFile>sql/views/v_movies2posters.sql</srcFile>
+                <srcFile>sql/views/v_movies2ratings.sql</srcFile>
+                <srcFile>sql/views/v_movies2streams.sql</srcFile>
+                <srcFile>sql/views/v_movies2trailers.sql</srcFile>
+              </srcFiles>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>compile-functions</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <delimiter>;</delimiter>
+              <delimiterType>row</delimiterType>
+              <autocommit>true</autocommit>
+              <srcFiles>
+                <srcFile>sql/functions/update_kino_tables.sql</srcFile>
+                <srcFile>sql/functions/update_gather_tables.sql</srcFile>
               </srcFiles>
             </configuration>
           </execution>
         </executions>
+
       </plugin>
     </plugins>
   </build>
