@@ -147,7 +147,6 @@
               <autocommit>true</autocommit>
               <srcFiles>
                 <srcFile>sql/functions/update_kino_tables.sql</srcFile>
-                <srcFile>sql/functions/update_gather_tables.sql</srcFile>
               </srcFiles>
             </configuration>
           </execution>
