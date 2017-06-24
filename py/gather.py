@@ -1,12 +1,10 @@
-import json
-
-import GLOBALS
-
+from get_guidebox import GetGuidebox
 from get_omdb import GetOMDB
 from get_tmdb import GetTMDB
 from get_youtube import GetYoutube
-from get_guidebox import GetGuidebox
 from postgres import Postgres
+
+from py import GLOBALS
 
 
 

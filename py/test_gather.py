@@ -1,9 +1,9 @@
 import unittest
-import json
 
 from gather import Gather
 from postgres import Postgres
-import GLOBALS
+
+from py import GLOBALS
 
 auth = GLOBALS.POSTGRES_DEV
 

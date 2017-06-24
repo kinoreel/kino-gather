@@ -1,6 +1,6 @@
-import GLOBALS
-
 from gather import Gather
+
+from py import GLOBALS
 
 auth = GLOBALS.POSTGRES_DEV
 
