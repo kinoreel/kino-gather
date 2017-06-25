@@ -1,4 +1,4 @@
-create or replace function update_kino_tables() returns void as
+create or replace function gather2kino() returns void as
 $body$
 declare
 

@@ -1,0 +1,1 @@
+select gather2kino();
