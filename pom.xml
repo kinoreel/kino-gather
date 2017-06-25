@@ -87,6 +87,7 @@
                 <srcFile>sql/tables/youtube_films_main.sql</srcFile>
                 <srcFile>sql/tables/youtube_films_bad.sql</srcFile>
                 <srcFile>sql/tables/youtube_films_other.sql</srcFile>
+                <srcFile>sql/tables/awards.sql</srcFile>
               </srcFiles>
             </configuration>
           </execution>
@@ -119,6 +120,7 @@
               <autocommit>true</autocommit>
               <srcFiles>
                 <srcFile>sql/views/v_movies.sql</srcFile>
+                <srcFile>sql/views/v_company_roles.sql</srcFile>
                 <srcFile>sql/views/v_companies.sql</srcFile>
                 <srcFile>sql/views/v_movies2companies.sql</srcFile>
                 <srcFile>sql/views/v_person_roles.sql</srcFile>
