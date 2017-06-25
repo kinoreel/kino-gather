@@ -148,7 +148,7 @@
               <delimiterType>row</delimiterType>
               <autocommit>true</autocommit>
               <srcFiles>
-                <srcFile>sql/functions/update_kino_tables.sql</srcFile>
+                <srcFile>sql/functions/gather2kino.sql</srcFile>
               </srcFiles>
             </configuration>
           </execution>
