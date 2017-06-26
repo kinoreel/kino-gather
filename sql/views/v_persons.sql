@@ -7,3 +7,4 @@ select name as fullname
            from gather.tmdb_crew ) x
  where name not in (select name
                          from kino.persons )
+ group by name
