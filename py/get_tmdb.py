@@ -7,8 +7,7 @@ class GetTMDB(object):
     def __init__(self, api_key):
         self.api_key = api_key
 
-    def get_info(self, api_param):
-        imdb_id = api_param[0]
+    def get_info(self, imdb_id):
         data = self.get_tmdb_json(imdb_id)
         all_data = self.split_movie_data(imdb_id, data)
         return all_data
