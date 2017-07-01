@@ -1,7 +1,7 @@
 import json
 
 from get_tmdb import GetTMDB
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer, KafkaProducer
 
 try:
     from GLOBALS import KAFKA_BROKER, TMDB_API
@@ -12,9 +12,10 @@ class CollectTMDB(object):
 
     def __init__(self, ):
         self.tmdb = GetTMDB(TMDB_API)
+        self.producer = KafkaProducer(bootstrap_servers=KAFKA_BROKER)
         self.consumer = KafkaConsumer(group_id='tmdb',
-                                      bootstrap_servers=['{}:9092'.format(KAFKA_BROKER)])
-        self.consumer.subscribe(pattern='tmdb')
+                                      bootstrap_servers=KAFKA_BROKER)
+        self.consumer.subscribe(pattern='omdb')
 
     def run(self):
         '''
@@ -30,3 +31,4 @@ class CollectTMDB(object):
             imdb_id = msg_data['imdb_id']
             tmdb_data = GetTMDB.get_info(imdb_id)
             msg_data.extend(tmdb_data)
+            self.producer.send('tmdb', json.dumps(msg_data))
