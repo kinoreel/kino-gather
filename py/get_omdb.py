@@ -10,8 +10,7 @@ class GetOMDB(object):
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
-    def get_info(self, api_param):
-        imdb_id = api_param[0]
+    def get_info(self, imdb_id):
         data = self.get_omdbapi_json(imdb_id)
         if data['Response'] == 'False':
             return None
