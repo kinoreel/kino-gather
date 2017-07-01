@@ -6,8 +6,7 @@ class GetGuidebox:
     def __init__(self, api_key):
         guidebox.api_key = api_key
 
-    def get_info(self, api_param):
-        imdb_id = api_param[0]
+    def get_info(self, imdb_id):
         result = {}
         movie = guidebox.Search.movies(field='id', id_type='imdb', query=imdb_id, region='gb')
         try:
