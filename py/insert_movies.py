@@ -17,7 +17,7 @@ class InsertMovies(object):
 
         movie_data = data['omdb_main']
 
-        sql = '''insert into kino.movies (imdb_id, title, runtime, rated, released)
+        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released)
                  select imdb_id
                       , title
                       , runtime
@@ -25,7 +25,7 @@ class InsertMovies(object):
                       , released
                    from json_populate_recordset( NULL::kino.movies, %s)
                   where imdb_id not in (select imdb_id
-                                          from  kino.movies )'''
+                                          from  kino.movies )"""
 
         self.pg.pg_cur.execute(sql, (json.dumps(movie_data), ))
         self.pg.pg_conn.commit()
