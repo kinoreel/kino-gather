@@ -9,11 +9,11 @@ class InsertMovies(object):
 
 
     def insert(self, data):
-        '''
+        """
         This inserts the relevant json information
         into the table kino.movies.
         :param data: json data holding information on films.
-        '''
+        """
 
         movie_data = data['omdb_main']
 
