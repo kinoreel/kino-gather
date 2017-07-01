@@ -4,14 +4,14 @@ from get_tmdb import GetTMDB
 from kafka import KafkaConsumer
 
 try:
-    from GLOBALS import KAFKA_BROKER
+    from GLOBALS import KAFKA_BROKER, TMDB_API
 except ImportError:
     print('Get it somewhere else')
 
 class CollectTMDB(object):
 
     def __init__(self, ):
-        self.tmdb = GetTMDB()
+        self.tmdb = GetTMDB(TMDB_API)
         self.consumer = KafkaConsumer(group_id='tmdb',
                                       bootstrap_servers=['{}:9092'.format(KAFKA_BROKER)])
         self.consumer.subscribe(pattern='tmdb')
