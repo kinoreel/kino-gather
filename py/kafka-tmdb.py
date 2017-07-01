@@ -25,16 +25,13 @@ class CollectTMDB(object):
         to the msg we collected, and then pass it to the next topic.
         '''
         for message in self.consumer:
-            print(message.value)
             # message value and key are raw bytes -- decode if necessary!
             # e.g., for unicode: `message.value.decode('utf-8')
             msg_data = json.loads(message.value.decode('utf-8'))
-            print(msg_data)
             imdb_id = msg_data['imdb_id']
-            print(imdb_id)
+            title = msg_data['omdb_main']['title']
             tmdb_data = self.tmdb.get_info(imdb_id)
             msg_data.update(tmdb_data)
-            print(msg_data)
             self.producer.send('tmdb', json.dumps(msg_data).encode())
 
 if __name__=='__main__':
