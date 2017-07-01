@@ -1,12 +1,27 @@
+import os
+
 import guidebox
 
+try:
+    GUIDEBOX_API = os.environ['GUIDEBOX_API']
+except KeyError:
+    try:
+        from GLOBALS import GUIDEBOX_API
+    except ImportError:
+        print("API is not known")
+        exit()
 
-class GetGuidebox:
 
-    def __init__(self, api_key):
-        guidebox.api_key = api_key
+class GetAPI(object):
 
-    def get_info(self, imdb_id):
+    def __init__(self, api_key=GUIDEBOX_API):
+        self.api_key = api_key
+        guidebox.api_key = self.api_key
+        self.source_topic = 'tmdb'
+        self.destination_topic = 'guidebox'
+
+    def get_info(self, request):
+        imdb_id = request['imdb_id']
         result = {}
         movie = guidebox.Search.movies(field='id', id_type='imdb', query=imdb_id, region='gb')
         try:

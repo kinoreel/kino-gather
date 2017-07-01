@@ -1,19 +1,34 @@
+import os
 import re
-#from fuzzywuzzy import fuzz
+# from fuzzywuzzy import fuzz
 from apiclient.discovery import build
+
+try:
+    YOUTUBE_FILMS_API = os.environ['YOUTUBE_FILMS_API']
+except KeyError:
+    try:
+        from GLOBALS import YOUTUBE_FILMS_API
+    except ImportError:
+        print("API is not known")
+        exit()
 
 # TODO: Introduce fuzzy logic to ensure that the film returned matches the film we requested.
 # TODO: There are additional statistic we can be grabbing - line 106
 
 
-class GetYoutube:
+class GetAPI(object):
 
-    def __init__(self, api_key):
+    def __init__(self, api_key=YOUTUBE_FILMS_API):
+        self.api_key = api_key
+        self.source_topic = 'guidebox'
+        self.destination_topic = 'youtube'
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
         self.youtube = build('youtube', 'v3', developerKey=api_key)
 
-    def get_info(self, imdb_id, title):
+    def get_info(self, request):
+        imdb_id = request['imdb_id']
+        title = request['omdb_main'][0]['title']
         data = self.search_youtube(title)
         youtube_main = [self.get_movie_info(imdb_id, title, data[0])]
         youtube_other = []

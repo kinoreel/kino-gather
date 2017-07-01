@@ -1,16 +1,30 @@
 import json
+import os
 import requests
 
-#TODO Add genres table. Currently, we are deleting it in split_data.
+try:
+    OMDB_API = os.environ['OMDB_API']
+except KeyError:
+    try:
+        from GLOBALS import OMDB_API
+    except ImportError:
+        print("API is not known")
+        exit()
 
-class GetOMDB(object):
+# TODO Add genres table. Currently, we are deleting it in split_data.
 
-    def __init__(self, api_key):
+
+class GetAPI(object):
+
+    def __init__(self, api_key=OMDB_API):
         self.api_key = api_key
+        self.source_topic = 'imdb_ids'
+        self.destination_topic = 'omdb'
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
-    def get_info(self, imdb_id):
+    def get_info(self, request):
+        imdb_id = request['imdb_id']
         data = self.get_omdbapi_json(imdb_id)
         if data['Response'] == 'False':
             return None
