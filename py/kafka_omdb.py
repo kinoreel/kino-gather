@@ -1,11 +1,8 @@
 import json
 
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer, KafkaProducer
 
 from get_omdb import GetOMDB
-
-consumer = KafkaConsumer(group_id = 'omdb',
-                         bootstrap_servers = ['212.111.42.214:9092'])
 
 
 try:
@@ -17,9 +14,12 @@ class CollectOMDB(object):
 
     def __init__(self):
         self.omdb = GetOMDB(api_key = OMDB_API)
-        self.consumer = KafkaConsumer(group_id = 'omdb',
-                                      bootstrap_servers = ['{0}'.format(KAFKA_BROKER)])
-        self.consuer.subscribe(pattern = 'omdb')
+        self.topic = 'omdb'
+        self.consumer = KafkaConsumer(group_id = self.topic,
+                                      bootstrap_servers=KAFKA_BROKER)
+        self.consumer.subscribe(pattern = 'imdb_ids')
+        self.producer = KafkaProducer(bootstrap_servers=KAFKA_BROKER)
+
 
     def run(self):
         '''
@@ -34,7 +34,14 @@ class CollectOMDB(object):
             msg_data  = json.loads(message.value)
             imdb_id = msg_data['imdb_id']
             omdb_data = self.omdb.get_info(imdb_id)
-            msg_data.extend(omdb_data)
+            msg_data.update(omdb_data)
+            self.producer.send(self.topic, json.dumps(msg_data).encode())
+            print('Processed: {}'.format(imdb_id))
+
+if __name__ == '__main__':
+    c = CollectOMDB()
+    c.run()
+
 
 
 
