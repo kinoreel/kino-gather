@@ -3,7 +3,7 @@ import os
 import requests
 
 try:
-    TMDB_API = os.environ['TMDB_API']
+    TMDB_API = os.environ['API_KEY']
 except KeyError:
     try:
         from GLOBALS import TMDB_API

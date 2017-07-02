@@ -3,7 +3,7 @@ import os
 import requests
 
 try:
-    OMDB_API = os.environ['OMDB_API']
+    OMDB_API = os.environ['API_KEY']
 except KeyError:
     try:
         from GLOBALS import OMDB_API
