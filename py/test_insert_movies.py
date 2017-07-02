@@ -23,9 +23,9 @@ class TestInsertMovies(unittest.TestCase):
 
     def test_insert_movies(self):
         self.ins.insert(data)
-        self.pg.pg_cur.execute('select imdb_id, title, runtime, rated, released from kino.movies')
+        self.pg.pg_cur.execute('select imdb_id, title, runtime, rated, released, orig_language from kino.movies')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result, [('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119 min', 'R', '14 Nov 2014')])
+        self.assertEqual(result,[('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119', 'R', '2014-08-27', 'en')])
 
     @classmethod
     def tearDownClass(cls):

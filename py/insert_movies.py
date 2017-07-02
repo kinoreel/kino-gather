@@ -14,19 +14,22 @@ class InsertMovies(object):
         into the table kino.movies.
         :param data: json data holding information on films.
         """
+        omdb_movie_data = data['omdb_main']
+        tmdb_movie_data = data['tmdb_main']
 
-        movie_data = data['omdb_main']
+        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language)
+                 select x.imdb_id
+                      , x.title
+                      , y.runtime
+                      , x.rated
+                      , y.release_date
+                      , y.original_language
+                   from json_to_recordset(%s) x (imdb_id varchar(1000), title varchar(100), rated varchar(1000))
+                   join json_to_recordset(%s) y (imdb_id varchar(1000), runtime varchar(1000), release_date varchar(1000), original_language varchar(1000))
+                     on x.imdb_id = y.imdb_id
+                  where x.imdb_id not in (select imdb_id
+                                            from kino.movies )"""
 
-        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released)
-                 select imdb_id
-                      , title
-                      , runtime
-                      , rated
-                      , released
-                   from json_populate_recordset( NULL::kino.movies, %s)
-                  where imdb_id not in (select imdb_id
-                                          from  kino.movies )"""
-
-        self.pg.pg_cur.execute(sql, (json.dumps(movie_data), ))
+        self.pg.pg_cur.execute(sql, (json.dumps(omdb_movie_data), json.dumps(tmdb_movie_data)))
         self.pg.pg_conn.commit()
 
