@@ -1,13 +1,31 @@
 import json
+import os
 import requests
 
-#TODO create tables for trailers/changes/spoken_langauges/belongs to a collection on gather.kino@kino, then uncomment in split_data
-class GetTMDB(object):
+try:
+    TMDB_API = os.environ['TMDB_API']
+except KeyError:
+    try:
+        from GLOBALS import TMDB_API
+    except ImportError:
+        print("API is not known")
+        exit()
 
-    def __init__(self, api_key):
+"""
+# TODO: create tables for trailers/changes/spoken_langauges/belongs to a collection on gather.kino@kino,
+# then uncomment in split_data
+"""
+
+
+class GetAPI(object):
+
+    def __init__(self, api_key=TMDB_API):
         self.api_key = api_key
+        self.source_topic = 'omdb'
+        self.destination_topic = 'tmdb'
 
-    def get_info(self, imdb_id):
+    def get_info(self, request):
+        imdb_id = request['imdb_id']
         data = self.get_tmdb_json(imdb_id)
         all_data = self.split_movie_data(imdb_id, data)
         return all_data
