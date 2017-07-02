@@ -31,7 +31,6 @@ class TestInsertMovies2Genres(unittest.TestCase):
         self.ins.insert(data)
         self.pg.pg_cur.execute('select imdb_id, genre from kino.movies2genres')
         result = self.pg.pg_cur.fetchall()
-        print(result)
         self.assertEqual(result, [('tt2562232', 'Drama'), ('tt2562232', 'Comedy')])
 
     @classmethod
