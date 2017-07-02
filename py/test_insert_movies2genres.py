@@ -22,8 +22,8 @@ class TestInsertMovies2Genres(unittest.TestCase):
         cls.pg = Postgres(server, port, db, user, pw)
         # We insert the corresponding film into kino.movies
         # due to the foreign key constraint.
-        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released)
-                 values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119 min', 'R', '14 Nov 2014')"""
+        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language)
+                 values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119', 'R', '2014-08-27', 'en')"""
         cls.pg.pg_cur.execute(sql)
         cls.pg.pg_conn.commit()
 
