@@ -20,8 +20,8 @@ class TestInsertMovies2Ratings(unittest.TestCase):
     def setUpClass(cls):
         cls.ins = InsertMovies2Ratings(server, port, db, user, pw)
         cls.pg = Postgres(server, port, db, user, pw)
-        sql = '''insert into kino.movies (imdb_id, title, runtime, rated, released)
-                 values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119 min', 'R', '14 Nov 2014')'''
+        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released)
+                 values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119 min', 'R', '14 Nov 2014')"""
         cls.pg.pg_cur.execute(sql)
         cls.pg.pg_conn.commit()
 
