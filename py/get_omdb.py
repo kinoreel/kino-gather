@@ -99,5 +99,3 @@ class GetAPI(object):
 
         all_data = {'omdb_main':main_data, 'omdb_ratings':ratings_data, 'omdb_crew':crew_data, 'omdb_cast':cast_data}
         return all_data
-
-
