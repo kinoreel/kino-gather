@@ -98,4 +98,9 @@ class GetAPI(object):
         main_data = [api_data]
 
         all_data = {'omdb_main':main_data, 'omdb_ratings':ratings_data, 'omdb_crew':crew_data, 'omdb_cast':cast_data}
+
+        # Removing data we are not currently using
+        del all_data['omdb_crew']
+        del all_data['omdb_cast']
+
         return all_data
