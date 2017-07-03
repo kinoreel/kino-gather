@@ -8,6 +8,7 @@ class InsertData(object):
     def __init__(self, server, port, database, username, password):
         self.pg = Postgres(server, port, database, username, password)
         self.source_topic = 'movies'
+        self.destination_topic = 'movies2numbers'
 
     def insert(self, data):
         """
