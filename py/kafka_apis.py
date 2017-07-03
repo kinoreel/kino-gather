@@ -29,7 +29,8 @@ class KafkaHandler(object):
         self.api = api.GetAPI()
 
         self.consumer = KafkaConsumer(group_id=self.api.destination_topic,
-                                      bootstrap_servers=KAFKA_BROKER)
+                                      bootstrap_servers=KAFKA_BROKER,
+                                      auto_offset_reset='earliest')
 
         self.consumer.subscribe(pattern=self.api.source_topic)
 

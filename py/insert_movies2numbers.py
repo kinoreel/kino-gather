@@ -2,11 +2,12 @@ import json
 from postgres import Postgres
 import GLOBALS
 
-class InsertMovies2Numbers(object):
+
+class InsertData(object):
 
     def __init__(self, server, port, database, username, password):
         self.pg = Postgres(server, port, database, username, password)
-
+        self.source_topic = 'movies'
 
     def insert(self, data):
         """
