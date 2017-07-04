@@ -6,6 +6,7 @@ from postgres import Postgres
 import insert_company_roles as cr
 import insert_companies as co
 import insert_movies2companies as m2c
+import insert_moives as mo
 
 import GLOBALS
 
@@ -27,6 +28,7 @@ class TestInsertCoRoles(unittest.TestCase):
         cls.coins = co.InsertData(port=port, database=db, username=user, password=pw, server=server)
         cls.crins = cr.InsertData(port=port, database=db, username=user, password=pw, server=server)
         cls.m2cins = m2c.InsertData(port=port, database=db, username=user, password=pw, server=server)
+        cls.moins = mo.InsertData(port=port, database=db, username=user, password=pw, server=server)
         cls.pg.pg_cur.execute("delete from kino.movies")
         cls.pg.pg_cur.execute("delete from kino.company_roles")
         cls.pg.pg_cur.execute("delete from kino.companies")
@@ -36,6 +38,7 @@ class TestInsertCoRoles(unittest.TestCase):
 
 
     def setUp(self):
+        self.moins.insert(data)
         self.coins.insert(data)
         self.crins.insert(data)
         self.m2cins.insert(data)
