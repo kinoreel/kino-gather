@@ -1,6 +1,6 @@
 FROM python:3.6-slim
 RUN apt-get update -y
-RUN apt-get install -y gcc libpq-dev
+RUN apt-get install -y gcc
 ARG KAFKA_BROKER
 ARG API_NAME
 ARG API_KEY
