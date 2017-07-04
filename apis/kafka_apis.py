@@ -17,7 +17,7 @@ try:
     KAFKA_BROKER = os.environ['KAFKA_BROKER']
 except KeyError:
     try:
-        from GLOBALS import KAFKA_BROKER
+        from apis.GLOBALS import KAFKA_BROKER
     except ImportError:
         print("Specify Kafka Brokers")
         exit()
