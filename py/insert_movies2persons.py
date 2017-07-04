@@ -32,7 +32,7 @@ class InsertData(object):
                           select imdb_id
                                , name
                                , job
-                            from json_to_recordset(%s) b (imdb_id varchar(1000), name varchar(1000), job varchar(1000)
+                            from json_to_recordset(%s) b (imdb_id varchar(1000), name varchar(1000), job varchar(1000))
                         ) x
                    join kino.persons y
                      on x.name = y.fullname

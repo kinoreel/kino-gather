@@ -29,24 +29,56 @@ class TestInsertMovies2Persons(unittest.TestCase):
         sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language)
                  values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119', 'R', '2014-08-27', 'en')"""
         cls.pg.pg_cur.execute(sql)
+        sql = """insert into kino.persons (fullname)
+                  values ('Stephen Mirrione')"""
+        cls.pg.pg_cur.execute(sql)
+        sql = """insert into kino.persons (fullname)
+                  values ('Alexander Dinelaris')"""
+        cls.pg.pg_cur.execute(sql)
+        sql = """insert into kino.persons (fullname)
+                  values ('Alejandro González Iñárritu')"""
+        cls.pg.pg_cur.execute(sql)
+        sql = """insert into kino.persons (fullname)
+                  values ('Michael Keaton')"""
+        cls.pg.pg_cur.execute(sql)
+        sql = """insert into kino.persons (fullname)
+                  values ('Emma Stone')"""
+        cls.pg.pg_cur.execute(sql)
+        sql = """insert into kino.person_roles (role)
+                  values ('Screenplay')"""
+        cls.pg.pg_cur.execute(sql)
+        sql = """insert into kino.person_roles (role)
+                  values ('Director')"""
+        cls.pg.pg_cur.execute(sql)
+        sql = """insert into kino.person_roles (role)
+                  values ('Editor')"""
+        cls.pg.pg_cur.execute(sql)
         cls.pg.pg_conn.commit()
 
     def test_insert_movies(self):
         destination_data = self.ins.insert(data)
-        self.pg.pg_cur.execute('select fullname from kino.persons')
+        sql = """select x.imdb_id, y.fullname, x.role
+                   from kino.movies2persons x
+                   join kino.persons y
+                     on x.person_id = y.person_id"""
+        self.pg.pg_cur.execute(sql)
         result = self.pg.pg_cur.fetchall()
-        print(result)
-        self.assertEqual(result,[('Stephen Mirrione',), ('Alexander Dinelaris',),
-                                 ('Alejandro González Iñárritu',), ('Michael Keaton',),
-                                 ('Emma Stone',)])
+        self.assertEqual(result,[('tt2562232', 'Michael Keaton', 'Actor'),
+                                 ('tt2562232', 'Emma Stone', 'Actor'),
+                                 ('tt2562232', 'Stephen Mirrione', 'Editor'),
+                                 ('tt2562232', 'Alejandro González Iñárritu', 'Director'),
+                                 ('tt2562232', 'Alexander Dinelaris', 'Screenplay')])
 
         # Check that correctly return the data we need for the destination topic
-        self.assertEqual(destination_data, json.dumps(data))
+        self.assertEqual(destination_data, None)
 
     @classmethod
     def tearDownClass(cls):
         cls.pg = Postgres(server, port, db, user, pw)
+        cls.pg.pg_cur.execute('delete from kino.movies2persons')
         cls.pg.pg_cur.execute('delete from kino.persons')
+        cls.pg.pg_cur.execute('delete from kino.person_roles')
+        cls.pg.pg_cur.execute('delete from kino.movies')
         cls.pg.pg_conn.commit()
 
 if __name__ == '__main__':
