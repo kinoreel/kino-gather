@@ -97,11 +97,20 @@ class GetAPI(object):
                     "tmdb_keywords":keywords,
                     "tmdb_backdrops":backdrops_data,
                     #"tmdb_trailers":trailers,
-                    "tmdb_release_dates":release_dates}
+                    "tmdb_release_dates":release_dates
+                    }
 
         for data_type, jlist in all_data.items():
             if data_type != "tmdb_main":
                 for item in jlist:
                     item["imdb_id"] = imdb_id
+
+        del all_data['tmdb_alternative_titles']
+        del all_data['tmdb_posters']
+        del all_data['tmdb_translations']
+        del all_data['tmdb_lists']
+        del all_data['tmdb_backdrops']
+        del all_data['tmdb_release_dates']
+
 
         return all_data

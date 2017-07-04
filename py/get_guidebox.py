@@ -79,5 +79,11 @@ class GetAPI(object):
                 for format in source['formats']:
                     result['guidebox_prices'].append(dict(format, **{'imdb_id': imdb_id, 'source': 'youtube'}))
 
+        # Removing data we are not currently using
+        del result['guidebox_crew']
+        del result['guidebox_cast']
+        del result['guidebox_genres']
+        del result['guidebox_trailers']
+
         return result
 
