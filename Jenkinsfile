@@ -6,7 +6,7 @@ node {
     build_tag = "latest"
 
     stage 'Git'
-    git url: 'https://github.com/kinoreel/kino-gather.git'
+    git url: 'https://github.com/kinoreel/kino-gather.git', branch: ${BRANCH}
 
     docker.withRegistry("${registry_url}") {
         maintainer_name = "kino"
