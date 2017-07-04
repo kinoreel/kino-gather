@@ -2,11 +2,13 @@ import json
 from postgres import Postgres
 import GLOBALS
 
-class InsertMovies(object):
+
+class InsertData(object):
 
     def __init__(self, server, port, database, username, password):
         self.pg = Postgres(server, port, database, username, password)
-
+        self.source_topic = 'guidebox'
+        self.destination_topic = 'movies'
 
     def insert(self, data):
         """
@@ -32,4 +34,8 @@ class InsertMovies(object):
 
         self.pg.pg_cur.execute(sql, (json.dumps(omdb_movie_data), json.dumps(tmdb_movie_data)))
         self.pg.pg_conn.commit()
+
+        return data
+
+
 
