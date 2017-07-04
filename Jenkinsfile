@@ -1,7 +1,7 @@
 #!groovy
 
 node {
-    registry_url = "localhost:5000"
+    registry_url = "http://localhost:5000"
     docker_creds_id = "1"
     build_tag = "latest"
 
