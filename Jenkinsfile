@@ -10,7 +10,7 @@ node {
 
     docker.withRegistry("${registry_url}") {
         maintainer_name = "kino"
-        container_name = "gather"
+        container_name = "gather-${API_NAME}"
         stage "Building Docker image"
         echo "Building the docker image"
         container = docker.build("${maintainer_name}/${container_name}:${build_tag}", ' --build-arg KAFKA_BROKER=${KAFKA_BROKER} --build-arg API_KEY=${API_KEY} --build-arg API_NAME=${API_NAME} .')
