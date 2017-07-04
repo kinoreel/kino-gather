@@ -1,9 +1,9 @@
-import unittest
 import json
-import GLOBALS
+import unittest
 
-from postgres import Postgres
-from insert_movies2persons import InsertData
+from apis import GLOBALS
+from inserts.insert_movies2persons import InsertData
+from py.postgres import Postgres
 
 server = GLOBALS.PG_SERVER
 port = GLOBALS.PG_PORT

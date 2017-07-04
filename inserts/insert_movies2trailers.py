@@ -1,5 +1,5 @@
 import json
-from postgres import Postgres
+from py.postgres import Postgres
 
 class InsertData(object):
 

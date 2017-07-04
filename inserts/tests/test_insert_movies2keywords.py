@@ -1,9 +1,9 @@
-import unittest
 import json
-import GLOBALS
+import unittest
 
-from postgres import Postgres
-from insert_movies2trailers import InsertMovies2Trailers
+from apis import GLOBALS
+from inserts.insert_movies2keywords import InsertMovies2Keywords
+from py.postgres import Postgres
 
 server = GLOBALS.PG_SERVER
 port = GLOBALS.PG_PORT
@@ -14,11 +14,11 @@ pw = GLOBALS.PG_PASSWORD
 with open('test_data.json') as data_file:
     data = json.load(data_file)
 
-class TestInsertMovies2Trailers(unittest.TestCase):
+class TestInsertMovies2Keywords(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.ins = InsertMovies2Trailers(server, port, db, user, pw)
+        cls.ins = InsertMovies2Keywords(server, port, db, user, pw)
         cls.pg = Postgres(server, port, db, user, pw)
         # We insert the corresponding film into kino.movies
         # due to the foreign key constraint.
@@ -29,14 +29,21 @@ class TestInsertMovies2Trailers(unittest.TestCase):
 
     def test_insert_movies(self):
         self.ins.insert(data)
-        self.pg.pg_cur.execute('select imdb_id, url from kino.movies2trailers')
+        self.pg.pg_cur.execute('select imdb_id, keyword from kino.movies2keywords')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result, [('tt2562232', 'https://www.youtube.com/watch?v=xIxMMv_LD5Q')])
+        self.assertEqual(result, [('tt2562232', 'times square'),
+                                  ('tt2562232', 'superhero'),
+                                  ('tt2562232', 'long take'),
+                                  ('tt2562232', 'new york city'),
+                                  ('tt2562232', 'play'),
+                                  ('tt2562232', 'broadway'),
+                                  ('tt2562232', 'actor')
+                                  ])
 
     @classmethod
     def tearDownClass(cls):
         cls.pg = Postgres(server, port, db, user, pw)
-        cls.pg.pg_cur.execute('delete from kino.movies2trailers')
+        cls.pg.pg_cur.execute('delete from kino.movies2keywords')
         cls.pg.pg_cur.execute('delete from kino.movies')
         cls.pg.pg_conn.commit()
 

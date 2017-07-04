@@ -1,9 +1,9 @@
-import unittest
 import json
-import GLOBALS
+import unittest
 
-from postgres import Postgres
-from insert_movies2posters import InsertMovies2Posters
+from apis import GLOBALS
+from inserts.insert_movies2trailers import InsertMovies2Trailers
+from py.postgres import Postgres
 
 server = GLOBALS.PG_SERVER
 port = GLOBALS.PG_PORT
@@ -14,11 +14,11 @@ pw = GLOBALS.PG_PASSWORD
 with open('test_data.json') as data_file:
     data = json.load(data_file)
 
-class TestInsertMovies2Posters(unittest.TestCase):
+class TestInsertMovies2Trailers(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.ins = InsertMovies2Posters(server, port, db, user, pw)
+        cls.ins = InsertMovies2Trailers(server, port, db, user, pw)
         cls.pg = Postgres(server, port, db, user, pw)
         # We insert the corresponding film into kino.movies
         # due to the foreign key constraint.
@@ -29,14 +29,14 @@ class TestInsertMovies2Posters(unittest.TestCase):
 
     def test_insert_movies(self):
         self.ins.insert(data)
-        self.pg.pg_cur.execute('select imdb_id, url from kino.movies2posters')
+        self.pg.pg_cur.execute('select imdb_id, url from kino.movies2trailers')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result, [('tt2562232', 'http://image.tmdb.org/t/p/w185//rSZs93P0LLxqlVEbI001UKoeCQC.jpg')])
+        self.assertEqual(result, [('tt2562232', 'https://www.youtube.com/watch?v=xIxMMv_LD5Q')])
 
     @classmethod
     def tearDownClass(cls):
         cls.pg = Postgres(server, port, db, user, pw)
-        cls.pg.pg_cur.execute('delete from kino.movies2posters')
+        cls.pg.pg_cur.execute('delete from kino.movies2trailers')
         cls.pg.pg_cur.execute('delete from kino.movies')
         cls.pg.pg_conn.commit()
 

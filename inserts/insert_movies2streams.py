@@ -1,6 +1,8 @@
 import json
-from postgres import Postgres
-import GLOBALS
+
+from apis import GLOBALS
+from py.postgres import Postgres
+
 
 class InsertData(object):
 
