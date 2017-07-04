@@ -1,4 +1,4 @@
-FROM python:3.6-slim
+FROM python:3
 RUN apt-get update -y
 RUN apt-get install -y gcc
 ARG KAFKA_BROKER
