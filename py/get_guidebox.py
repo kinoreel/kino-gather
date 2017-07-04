@@ -3,7 +3,7 @@ import os
 import guidebox
 
 try:
-    GUIDEBOX_API = os.environ['GUIDEBOX_API']
+    GUIDEBOX_API = os.environ['API_KEY']
 except KeyError:
     try:
         from GLOBALS import GUIDEBOX_API

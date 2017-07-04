@@ -4,7 +4,7 @@ import re
 from apiclient.discovery import build
 
 try:
-    YOUTUBE_FILMS_API = os.environ['YOUTUBE_FILMS_API']
+    YOUTUBE_FILMS_API = os.environ['API_KEY']
 except KeyError:
     try:
         from GLOBALS import YOUTUBE_FILMS_API
