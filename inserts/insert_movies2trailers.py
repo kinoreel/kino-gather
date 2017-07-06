@@ -18,7 +18,7 @@ class InsertData(object):
 
         trailer_data = data['tmdb_videos']
 
-        sql = """insert into kino.movies2trailers (imdb_id, url)
+        sql = """insert into movies_movies2trailers (imdb_id, url)
                  select imdb_id
                       , 'https://www.youtube.com/watch?v=' || key
                    from json_to_recordset( %s) x (imdb_id varchar(1000), key varchar(100))

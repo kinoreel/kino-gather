@@ -22,7 +22,7 @@ class InsertData(object):
         prices_data = data['guidebox_prices']
         youtube_data = data['youtube_films_main']
 
-        sql = """insert into kino.movies2streams (imdb_id, source, url, currency, price, format, purchase_type)
+        sql = """insert into movies_movies2streams (imdb_id, source, url, currency, price, format, purchase_type)
                  select case when x.link is null and z.video_id is not null then
                            z.imdb_id
                         else

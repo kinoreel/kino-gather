@@ -21,7 +21,7 @@ class InsertData(object):
         crew_data = data['tmdb_crew']
         cast_data = data['tmdb_cast']
 
-        sql = """insert into movies2persons (imdb_id, person_id, role)
+        sql = """insert into movies_movies2persons (imdb_id, person_id, role)
                  select x.imdb_id
                       , y.person_id
                       , x.job

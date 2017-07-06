@@ -20,7 +20,7 @@ class InsertData(object):
 
         movie_data = data['tmdb_main']
 
-        sql = """insert into kino.movies2numbers (imdb_id, type, value)
+        sql = """insert into movies_movies2numbers (imdb_id, type, value)
                  with pivoted_data as (
                  select imdb_id
                       , unnest(array['revenue', 'budget']) as type

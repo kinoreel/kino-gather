@@ -20,7 +20,7 @@ class InsertData(object):
 
         genre_data = data['tmdb_genres']
 
-        sql = """insert into kino.movies2genres (imdb_id, genre)
+        sql = """insert into movies_movies2genres (imdb_id, genre)
                  select imdb_id
                       , name
                    from json_to_recordset(%s) x (imdb_id varchar(1000), name varchar(1000))

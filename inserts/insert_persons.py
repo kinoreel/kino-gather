@@ -21,7 +21,7 @@ class InsertData(object):
         crew_data = data['tmdb_crew']
         cast_data = data['tmdb_cast']
 
-        sql = """insert into kino.persons (fullname)
+        sql = """insert into movies_persons (fullname)
                  select z.name
                    from ( select name
                             from json_to_recordset( %s) x (name varchar(1000))

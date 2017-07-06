@@ -20,7 +20,7 @@ class InsertData(object):
         omdb_movie_data = data['omdb_main']
         tmdb_movie_data = data['tmdb_main']
 
-        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language)
+        sql = """insert into movies_movie (imdb_id, title, runtime, rated, released, orig_language)
                  select x.imdb_id
                       , x.title
                       , y.runtime
