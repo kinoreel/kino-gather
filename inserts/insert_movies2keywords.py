@@ -20,7 +20,7 @@ class InsertData(object):
 
         keyword_data = data['tmdb_keywords']
 
-        sql = """insert into kino.movies2keywords (imdb_id, keyword)
+        sql = """insert into movies_movies2keywords (imdb_id, keyword)
                  select imdb_id
                       , name
                    from json_to_recordset(%s) x (imdb_id varchar(1000), name varchar(100))

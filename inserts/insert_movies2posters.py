@@ -20,7 +20,7 @@ class InsertData(object):
 
         movie_data = data['tmdb_main']
 
-        sql = """insert into kino.movies2posters(imdb_id, url)
+        sql = """insert into movies_movies2posters(imdb_id, url)
                  select imdb_id
                       , 'http://image.tmdb.org/t/p/w185/' || poster_path
                    from json_to_recordset( %s) x (imdb_id varchar(1000), poster_path varchar(100))

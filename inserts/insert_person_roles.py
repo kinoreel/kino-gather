@@ -20,7 +20,7 @@ class InsertData(object):
 
         crew_data = data['tmdb_crew']
 
-        sql = """insert into kino.person_roles (role)
+        sql = """insert into movies_person_roles (role)
                  select job
                    from json_to_recordset( %s) x (job varchar(1000))
                   where (job) not in (select role

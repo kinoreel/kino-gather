@@ -20,7 +20,7 @@ class InsertData(object):
 
         ratings_data = data['omdb_ratings']
 
-        sql = """insert into kino.movies2ratings (imdb_id, source, rating)
+        sql = """insert into movies_movies2ratings (imdb_id, source, rating)
                  select imdb_id
                       , lower(source) as source
                       , value
