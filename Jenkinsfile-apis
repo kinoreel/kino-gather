@@ -2,7 +2,6 @@
 
 node {
     registry_url = "http://localhost:5000"
-    docker_creds_id = "1"
     build_tag = "latest"
 
     stage 'Git'
@@ -20,4 +19,6 @@ node {
 
         currentBuild.result = 'SUCCESS'
     }
+    stage 'Deploy'
+    sh 'kubectl create -f apis/kubernetes-deployments/${API_NAME}-deployments.yaml'
 }
