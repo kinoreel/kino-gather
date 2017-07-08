@@ -2,12 +2,13 @@
 
 node {
     registry_url = "http://eu.gcr.io"
+    registry_cred = "e3a69931-2272-4bb3-977a-fce701caef7d"
     build_tag = "latest"
 
     stage 'Git'
     git([ url: 'https://github.com/kinoreel/kino-gather.git', branch: '${BRANCH}'])
 
-    docker.withRegistry("${registry_url}") {
+    docker.withRegistry("${registry_url}", "${registry_cred}") {
         maintainer_name = "kino"
         container_name = "gather-${API_NAME}"
         stage "Building Docker image"
