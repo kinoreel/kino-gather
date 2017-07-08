@@ -1,0 +1,14 @@
+apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
+kind: Deployment
+metadata:
+  name: gather-tmdb
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gather-tmdb
+    spec:
+      containers:
+      - name: gather-tmdb
+        image: eu.gcr.io/kino-173106/gather-tmdb:latest
