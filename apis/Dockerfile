@@ -10,4 +10,4 @@ ENV API_KEY $API_KEY
 COPY  . /code
 WORKDIR /code
 RUN pip3 install -r requirements.py
-CMD ["python3", "kafka_handler.py"]
+CMD ["python3", "kafka_apis.py"]
