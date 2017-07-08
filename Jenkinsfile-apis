@@ -2,7 +2,7 @@
 
 node {
     registry_url = "${REGISTRY_URL}"
-    registry_cred = "1"
+    registry_cred = "${REGISTRY_CRED}"
     build_tag = "latest"
 
     stage 'Git'
