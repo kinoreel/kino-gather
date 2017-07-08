@@ -1,7 +1,6 @@
 import json
 
-from apis import GLOBALS
-from py.postgres import Postgres
+from postgres import Postgres
 
 
 class InsertData(object):
@@ -20,10 +19,13 @@ class InsertData(object):
 
         ratings_data = data['omdb_ratings']
 
-        sql = """insert into movies_movies2ratings (imdb_id, source, rating)
+        # We have to specify the tstamp, as the default value is only populated
+        # when the insert is done via Django.
+        sql = """insert into kino.movies2ratings (imdb_id, source, rating, tstamp)
                  select imdb_id
                       , lower(source) as source
                       , value
+                      , CURRENT_DATE
                   from json_to_recordset(%s) x (imdb_id varchar(1000), source varchar(1000), value varchar(1000))
                   where ( imdb_id, source ) not in (select imdb_id
                                                          , source

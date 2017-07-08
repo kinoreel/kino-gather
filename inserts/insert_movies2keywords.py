@@ -1,7 +1,5 @@
 import json
-
-from apis import GLOBALS
-from py.postgres import Postgres
+from postgres import Postgres
 
 
 class InsertData(object):
@@ -20,9 +18,12 @@ class InsertData(object):
 
         keyword_data = data['tmdb_keywords']
 
-        sql = """insert into movies_movies2keywords (imdb_id, keyword)
+        # We have to specify the tstamp, as the default value is only populated
+        # when the insert is done via Django.
+        sql = """insert into kino.movies2keywords (imdb_id, keyword, tstamp)
                  select imdb_id
                       , name
+                      , CURRENT_DATE
                    from json_to_recordset(%s) x (imdb_id varchar(1000), name varchar(100))
                   where ( imdb_id, name ) not in (select imdb_id
                                                        , keyword

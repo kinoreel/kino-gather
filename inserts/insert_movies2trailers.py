@@ -1,5 +1,5 @@
 import json
-from py.postgres import Postgres
+from postgres import Postgres
 
 class InsertData(object):
 
@@ -18,9 +18,10 @@ class InsertData(object):
 
         trailer_data = data['tmdb_videos']
 
-        sql = """insert into movies_movies2trailers (imdb_id, url)
+        sql = """insert into kino.movies2trailers (imdb_id, url, tstamp)
                  select imdb_id
                       , 'https://www.youtube.com/watch?v=' || key
+                      , CURRENT_DATE
                    from json_to_recordset( %s) x (imdb_id varchar(1000), key varchar(100))
                   where imdb_id not in (select imdb_id
                                           from kino.movies2trailers )"""

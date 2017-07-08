@@ -1,7 +1,5 @@
 import json
-
-from apis import GLOBALS
-from py.postgres import Postgres
+from postgres import Postgres
 
 
 class InsertData(object):
@@ -20,11 +18,14 @@ class InsertData(object):
 
         movie_data = data['tmdb_main']
 
-        sql = """insert into movies_movies2numbers (imdb_id, type, value)
+        # We have to specify the tstamp, as the default value is only populated
+        # when the insert is done via Django.
+        sql = """insert into kino.movies2numbers (imdb_id, type, value, tstamp)
                  with pivoted_data as (
                  select imdb_id
                       , unnest(array['revenue', 'budget']) as type
                       , unnest(array[revenue, budget]) as value
+                      , CURRENT_DATE
                    from json_to_recordset( %s) x (imdb_id varchar(1000), revenue varchar(100), budget varchar(1000))
                  )
                  select imdb_id

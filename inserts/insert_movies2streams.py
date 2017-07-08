@@ -1,7 +1,6 @@
 import json
 
-from apis import GLOBALS
-from py.postgres import Postgres
+from postgres import Postgres
 
 
 class InsertData(object):
@@ -22,7 +21,7 @@ class InsertData(object):
         prices_data = data['guidebox_prices']
         youtube_data = data['youtube_films_main']
 
-        sql = """insert into movies_movies2streams (imdb_id, source, url, currency, price, format, purchase_type)
+        sql = """insert into kino.movies2streams (imdb_id, source, url, currency, price, format, purchase_type, tstamp)
                  select case when x.link is null and z.video_id is not null then
                            z.imdb_id
                         else
@@ -42,6 +41,7 @@ class InsertData(object):
                       , to_number(y.price, '99.9')
                       , y.format
                       , y.type
+                      , CURRENT_DATE
                    from json_to_recordset(%s) x (imdb_id varchar(1000), display_name varchar(1000), source varchar(1000), link varchar(1000))
                    left join json_to_recordset(%s) y (imdb_id varchar(1000), source varchar(1000), price varchar(1000), format varchar(1000), type varchar(1000))
                      on x.imdb_id = y.imdb_id

@@ -1,7 +1,5 @@
 import json
-
-from apis import GLOBALS
-from py.postgres import Postgres
+from postgres import Postgres
 
 
 class InsertData(object):
@@ -20,8 +18,9 @@ class InsertData(object):
 
         crew_data = data['tmdb_crew']
 
-        sql = """insert into movies_person_roles (role)
+        sql = """insert into kino.person_roles (role, tstamp)
                  select job
+                      , CURRENT_DATE
                    from json_to_recordset( %s) x (job varchar(1000))
                   where (job) not in (select role
                                         from kino.person_roles)
@@ -33,5 +32,8 @@ class InsertData(object):
         destination_data = {'tmdb_crew': data['tmdb_crew'],
                             'tmdb_cast': data['tmdb_cast']}
 
-        return json.dumps(destination_data)
+        # As we have created a new dictionary, we must transform it
+        # into json before returning it to kafka, otherwise it
+        # will be read by the next topid as a string.
+        return destination_data
 

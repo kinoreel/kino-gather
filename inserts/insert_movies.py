@@ -1,7 +1,5 @@
 import json
-
-from apis import GLOBALS
-from py.postgres import Postgres
+from postgres import Postgres
 
 
 class InsertData(object):
@@ -20,13 +18,14 @@ class InsertData(object):
         omdb_movie_data = data['omdb_main']
         tmdb_movie_data = data['tmdb_main']
 
-        sql = """insert into movies_movie (imdb_id, title, runtime, rated, released, orig_language)
+        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language, tstamp)
                  select x.imdb_id
                       , x.title
                       , y.runtime
                       , x.rated
                       , y.release_date
                       , y.original_language
+                      , CURRENT_DATE
                    from json_to_recordset(%s) x (imdb_id varchar(1000), title varchar(100), rated varchar(1000))
                    join json_to_recordset(%s) y (imdb_id varchar(1000), runtime varchar(1000), release_date varchar(1000), original_language varchar(1000))
                      on x.imdb_id = y.imdb_id
