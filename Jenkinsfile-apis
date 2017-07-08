@@ -15,7 +15,7 @@ node {
     container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${KAFKA_BROKER} --build-arg API_KEY=${API_KEY} --build-arg API_NAME=${API_NAME} apis')
 
     stage "Pushing Docker image"
-    sh 'gcloud docker -- push \"${image_name}\"'
+    sh 'gcloud docker -- push $image_name'
 
     currentBuild.result = 'SUCCESS'
 
