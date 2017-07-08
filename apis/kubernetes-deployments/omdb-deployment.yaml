@@ -11,4 +11,4 @@ spec:
     spec:
       containers:
       - name: gather-omdb
-        image: localhost:5000/kino/gather-omdb:latest
+        image: eu.gcr.io/kino-173106/gather-omdb:latest
