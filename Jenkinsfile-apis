@@ -10,11 +10,12 @@ node {
 
     maintainer_name = "${MAINTAINER}"
     container_name = "gather-${API_NAME}"
+    image_name = "${registry_url}/${maintainer_name}/${container_name}:${build_tag}"
     stage "Building Docker image"
-    container = docker.build("${registry_url}/${maintainer_name}/${container_name}:${build_tag}", ' --build-arg KAFKA_BROKER=${KAFKA_BROKER} --build-arg API_KEY=${API_KEY} --build-arg API_NAME=${API_NAME} apis')
+    container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${KAFKA_BROKER} --build-arg API_KEY=${API_KEY} --build-arg API_NAME=${API_NAME} apis')
 
     stage "Pushing Docker image"
-    sh 'gcloud docker -- push ${registry_url}/${maintainer_name}/${container_name}:${build_tag}'
+    sh 'gcloud docker -- push \"${image_name}\"'
 
     currentBuild.result = 'SUCCESS'
 
