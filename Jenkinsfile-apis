@@ -16,6 +16,7 @@ node {
 
     stage "Pushing Docker image"
     sh "gcloud docker -- push ${image_name}"
+    sh "docker rmi ${image_name}"
 
     currentBuild.result = 'SUCCESS'
 
