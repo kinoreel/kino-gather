@@ -21,7 +21,7 @@ class InsertData(object):
         prices_data = data['guidebox_prices']
         youtube_data = data['youtube_films_main']
 
-        sql = """insert into movies_movies2streams (imdb_id, source, url, currency, price, format, purchase_type, tstamp)
+        sql = """insert into kino.movies2streams (imdb_id, source, url, currency, price, format, purchase_type, tstamp)
                  select case when x.link is null and z.video_id is not null then
                            z.imdb_id
                         else
@@ -53,7 +53,7 @@ class InsertData(object):
                   where (x.imdb_id, x.display_name, link) not in (select imdb_id
                                                                        , source
                                                                        , link
-                                                                    from movies_movies2streams )"""
+                                                                    from kino.movies2streams )"""
 
         self.pg.pg_cur.execute(sql, (json.dumps(sources_data), json.dumps(prices_data), json.dumps(youtube_data)))
         self.pg.pg_conn.commit()

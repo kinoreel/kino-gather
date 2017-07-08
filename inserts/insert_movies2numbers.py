@@ -20,7 +20,7 @@ class InsertData(object):
 
         # We have to specify the tstamp, as the default value is only populated
         # when the insert is done via Django.
-        sql = """insert into movies_movies2numbers (imdb_id, type, value, tstamp)
+        sql = """insert into kino.movies2numbers (imdb_id, type, value, tstamp)
                  with pivoted_data as (
                  select imdb_id
                       , unnest(array['revenue', 'budget']) as type
@@ -34,7 +34,7 @@ class InsertData(object):
                    from pivoted_data
                   where ( imdb_id, type ) not in (select imdb_id
                                                        , type
-                                                    from movies_movies2numbers)"""
+                                                    from kino.movies2numbers)"""
 
         self.pg.pg_cur.execute(sql, (json.dumps(movie_data), ))
         self.pg.pg_conn.commit()

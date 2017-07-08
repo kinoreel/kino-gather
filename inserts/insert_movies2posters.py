@@ -21,13 +21,13 @@ class InsertData(object):
 
         # We have to specify the tstamp, as the default value is only populated
         # when the insert is done via Django.
-        sql = """insert into movies_movies2posters(imdb_id, url, tstamp)
+        sql = """insert into kino.movies2posters(imdb_id, url, tstamp)
                  select imdb_id
                       , 'http://image.tmdb.org/t/p/w185/' || poster_path
                       , CURRENT_DATE
                    from json_to_recordset( %s) x (imdb_id varchar(1000), poster_path varchar(100))
                   where ( imdb_id ) not in (select imdb_id
-                                              from movies_movies2posters )"""
+                                              from kino.movies2posters )"""
 
         self.pg.pg_cur.execute(sql, (json.dumps(movie_data), ))
         self.pg.pg_conn.commit()
