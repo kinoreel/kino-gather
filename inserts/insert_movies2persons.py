@@ -22,7 +22,7 @@ class InsertData(object):
 
         # We have to specify the tstamp, as the default value is only populated
         # when the insert is done via Django.
-        sql = """insert into movies_movies2persons (imdb_id, person_id, role, tstamp)
+        sql = """insert into movies2persons (imdb_id, person_id, role, tstamp)
                  select x.imdb_id
                       , y.person_id
                       , x.job
@@ -42,7 +42,7 @@ class InsertData(object):
                   where ( imdb_id, person_id, job ) not in ( select imdb_id
                                                                   , person_id
                                                                   , role
-                                                               from movies_movies2persons )"""
+                                                               from movies2persons )"""
 
         self.pg.pg_cur.execute(sql, (json.dumps(cast_data), json.dumps(crew_data)))
         self.pg.pg_conn.commit()

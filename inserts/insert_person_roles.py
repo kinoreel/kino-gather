@@ -18,12 +18,12 @@ class InsertData(object):
 
         crew_data = data['tmdb_crew']
 
-        sql = """insert into movies_person_roles (role, tstamp)
+        sql = """insert into person_roles (role, tstamp)
                  select job
                       , CURRENT_DATE
                    from json_to_recordset( %s) x (job varchar(1000))
                   where (job) not in (select role
-                                        from movies_person_roles)
+                                        from person_roles)
                   group by job"""
 
         self.pg.pg_cur.execute(sql, (json.dumps(crew_data), ))
