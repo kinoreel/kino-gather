@@ -3,8 +3,6 @@ import os
 import sys
 from kafka import KafkaConsumer, KafkaProducer
 
-import GLOBALS
-
 try:
     table_name = __import__("insert_{}".format(os.environ['TABLE_NAME']))
 except KeyError:
