@@ -1,0 +1,25 @@
+#!groovy
+
+node {
+    registry_url = "${REGISTRY_URL}"
+    build_tag = "latest"
+
+    stage 'Git'
+    git([ url: 'https://github.com/kinoreel/kino-gather.git', branch: '${BRANCH}'])
+
+
+    maintainer_name = "${MAINTAINER}"
+    container_name = "insert-${TABLE_NAME}"
+    image_name = "${registry_url}/${maintainer_name}/${container_name}:${build_tag}"
+    stage "Building Docker image"
+    container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${KAFKA_BROKER} --build-arg TABLE_NAME=${TABLE_NAME} inserts')
+
+    stage "Pushing Docker image"
+    sh "gcloud docker -- push ${image_name}"
+    sh "docker rmi ${image_name}"
+
+    currentBuild.result = 'SUCCESS'
+
+    stage 'Deploy'
+    sh 'kubectl create -f inserts/kubernetes-deployments/${TABLE_NAME}-deployment.yaml'
+}
