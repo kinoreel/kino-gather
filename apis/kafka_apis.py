@@ -17,7 +17,7 @@ try:
     KAFKA_BROKER = os.environ['KAFKA_BROKER']
 except KeyError:
     try:
-        from apis.GLOBALS import KAFKA_BROKER
+        from GLOBALS import KAFKA_BROKER
     except ImportError:
         print("Specify Kafka Brokers")
         exit()
@@ -48,6 +48,7 @@ class KafkaHandler(object):
             api_data = self.api.get_info(msg_data)
 
             msg_data.update(api_data)
+            print(msg_data['imdb_id'])
 
             self.producer.send(self.api.destination_topic, json.dumps(msg_data).encode())
 

@@ -1,0 +1,14 @@
+apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
+kind: Deployment
+metadata:
+  name: gather-omdb
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gather-omdb
+    spec:
+      containers:
+      - name: gather-omdb
+        image: eu.gcr.io/kino-173106/gather-omdb:latest
