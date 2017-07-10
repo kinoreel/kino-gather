@@ -12,7 +12,7 @@ node {
     container_name = "insert-${TABLE_NAME}"
     image_name = "${registry_url}/${maintainer_name}/${container_name}:${build_tag}"
     stage "Building Docker image"
-    container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${KAFKA_BROKER} --build-arg TABLE_NAME=${TABLE_NAME} --build-arg PG_PORT=${PG_PORT} --build-arg PG_DB=${PG_DB} --build-arg PG_USERNAME=${PG_USERNAME} --build-arg PG_PASSWORD=${PG_PASSWORD} inserts')
+    container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${KAFKA_BROKER} --build-arg TABLE_NAME=${TABLE_NAME} --build-arg PG_SERVER=${PG_SERVER} --build-arg PG_PORT=${PG_PORT} --build-arg PG_DB=${PG_DB} --build-arg PG_USERNAME=${PG_USERNAME} --build-arg PG_PASSWORD=${PG_PASSWORD} inserts')
 
     stage "Pushing Docker image"
     sh "gcloud docker -- push ${image_name}"
