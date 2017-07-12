@@ -2,7 +2,9 @@
 
 node {
    stage ('Starting kino-inserts') {
-       def kino_tables = ['Holla', 'at', 'me']
+       def kino_tables = ['movies',
+                          'at',
+                          'me']
        kino_tables.each {
             echo "${it}"
         }
