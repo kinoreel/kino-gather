@@ -1,0 +1,38 @@
+#!groovy
+
+node {
+
+    stage "Creating kino topics"
+    def kino_tables = [ 'imdb_ids'
+                      , 'omdb'
+                      , 'tmdb'
+                      , 'guidebox'
+                      , 'youtube'
+                      , 'movies'
+                      , 'movies2genres'
+                      , 'movies2keywords'
+                      , 'movies2numbers'
+                      , 'movies2persons'
+                      , 'movies2posters'
+                      , 'movies2ratings'
+                      , 'movies2streams'
+                      , 'movies2trailers'
+                      , 'person_roles'
+                      , 'persons'
+                      ]
+
+    kino_tables.each {
+
+            echo "Creating topic for ${it}"
+
+            try {
+                    sh "/apps/kafka_2.11-0.11.0.0/bin/kafka-topics.sh --zookeeper ${ZOOKEEPER_CONN}" --create --replication-factor 1 --partitions 1 --topic ${it}"
+                } catch (err) {
+                    echo "Build insert-${it} failed"
+                }
+       }
+   }
+}
+
+    currentBuild.result = 'SUCCESS'
+}
