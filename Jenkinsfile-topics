@@ -33,6 +33,3 @@ node {
        }
    }
 }
-
-    currentBuild.result = 'SUCCESS'
-}
