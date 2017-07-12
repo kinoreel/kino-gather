@@ -26,7 +26,7 @@ node {
             echo "Creating topic for ${it}"
 
             try {
-                    sh "/apps/kafka_2.11-0.11.0.0/bin/kafka-topics.sh --zookeeper ${ZOOKEEPER_CONN}" --create --replication-factor 1 --partitions 1 --topic ${it}"
+                    sh "/apps/kafka_2.11-0.11.0.0/bin/kafka-topics.sh --zookeeper ${ZOOKEEPER_CONN} --create --replication-factor 1 --partitions 1 --topic ${it}"
                 } catch (err) {
                     echo "Build insert-${it} failed"
                 }
