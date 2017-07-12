@@ -6,7 +6,7 @@ node {
        kino_tables.each {
             echo "Starting ${it}"
             try {
-                build job: "kino-inserts", parameters: [[$class: 'StringParameterValue', name: 'TABLE_NAME', value: "${it}'],
+                build job: "kino-inserts", parameters: [[$class: 'StringParameterValue', name: 'TABLE_NAME', value: "${it}"],
                                                         [$class: 'StringParameterValue', name: 'REGISTRY_URL', value: 'eu.gcr.io']
                                                        ]
                 } catch (err) {
