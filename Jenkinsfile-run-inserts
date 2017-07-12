@@ -1,7 +1,7 @@
 #!groovy
 
 node {
-   stage 'Starting kino-insert-movies2numbers') {
+   stage 'Starting kino-insert-movies2numbers' {
        ['Holla', 'at', 'me'].each {
             echo "${it}"
         }
