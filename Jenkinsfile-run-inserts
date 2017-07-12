@@ -2,11 +2,10 @@
 
 node {
    stage ('Starting kino-inserts') {
-       def kino_tables = ['movies',
-                          'at',
-                          'me']
+       def kino_tables = ['movies2numbers']
        kino_tables.each {
-            echo "${it}"
+            echo "Starting ${it}"
+            build job: "kino-inserts" parameters: [[$class: 'StringParameterValue', name: 'TABLE_NAME', value: ${it}]]
         }
    }
 }
