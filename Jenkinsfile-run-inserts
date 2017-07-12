@@ -12,8 +12,8 @@ node {
                          ,'movies2ratings'
                          ,'movies2streams'
                          ,'movies2trailers'
-                         ,'movies2person_roles'
-                         ,'movies2persons'
+                         ,'person_roles'
+                         ,'persons'
                          ]
 
        kino_tables.each {
