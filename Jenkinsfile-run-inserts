@@ -5,7 +5,7 @@ node {
        def kino_tables = ['movies2numbers']
        kino_tables.each {
             echo "Starting ${it}"
-            build job: "kino-inserts" parameters: [[$class: 'StringParameterValue', name: 'TABLE_NAME', value: ${it}]]
+            build job: "kino-inserts", parameters: [[$class: 'StringParameterValue', name: 'TABLE_NAME', value: ${it}]]
         }
    }
 }
