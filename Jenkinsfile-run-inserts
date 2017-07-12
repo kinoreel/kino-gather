@@ -5,7 +5,6 @@ node {
 
        def kino_tables = ['movies'
                          ,'movies2genres'
-                         ,'movies2genres'
                          ,'movies2keywords'
                          ,'movies2numbers'
                          ,'movies2persons'
