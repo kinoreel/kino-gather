@@ -1,8 +1,9 @@
 #!groovy
 
 node {
-   stage ('Starting kino-insert-movies2numbers') {
-       ['Holla', 'at', 'me'].each {
+   stage ('Starting kino-inserts') {
+       def kino_tables = ['Holla', 'at', 'me']
+       kino_tables.each {
             echo "${it}"
         }
    }
