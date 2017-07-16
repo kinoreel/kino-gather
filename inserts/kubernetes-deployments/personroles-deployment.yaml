@@ -1,14 +1,14 @@
 apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
 kind: Deployment
 metadata:
-  name: insert-person_roles
+  name: insert-person-roles
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: insert-person_roles
+        app: insert-person-roles
     spec:
       containers:
-      - name: insert-person_roles
-        image: eu.gcr.io/kino-173106/insert-person_roles:latest
+      - name: insert-person-roles
+        image: eu.gcr.io/kino-173106/insert-personroles:latest

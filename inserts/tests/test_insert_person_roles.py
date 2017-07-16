@@ -2,7 +2,7 @@ import json
 import unittest
 
 from apis import GLOBALS
-from inserts.insert_person_roles import InsertData
+from inserts.insert_personroles import InsertData
 from py.postgres import Postgres
 
 server = GLOBALS.PG_SERVER
