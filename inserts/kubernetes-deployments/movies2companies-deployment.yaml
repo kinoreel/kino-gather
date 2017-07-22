@@ -1,14 +1,14 @@
 apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
 kind: Deployment
 metadata:
-  name: insert-persons
+  name: insert-movies2companies
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: insert-persons
+        app: insert-movies2companies
     spec:
       containers:
-      - name: insert-persons
-        image: eu.gcr.io/kino-173106/insert-persons:latest
+      - name: insert-movies2companies
+        image: eu.gcr.io/kino-173106/insert-movies2companies:latest
