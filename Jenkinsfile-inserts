@@ -33,18 +33,21 @@ node {
         stage "Building Docker image"
         container = docker.build("${image_name}", "--build-arg KAFKA_BROKER=${env.KAFKA_BROKER} --build-arg TABLE_NAME=${TABLE_NAME} --build-arg PG_SERVER=${env.PG_SERVER} --build-arg PG_PORT=${env.PG_PORT} --build-arg PG_DB=${env.PG_DB} --build-arg PG_USERNAME=${env.PG_USERNAME} --build-arg PG_PASSWORD=${env.PG_PASSWORD} inserts")
 
-        stage "Pushing Docker image"
-        sh "gcloud docker -- push ${image_name}"
-        sh "docker rmi ${image_name}"
-
-        currentBuild.result = 'SUCCESS'
-
-        stage 'Deploy'
-
         try {
+
+            stage "Pushing Docker image"
+            sh "gcloud docker -- push ${image_name}"
+            sh "docker rmi ${image_name}"
+
+            currentBuild.result = 'SUCCESS'
+
+            stage 'Deploy'
             sh "kubectl apply -f inserts/kubernetes-deployments/${TABLE_NAME}-deployment.yaml"
+
         } catch (err) {
+
             echo "BUILD insert-${TABLE_NAME} FAILED"
+
         }
 
     }
