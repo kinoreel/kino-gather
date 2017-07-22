@@ -3,8 +3,7 @@
 node {
 
     stage "Creating kino topics"
-    def kino_tables = [ 'imdb_ids'
-                      , 'omdb'
+    def kino_topics = [ 'omdb'
                       , 'tmdb'
                       , 'guidebox'
                       , 'youtube'
@@ -20,7 +19,7 @@ node {
                       , 'movies2trailers'
                       ]
 
-    kino_tables.each {
+    kino_topics.each {
 
             echo "Creating topic for ${it}"
 
