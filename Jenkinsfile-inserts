@@ -46,7 +46,7 @@ node {
 
         } catch (err) {
 
-            echo "BUILD insert-${TABLE_NAME} FAILED"
+            stage "Pushing Docker image - ${TABLE_NAME}"
             currentBuild.result = 'FAILURE'
 
         }
