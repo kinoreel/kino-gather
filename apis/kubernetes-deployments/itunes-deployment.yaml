@@ -1,14 +1,14 @@
 apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
 kind: Deployment
 metadata:
-  name: gather-guidebox
+  name: gather-itunes
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: gather-guidebox
+        app: gather-itunes
     spec:
       containers:
-      - name: gather-guidebox
-        image: eu.gcr.io/kino-173106/gather-guidebox:latest
+      - name: gather-itunes
+        image: eu.gcr.io/kino-173106/gather-itunes:latest
