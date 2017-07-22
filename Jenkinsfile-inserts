@@ -1,25 +1,41 @@
 #!groovy
 
 node {
-    registry_url = "${REGISTRY_URL}"
+    registry_url = "${env.REGISTRY_URL}"
     build_tag = "latest"
+
+    def kino_tables = ['movies'
+                      ,'movies2companies'
+                      ,'movies2genres'
+                      ,'movies2keywords'
+                      ,'movies2numbers'
+                      ,'movies2persons'
+                      ,'movies2posters'
+                      ,'movies2ratings'
+                      ,'movies2streams'
+                      ,'movies2trailers'
+                      ]
 
     stage 'Git'
     git([ url: 'https://github.com/kinoreel/kino-gather.git', branch: '${BRANCH}'])
 
+    maintainer_name = "${env.MAINTAINER}"
 
-    maintainer_name = "${MAINTAINER}"
-    container_name = "insert-${TABLE_NAME}"
-    image_name = "${registry_url}/${maintainer_name}/${container_name}:${build_tag}"
-    stage "Building Docker image"
-    container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${KAFKA_BROKER} --build-arg TABLE_NAME=${TABLE_NAME} --build-arg PG_SERVER=${PG_SERVER} --build-arg PG_PORT=${PG_PORT} --build-arg PG_DB=${PG_DB} --build-arg PG_USERNAME=${PG_USERNAME} --build-arg PG_PASSWORD=${PG_PASSWORD} inserts')
+    kino_tables.each {
 
-    stage "Pushing Docker image"
-    sh "gcloud docker -- push ${image_name}"
-    sh "docker rmi ${image_name}"
+        container_name = "insert-${it}"
+        image_name = "${registry_url}/${maintainer_name}/${container_name}:${build_tag}"
+        stage "Building Docker image"
+        container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${env.KAFKA_BROKER} --build-arg TABLE_NAME=${it} --build-arg PG_SERVER=${env.PG_SERVER} --build-arg PG_PORT=${env.PG_PORT} --build-arg PG_DB=${env.PG_DB} --build-arg PG_USERNAME=${env.PG_USERNAME} --build-arg PG_PASSWORD=${env.PG_PASSWORD} inserts')
 
-    currentBuild.result = 'SUCCESS'
+        stage "Pushing Docker image"
+        sh "gcloud docker -- push ${image_name}"
+        sh "docker rmi ${image_name}"
 
-    stage 'Deploy'
-    sh 'kubectl apply -f inserts/kubernetes-deployments/${TABLE_NAME}-deployment.yaml'
+        currentBuild.result = 'SUCCESS'
+
+        stage 'Deploy'
+        sh 'kubectl apply -f inserts/kubernetes-deployments/${it}-deployment.yaml'
+
+    }
 }
