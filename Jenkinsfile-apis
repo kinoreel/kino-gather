@@ -28,7 +28,7 @@ node {
         container_name = "gather-${apis[i]}"
         image_name = "${registry_url}/${maintainer_name}/${container_name}:${build_tag}"
         stage "Building ${image_name} Docker image"
-        container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${env.KAFKA_BROKER} --build-arg API_KEY=${API_KEY} --build-arg API_NAME=${apis[i]} apis')
+        container = docker.build("${image_name}", " --build-arg KAFKA_BROKER=${env.KAFKA_BROKER} --build-arg API_KEY=${API_KEY} --build-arg API_NAME=${apis[i]} apis")
 
         stage "Pushing ${image_name} Docker image"
         sh "gcloud docker -- push ${image_name}"
@@ -37,6 +37,6 @@ node {
         currentBuild.result = 'SUCCESS'
 
         stage "Deploy ${apis[i]}"
-        sh 'kubectl create -f apis/kubernetes-deployments/${apis[i]}-deployment.yaml'
+        sh "kubectl create -f apis/kubernetes-deployments/${apis[i]}-deployment.yaml"
     }
 }
