@@ -1,25 +1,46 @@
 #!groovy
 
 node {
-    registry_url = "${REGISTRY_URL}"
+    registry_url = "${env.REGISTRY_URL}"
     build_tag = "latest"
-
+    List<String> apis = new ArrayList<String>();
+    apis.add("omdb");
+    apis.add("tmdb");
+    apis.add("itunes");
+    apis.add("youtube");
     stage 'Git'
     git([ url: 'https://github.com/kinoreel/kino-gather.git', branch: '${BRANCH}'])
 
+    for (String api : apis) {
+        def API_KEY
+        switch(api) {
+            case 'omdb':
+            API_KEY = "${env.OMDB_KEY}"
+            break
+            case 'tmdb':
+            API_KEY = "${env.TMDB_KEY}"
+            break
+            case 'youtube':
+            API_KEY = "${env.YOUTUBE_KEY}"
+            break
+            case 'itunes':
+            API_KEY = ""
+            break
+        }
 
-    maintainer_name = "${MAINTAINER}"
-    container_name = "gather-${API_NAME}"
-    image_name = "${registry_url}/${maintainer_name}/${container_name}:${build_tag}"
-    stage "Building Docker image"
-    container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${KAFKA_BROKER} --build-arg API_KEY=${API_KEY} --build-arg API_NAME=${API_NAME} apis')
+        maintainer_name = "${env.MAINTAINER}"
+        container_name = "gather-${api}"
+        image_name = "${registry_url}/${maintainer_name}/${container_name}:${build_tag}"
+        stage "Building Docker image"
+        container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${env.KAFKA_BROKER} --build-arg API_KEY=${API_KEY} --build-arg API_NAME=${api} apis')
 
-    stage "Pushing Docker image"
-    sh "gcloud docker -- push ${image_name}"
-    sh "docker rmi ${image_name}"
+        stage "Pushing Docker image"
+        sh "gcloud docker -- push ${image_name}"
+        sh "docker rmi ${image_name}"
 
-    currentBuild.result = 'SUCCESS'
+        currentBuild.result = 'SUCCESS'
 
-    stage 'Deploy'
-    sh 'kubectl create -f apis/kubernetes-deployments/${API_NAME}-deployment.yaml'
+        stage 'Deploy'
+        sh 'kubectl create -f apis/kubernetes-deployments/${api}-deployment.yaml'
+    }
 }
