@@ -26,6 +26,7 @@ node {
     kino_tables.each {
 
         TABLE_NAME = "${it}"
+
         container_name = "insert-${TABLE_NAME}"
         image_name = "${registry_url}/${maintainer_name}/${container_name}:${build_tag}"
 
@@ -39,7 +40,12 @@ node {
         currentBuild.result = 'SUCCESS'
 
         stage 'Deploy'
-        sh "kubectl apply -f inserts/kubernetes-deployments/${TABLE_NAME}-deployment.yaml"
+
+        try {
+            sh "kubectl apply -f inserts/kubernetes-deployments/${TABLE_NAME}-deployment.yaml"
+        } catch (err) {
+            echo "BUILD insert-${TABLE_NAME} FAILED"
+        }
 
     }
 }

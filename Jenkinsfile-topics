@@ -5,7 +5,7 @@ node {
     stage "Creating kino topics"
     def kino_topics = [ 'omdb'
                       , 'tmdb'
-                      , 'guidebox'
+                      , 'itunes'
                       , 'youtube'
                       , 'movies'
                       , 'movies2companies'
