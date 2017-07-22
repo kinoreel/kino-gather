@@ -25,7 +25,7 @@ node {
 
     kino_tables.each {
 
-        TABLE_NAME = ${it}
+        TABLE_NAME = "${it}"
 
         container_name = "insert-${it}"
         echo "${env.PG_SERVER}"
