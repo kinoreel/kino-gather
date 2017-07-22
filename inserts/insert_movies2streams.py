@@ -18,14 +18,13 @@ class InsertData(object):
         """
 
         itunes_data = [data['itunes_main'],]
-        print(itunes_data)
         youtube_data = data['youtube_films_main']
-        print(youtube_data)
 
         sql = """insert into kino.movies2streams (imdb_id, source, url, currency, price, format, purchase_type, tstamp)
                  select x.imdb_id
-                      , 'YouTube'
-                      , 'https://www.youtube.com/watch?v=' || x.video_id
+                      ,  unnest(array['GooglePlay', 'YouTube'])
+                      ,  unnest(array['https://play.google.com/store/movies/details?id=' || x.video_id,
+                                      'https://www.youtube.com/watch?v=' || x.video_id])
                       , null::text
                       , null::real
                       , x.definition
@@ -37,7 +36,7 @@ class InsertData(object):
                       , 'iTunes'
                       , url
                       , '£'
-                      , unnest(array[rental_price, hd_rental_price, purchase_price, hd_purchase_price])
+                          , unnest(array[rental_price, hd_rental_price, purchase_price, hd_purchase_price])
                       , unnest(array['sd', 'hd', 'sd', 'hd'])
                       , unnest(array['rental', 'rental', 'purchase', 'purchase'])
                       , CURRENT_DATE

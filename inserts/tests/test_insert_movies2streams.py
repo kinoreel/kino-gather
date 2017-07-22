@@ -31,7 +31,8 @@ class TestInsertMovies2Streams(unittest.TestCase):
         self.ins.insert(data)
         self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type from kino.movies2streams')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result, [('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 2.49, 'sd', 'rental'),
+        self.assertEqual(result, [('tt2562232', 'GooglePlay', 'https://play.google.com/store/movies/details?id=0MhS4b_yjuo', None, None, 'hd', 'rental'),
+                                  ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 2.49, 'sd', 'rental'),
                                   ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 3.49, 'hd', 'rental'),
                                   ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 7.99, 'hd', 'purchase'),
                                   ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 7.99, 'sd', 'purchase'),
