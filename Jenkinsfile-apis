@@ -5,7 +5,7 @@ node {
     build_tag = "latest"
     def apis = ["omdb", "tmdb", "itunes", "youtube"];
     stage 'Git'
-    git([ url: 'https://github.com/kinoreel/kino-gather.git', branch: '${BRANCH}'])
+    git([ url: 'https://github.com/kinoreel/kino-gather.git', branch: 'apis'])
 
     for (i = 0; i <apis.size(); i++) {
         def API_KEY
