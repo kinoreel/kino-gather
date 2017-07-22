@@ -21,7 +21,11 @@ node {
 
     maintainer_name = "${env.MAINTAINER}"
 
+    def TABLE_NAME
+
     kino_tables.each {
+
+        TABLE_NAME = ${it}
 
         container_name = "insert-${it}"
         echo "${env.PG_SERVER}"
@@ -30,12 +34,11 @@ node {
         echo "${env.PG_USERNAME}"
         echo "${env.PG_PASSWORD}"
         echo "${env.KAFKA_BROKER}"
-        echo "${it}"
+        echo "${TABLE_NAME}"
 
-        echo "${it}"
         image_name = "${registry_url}/${maintainer_name}/${container_name}:${build_tag}"
         stage "Building Docker image"
-        container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${env.KAFKA_BROKER} --build-arg TABLE_NAME=${it} --build-arg PG_SERVER=${env.PG_SERVER} --build-arg PG_PORT=${env.PG_PORT} --build-arg PG_DB=${env.PG_DB} --build-arg PG_USERNAME=${env.PG_USERNAME} --build-arg PG_PASSWORD=${env.PG_PASSWORD} inserts')
+        container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${env.KAFKA_BROKER} --build-arg TABLE_NAME=${TABLE_NAME} --build-arg PG_SERVER=${env.PG_SERVER} --build-arg PG_PORT=${env.PG_PORT} --build-arg PG_DB=${env.PG_DB} --build-arg PG_USERNAME=${env.PG_USERNAME} --build-arg PG_PASSWORD=${env.PG_PASSWORD} inserts')
 
         stage "Pushing Docker image"
         sh "gcloud docker -- push ${image_name}"
