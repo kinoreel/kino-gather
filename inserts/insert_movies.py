@@ -1,5 +1,5 @@
 import json
-from postgres import Postgres
+from inserts.postgres import Postgres
 
 
 class InsertData(object):
@@ -23,7 +23,7 @@ class InsertData(object):
                       , x.title
                       , y.runtime
                       , x.rated
-                      , y.release_date
+                      , y.release_date::date
                       , y.original_language
                       , CURRENT_DATE
                    from json_to_recordset(%s) x (imdb_id varchar(1000), title varchar(100), rated varchar(1000))

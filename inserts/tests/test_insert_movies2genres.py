@@ -1,13 +1,13 @@
 import json
 import unittest
 
-from apis import GLOBALS
-from inserts.insert_movies2genres import InsertMovies2Genres
-from py.postgres import Postgres
+from inserts import GLOBALS
+from inserts.insert_movies2genres import InsertData
+from inserts.postgres import Postgres
 
 server = GLOBALS.PG_SERVER
 port = GLOBALS.PG_PORT
-db = GLOBALS.PG_DB_DEV
+db = GLOBALS.PG_DB
 user = GLOBALS.PG_USERNAME
 pw = GLOBALS.PG_PASSWORD
 
@@ -18,7 +18,7 @@ class TestInsertMovies2Genres(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.ins = InsertMovies2Genres(server, port, db, user, pw)
+        cls.ins = InsertData(server, port, db, user, pw)
         cls.pg = Postgres(server, port, db, user, pw)
         # We insert the corresponding film into kino.movies
         # due to the foreign key constraint.

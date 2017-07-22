@@ -1,6 +1,6 @@
 import json
 
-from postgres import Postgres
+from inserts.postgres import Postgres
 
 
 class InsertData(object):
@@ -32,3 +32,4 @@ class InsertData(object):
                                                       from kino.movies2ratings )"""
 
         self.pg.pg_cur.execute(sql, (json.dumps(ratings_data), ))
+        self.pg.pg_conn.commit()

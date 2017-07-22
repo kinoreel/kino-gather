@@ -1,13 +1,14 @@
 import json
 import unittest
+import datetime
 
-from apis import GLOBALS
-from inserts.insert_movies import InsertMovies
-from py.postgres import Postgres
+from inserts import GLOBALS
+from inserts.insert_movies import InsertData
+from inserts.postgres import Postgres
 
 server = GLOBALS.PG_SERVER
 port = GLOBALS.PG_PORT
-db = GLOBALS.PG_DB_DEV
+db = GLOBALS.PG_DB
 user = GLOBALS.PG_USERNAME
 pw = GLOBALS.PG_PASSWORD
 
@@ -18,14 +19,14 @@ class TestInsertMovies(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.ins = InsertMovies(server, port, db, user, pw)
+        cls.ins = InsertData(server, port, db, user, pw)
         cls.pg = Postgres(server, port, db, user, pw)
 
     def test_insert_movies(self):
         self.ins.insert(data)
         self.pg.pg_cur.execute('select imdb_id, title, runtime, rated, released, orig_language from kino.movies')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result,[('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119', 'R', '2014-08-27', 'en')])
+        self.assertEqual(result,[('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119', 'R', datetime.date(2014, 8, 27), 'en')])
 
     @classmethod
     def tearDownClass(cls):
