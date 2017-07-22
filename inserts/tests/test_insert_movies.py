@@ -28,9 +28,14 @@ class TestInsertMovies(unittest.TestCase):
         result = self.pg.pg_cur.fetchall()
         self.assertEqual(result,[('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119', 'R', datetime.date(2014, 8, 27), 'en')])
 
+        self.pg.pg_cur.execute('select language from kino.languages')
+        result = self.pg.pg_cur.fetchall()
+        self.assertEqual(result, [('en',)])
+
     @classmethod
     def tearDownClass(cls):
         cls.pg = Postgres(server, port, db, user, pw)
+        cls.pg.pg_cur.execute('delete from kino.languages')
         cls.pg.pg_cur.execute('delete from kino.movies')
         cls.pg.pg_conn.commit()
 

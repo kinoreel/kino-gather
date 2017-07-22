@@ -9,6 +9,7 @@ node {
                       , 'guidebox'
                       , 'youtube'
                       , 'movies'
+                      , 'movies2companies'
                       , 'movies2genres'
                       , 'movies2keywords'
                       , 'movies2numbers'
@@ -17,8 +18,6 @@ node {
                       , 'movies2ratings'
                       , 'movies2streams'
                       , 'movies2trailers'
-                      , 'person_roles'
-                      , 'persons'
                       ]
 
     kino_tables.each {
