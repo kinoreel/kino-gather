@@ -4,8 +4,8 @@ import json
 class GetAPI(object):
 
     def __init__(self):
-        self.source_topic = 'youtube'
-        self.destination_topic = 'movies'
+        self.source_topic = 'tmdb'
+        self.destination_topic = 'itunes'
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
