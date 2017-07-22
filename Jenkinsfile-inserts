@@ -41,7 +41,7 @@ node {
 
             currentBuild.result = 'SUCCESS'
 
-            stage 'Deploying Docker image - ${TABLE_NAME}'
+            stage "Deploying Docker image - ${TABLE_NAME}"
             sh "kubectl apply -f inserts/kubernetes-deployments/${TABLE_NAME}-deployment.yaml"
 
         } catch (err) {
