@@ -37,6 +37,7 @@ node {
         echo "${TABLE_NAME}"
 
         image_name = "${registry_url}/${maintainer_name}/${container_name}:${build_tag}"
+        echo "${image_name}"
         stage "Building Docker image"
         container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${env.KAFKA_BROKER} --build-arg TABLE_NAME=${TABLE_NAME} --build-arg PG_SERVER=${env.PG_SERVER} --build-arg PG_PORT=${env.PG_PORT} --build-arg PG_DB=${env.PG_DB} --build-arg PG_USERNAME=${env.PG_USERNAME} --build-arg PG_PASSWORD=${env.PG_PASSWORD} inserts')
 
