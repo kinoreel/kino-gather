@@ -6,7 +6,7 @@ node {
     def apis = ["omdb", "tmdb", "itunes", "youtube"];
     stage 'Git'
     git([ url: 'https://github.com/kinoreel/kino-gather.git', branch: 'apis'])
-    sh 'gcloud docker --authorize-only'
+
     for (i = 0; i <apis.size(); i++) {
         def API_KEY
         switch(apis[i]) {
@@ -31,7 +31,7 @@ node {
         container = docker.build("${image_name}", " --build-arg KAFKA_BROKER=${env.KAFKA_BROKER} --build-arg API_KEY=${API_KEY} --build-arg API_NAME=${apis[i]} apis")
 
         stage "Pushing ${image_name} Docker image"
-        sh "docker push ${image_name}"
+        sh "gcloud docker -- push ${image_name}"
         sh "docker rmi ${image_name}"
 
         currentBuild.result = 'SUCCESS'
