@@ -25,6 +25,13 @@ node {
 
         container_name = "insert-${it}"
         echo "${env.PG_SERVER}"
+        echo "${env.PG_PORT}"
+        echo "${env.PG_DB}"
+        echo ${env.PG_USERNAME}"
+        echo "${env.PG_PASSWORD}"
+        echo "${env.KAFKA_BROKER}"
+        echo "${it}"
+
         echo "${it}"
         image_name = "${registry_url}/${maintainer_name}/${container_name}:${build_tag}"
         stage "Building Docker image"
