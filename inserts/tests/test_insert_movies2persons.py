@@ -1,13 +1,13 @@
 import json
 import unittest
 
-from apis import GLOBALS
+from inserts import GLOBALS
 from inserts.insert_movies2persons import InsertData
-from py.postgres import Postgres
+from inserts.postgres import Postgres
 
 server = GLOBALS.PG_SERVER
 port = GLOBALS.PG_PORT
-db = GLOBALS.PG_DB_DEV
+db = GLOBALS.PG_DB
 user = GLOBALS.PG_USERNAME
 pw = GLOBALS.PG_PASSWORD
 
@@ -29,34 +29,25 @@ class TestInsertMovies2Persons(unittest.TestCase):
         sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language)
                  values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119', 'R', '2014-08-27', 'en')"""
         cls.pg.pg_cur.execute(sql)
-        sql = """insert into kino.persons (fullname)
-                  values ('Stephen Mirrione')"""
-        cls.pg.pg_cur.execute(sql)
-        sql = """insert into kino.persons (fullname)
-                  values ('Alexander Dinelaris')"""
-        cls.pg.pg_cur.execute(sql)
-        sql = """insert into kino.persons (fullname)
-                  values ('Alejandro González Iñárritu')"""
-        cls.pg.pg_cur.execute(sql)
-        sql = """insert into kino.persons (fullname)
-                  values ('Michael Keaton')"""
-        cls.pg.pg_cur.execute(sql)
-        sql = """insert into kino.persons (fullname)
-                  values ('Emma Stone')"""
-        cls.pg.pg_cur.execute(sql)
-        sql = """insert into kino.person_roles (role)
-                  values ('Screenplay')"""
-        cls.pg.pg_cur.execute(sql)
-        sql = """insert into kino.person_roles (role)
-                  values ('Director')"""
-        cls.pg.pg_cur.execute(sql)
-        sql = """insert into kino.person_roles (role)
-                  values ('Editor')"""
-        cls.pg.pg_cur.execute(sql)
         cls.pg.pg_conn.commit()
 
-    def test_insert_movies(self):
+
+    def test_insert_movies2persons(self):
         destination_data = self.ins.insert(data)
+
+        # Inserted into kino.person_roles
+        self.pg.pg_cur.execute('select role from kino.person_roles')
+        result = self.pg.pg_cur.fetchall()
+        self.assertEqual(result,[('Screenplay',), ('Director',), ('Editor',)])
+
+        # Inserted into kino.persons
+        self.pg.pg_cur.execute('select fullname from kino.persons')
+        result = self.pg.pg_cur.fetchall()
+        self.assertEqual(result,[('Stephen Mirrione',), ('Alexander Dinelaris',),
+                                 ('Alejandro González Iñárritu',), ('Michael Keaton',),
+                                 ('Emma Stone',)])
+
+        # Inserted into kino.movies2persons
         sql = """select x.imdb_id, y.fullname, x.role
                    from kino.movies2persons x
                    join kino.persons y
