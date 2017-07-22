@@ -37,6 +37,6 @@ node {
         currentBuild.result = 'SUCCESS'
 
         stage "Deploy ${apis[i]}"
-        sh "kubectl create -f apis/kubernetes-deployments/${apis[i]}-deployment.yaml"
+        sh "kubectl apply -f apis/kubernetes-deployments/${apis[i]}-deployment.yaml"
     }
 }
