@@ -1,7 +1,7 @@
 #!groovy
 
 node {
-    registry_url = 'eu.gcr.io'
+    registry_url = "${env.REGISTRY_URL}"
     build_tag = "latest"
 
     def kino_tables = ['movies'
