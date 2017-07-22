@@ -3,17 +3,13 @@
 node {
     registry_url = "${env.REGISTRY_URL}"
     build_tag = "latest"
-    List<String> apis = new ArrayList<String>();
-    apis.add("omdb");
-    apis.add("tmdb");
-    apis.add("itunes");
-    apis.add("youtube");
+    def apis = ["omdb", "tmdb", "itunes", "youtube"];
     stage 'Git'
     git([ url: 'https://github.com/kinoreel/kino-gather.git', branch: '${BRANCH}'])
 
-    for (String api : apis) {
+    for (i = 0; i <apis.size(); i++) {
         def API_KEY
-        switch(api) {
+        switch(apis[i]) {
             case 'omdb':
             API_KEY = "${env.OMDB_KEY}"
             break
@@ -29,18 +25,18 @@ node {
         }
 
         maintainer_name = "${env.MAINTAINER}"
-        container_name = "gather-${api}"
+        container_name = "gather-${apis[i]}"
         image_name = "${registry_url}/${maintainer_name}/${container_name}:${build_tag}"
         stage "Building Docker image"
-        container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${env.KAFKA_BROKER} --build-arg API_KEY=${API_KEY} --build-arg API_NAME=${api} apis')
+        container = docker.build("${image_name}", ' --build-arg KAFKA_BROKER=${env.KAFKA_BROKER} --build-arg API_KEY=${API_KEY} --build-arg API_NAME=${apis[i]} apis')
 
-        stage "Pushing Docker image"
+        stage "Pushing ${apis[i]} Docker image"
         sh "gcloud docker -- push ${image_name}"
         sh "docker rmi ${image_name}"
 
         currentBuild.result = 'SUCCESS'
 
-        stage 'Deploy'
-        sh 'kubectl create -f apis/kubernetes-deployments/${api}-deployment.yaml'
+        stage "Deploy ${apis[i]}"
+        sh 'kubectl create -f apis/kubernetes-deployments/${apis[i]}-deployment.yaml'
     }
 }
