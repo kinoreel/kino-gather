@@ -17,43 +17,33 @@ class InsertData(object):
         :param data: json data holding information on films.
         """
 
-        sources_data = data['guidebox_sources']
-        prices_data = data['guidebox_prices']
+        itunes_data = [data['itunes_main'],]
+        print(itunes_data)
         youtube_data = data['youtube_films_main']
+        print(youtube_data)
 
         sql = """insert into kino.movies2streams (imdb_id, source, url, currency, price, format, purchase_type, tstamp)
-                 select case when x.link is null and z.video_id is not null then
-                           z.imdb_id
-                        else
-                           x.imdb_id
-                        end
-                      , case when x.link is null and z.video_id is not null then
-                           'YouTube'
-                        else
-                           x.display_name
-                        end
-                      , case when x.link is null and z.video_id is not null then
-                           'https://www.youtube.com/watch?v=' || z.video_id
-                        else
-                           x.link
-                        end
-                      , case when y.price is not null then '£' end as currency
-                      , to_number(y.price, '99.9')
-                      , y.format
-                      , y.type
+                 select x.imdb_id
+                      , 'YouTube'
+                      , 'https://www.youtube.com/watch?v=' || x.video_id
+                      , null::text
+                      , null::real
+                      , x.definition
+                      , 'rental'
                       , CURRENT_DATE
-                   from json_to_recordset(%s) x (imdb_id varchar(1000), display_name varchar(1000), source varchar(1000), link varchar(1000))
-                   left join json_to_recordset(%s) y (imdb_id varchar(1000), source varchar(1000), price varchar(1000), format varchar(1000), type varchar(1000))
-                     on x.imdb_id = y.imdb_id
-                    and x.source = y.source
-                   full join json_to_recordset(%s) z (imdb_id varchar(1000), definition varchar(1000), video_id varchar(1000))
-                     on x.imdb_id = z.imdb_id
-                    and x.source = 'youtube'
-                    and x.link = 'https://www.youtube.com/watch?v=' || z.video_id
-                  where (x.imdb_id, x.display_name, link) not in (select imdb_id
-                                                                       , source
-                                                                       , link
-                                                                    from kino.movies2streams )"""
+                  from json_to_recordset(%s) x (imdb_id varchar(1000), video_id varchar(1000), definition varchar(1000))
+                  union
+                 select imdb_id
+                      , 'iTunes'
+                      , url
+                      , '£'
+                      , unnest(array[rental_price, hd_rental_price, purchase_price, hd_purchase_price])
+                      , unnest(array['sd', 'hd', 'sd', 'hd'])
+                      , unnest(array['rental', 'rental', 'purchase', 'purchase'])
+                      , CURRENT_DATE
+                   from json_to_recordset(%s) y ( imdb_id varchar(1000), url varchar(1000), rental_price real
+                                                , hd_rental_price real, purchase_price real, hd_purchase_price real)
+                 """
 
-        self.pg.pg_cur.execute(sql, (json.dumps(sources_data), json.dumps(prices_data), json.dumps(youtube_data)))
+        self.pg.pg_cur.execute(sql, (json.dumps(youtube_data), json.dumps(itunes_data)))
         self.pg.pg_conn.commit()
