@@ -7,7 +7,7 @@ try:
     YOUTUBE_FILMS_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from apis.GLOBALS import YOUTUBE_FILMS_API
+        from GLOBALS import YOUTUBE_FILMS_API
     except ImportError:
         print("API is not known")
         exit()
@@ -30,14 +30,20 @@ class GetAPI(object):
         imdb_id = request['imdb_id']
         title = request['omdb_main'][0]['title']
         data = self.search_youtube(title)
-        youtube_main = [self.get_movie_info(imdb_id, title, data[0])]
         youtube_other = []
-        for item in data[1:]:
-            youtube_other.append(self.get_movie_info(imdb_id, title, item))
+        if data:
+            youtube_main = [self.get_movie_info(imdb_id, title, data[0])]
+            for item in data[1:]:
+                youtube_other.append(self.get_movie_info(imdb_id, title, item))
+        else:
+            youtube_main = [{'imdb_id': '',
+                             'video_id': '',
+                             'definition': ''},
+                            ]
 
         all_data = {}
         #if fuzz.partial_ratio(youtube_main[0]['title'], title) > 85:
-        if 1==1:
+        if 1 == 1:
             all_data['youtube_films_main'] = youtube_main
             all_data['youtube_films_other'] = youtube_other
         else:
@@ -71,12 +77,12 @@ class GetAPI(object):
 
     def fx_movie_item(self, data):
         movie = {}
-        movie['title']=data['snippet']['title']
-        movie['description']=data['snippet']['description']
-        movie['video_id']=data['id']['videoId']
-        movie['channel_title']=data['snippet']['channelTitle']
-        movie['channel_id']=data['snippet']['channelId']
-        movie['published']=data['snippet']['publishedAt']
+        movie['title'] = data['snippet']['title']
+        movie['description'] = data['snippet']['description']
+        movie['video_id'] = data['id']['videoId']
+        movie['channel_title'] = data['snippet']['channelTitle']
+        movie['channel_id'] = data['snippet']['channelId']
+        movie['published'] = data['snippet']['publishedAt']
         return movie
 
     def get_content_details(self, video_id):
@@ -87,21 +93,21 @@ class GetAPI(object):
         return response
 
     def fx_content_details(self, data):
-        content_details={}
+        content_details = {}
         if data['items'][0]['contentDetails']['licensedContent']:
-            content_details['licenced']='licenced'
+            content_details['licenced'] = 'licenced'
         else:
             content_details['licenced'] = 'not licenced'
 
         try:
-            content_details['region']=','.join(data['items'][0]['contentDetails']['regionRestriction']['allowed'])
+            content_details['region'] = ','.join(data['items'][0]['contentDetails']['regionRestriction']['allowed'])
         except:
-            content_details['region']=''
+            content_details['region'] = ''
 
-        content_details['dimension']=data['items'][0]['contentDetails']['dimension']
-        content_details['caption']=data['items'][0]['contentDetails']['caption']
-        content_details['duration']=self.fix_time(data['items'][0]['contentDetails']['duration'])
-        content_details['definition']=data['items'][0]['contentDetails']['definition']
+        content_details['dimension'] = data['items'][0]['contentDetails']['dimension']
+        content_details['caption'] = data['items'][0]['contentDetails']['caption']
+        content_details['duration'] = self.fix_time(data['items'][0]['contentDetails']['duration'])
+        content_details['definition'] = data['items'][0]['contentDetails']['definition']
         return content_details
 
     def fix_time(self, time):
@@ -116,7 +122,7 @@ class GetAPI(object):
 
     def fx_stats(self, data):
         stats={}
-        stats['likes']=data['items'][0]['statistics'].get('likeCount')
-        stats['dislikes']=data['items'][0]['statistics'].get('dislikeCount')
+        stats['likes'] = data['items'][0]['statistics'].get('likeCount')
+        stats['dislikes'] = data['items'][0]['statistics'].get('dislikeCount')
         stats['comments'] = data['items'][0]['statistics'].get('commentCount')
         return stats
