@@ -20,7 +20,16 @@ class GetAPI(object):
         data = self.get_itunes_json(title).get('results')
         if data:
             return self.split_data(imdb_id, title, data[0])
-        return {'itunes_main': ''}
+        return {'itunes_main': {'imdb_id': '',
+                                'title': '',
+                                'url': '',
+                                'released': '',
+                                'hd_rental_price': '',
+                                'rental_price': '',
+                                'hd_purchase_price': '',
+                                'purchase_price': ''
+                                }
+                }
 
     def get_itunes_json(self, title):
         """
