@@ -35,6 +35,7 @@ class InsertData(object):
                               , 'rental' as purchase_type
                               , CURRENT_DATE
                            from json_to_recordset(%s) x (imdb_id varchar(1000), video_id varchar(1000), definition varchar(1000))
+                          where imdb_id <> ''
                           union
                          select imdb_id
                               , 'iTunes' as source
