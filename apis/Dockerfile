@@ -1,6 +1,4 @@
-FROM python:3
-RUN apt-get update -y
-RUN apt-get install -y gcc
+FROM python:3.6-slim
 ARG KAFKA_BROKER
 ARG API_NAME
 ARG API_KEY
