@@ -1,7 +1,7 @@
 #!groovy
 
 node {
-    registry_url = "eu.gcr.io"
+    registry_url = "${env.REGISTRY_URL}"
     build_tag = "latest"
 
     def kino_tables = ['movies'
@@ -17,7 +17,7 @@ node {
                       ]
 
     stage 'Git'
-    git([ url: 'https://github.com/kinoreel/kino-gather.git', branch: '${BRANCH}'])
+    git([ url: 'https://github.com/kinoreel/kino-gather.git', branch: 'inserts'])
 
     maintainer_name = "${env.MAINTAINER}"
 
