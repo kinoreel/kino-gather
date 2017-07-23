@@ -30,7 +30,7 @@ class InsertData(object):
                       , value
                       , CURRENT_DATE
                   from json_to_recordset(%s) x (imdb_id varchar(1000), source varchar(1000), value varchar(1000))
-                  where ( imdb_id, source ) not in (select imdb_id
+                  where ( imdb_id, lower(source) ) not in (select imdb_id
                                                          , source
                                                       from kino.movies2ratings )"""
 
