@@ -45,7 +45,8 @@ class InsertData(object):
                               , unnest(array['rental', 'rental', 'purchase', 'purchase']) as purchase_type
                               , CURRENT_DATE
                            from json_to_recordset(%s) y ( imdb_id varchar(1000), url varchar(1000), rental_price real
-                                                        , hd_rental_price real, purchase_price real, hd_purchase_price real)) foo
+                                                        , hd_rental_price real, purchase_price real, hd_purchase_price real)
+                          where imdb_id <> '') foo
                   where (foo.imdb_id, foo.source, foo.url, foo.format, foo.purchase_type) not in (select imdb_id
                                                                                    , source
                                                                                    , url
