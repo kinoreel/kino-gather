@@ -61,6 +61,7 @@ class GetAPI(object):
     def search_youtube(self, title):
         response = self.youtube.search().list(
             part='snippet',
+            regionCode='gb',
             q=title,
             type='video',
             videoDuration='long',
