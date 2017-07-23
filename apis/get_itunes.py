@@ -16,7 +16,7 @@ class GetAPI(object):
         :return: JSON of our cleaned data taken from the itunes API
         '''
         imdb_id = request['imdb_id']
-        title = request['omdb_main'][0]['title']
+        title = request['tmdb_main'][0]['title']
         data = self.get_itunes_json(title)['results'][0]
         return self.split_data(imdb_id, title, data)
 
@@ -27,7 +27,7 @@ class GetAPI(object):
         :return: JSON of the itunes data.
         '''
         title = title.replace(' ', '+')
-        url = 'http://itunes.apple.com/search?term=' + title + '&county=UK&media=movies&entity=movie'
+        url = 'http://itunes.apple.com/search?term=' + title + '&country=gb&media=movies&entity=movie'
         html = requests.get(url)
         return json.loads(html.text)
 
@@ -41,11 +41,12 @@ class GetAPI(object):
         result = {}
         result['itunes_main']={'imdb_id':imdb_id,
                                 'title':title,
+                                'url':data['trackViewUrl'].split('?')[0],
                                 'released':data['releaseDate'],
-                                'hd_rental_price':data['trackHdRentalPrice'],
-                                'rental_price':data['trackRentalPrice'],
-                                'hd_purchase_price':data['trackHdPrice'],
-                                'purchase_price':data['trackPrice']}
+                                'hd_rental_price':data.get('trackHdRentalPrice'),
+                                'rental_price':data.get('trackRentalPrice'),
+                                'hd_purchase_price':data.get('trackHdPrice'),
+                                'purchase_price':data.get('trackPrice')}
         return result
 
 

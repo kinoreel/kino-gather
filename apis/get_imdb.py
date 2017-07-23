@@ -4,9 +4,9 @@ import sys
 from kafka import KafkaProducer
 
 try:
-    from GLOBALS import KAFKA_BROKER
+    from api.GLOBALS import KAFKA_BROKER
 except ImportError:
-    print("Get it somewhere else")
+    from GLOBALS import KAFKA_BROKER
 
 producer = KafkaProducer(bootstrap_servers=KAFKA_BROKER)
 try:

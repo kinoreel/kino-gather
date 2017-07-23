@@ -2,7 +2,7 @@ import json
 import unittest
 
 from inserts import GLOBALS
-from inserts.insert_movies2persons import InsertData
+from inserts.insert_movies2companies import InsertData
 from inserts.postgres import Postgres
 
 server = GLOBALS.PG_SERVER
@@ -15,8 +15,7 @@ with open('test_data.json') as data_file:
     data = json.load(data_file)
     # select specific data to mirror the data found in
     # then source topic.
-    data = {'tmdb_crew': data['tmdb_crew'],
-            'tmdb_cast': data['tmdb_cast']}
+    data = {'tmdb_companies': data['tmdb_companies']}
 
 class TestInsertMovies2Persons(unittest.TestCase):
 
@@ -32,33 +31,32 @@ class TestInsertMovies2Persons(unittest.TestCase):
         cls.pg.pg_conn.commit()
 
 
-    def test_insert_movies2persons(self):
+    def test_insert_movies2companies(self):
         destination_data = self.ins.insert(data)
 
-        # Inserted into kino.person_roles
-        self.pg.pg_cur.execute('select role from kino.person_roles')
+        # Inserted into kino.company_roles
+        self.pg.pg_cur.execute('select role from kino.company_roles')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result,[('Screenplay',), ('Director',), ('Editor',)])
+        self.assertEqual(result, [('Production',)])
 
-        # Inserted into kino.persons
-        self.pg.pg_cur.execute('select fullname from kino.persons')
+        # Inserted into kino.companies
+        self.pg.pg_cur.execute('select name from kino.companies')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result,[('Stephen Mirrione',), ('Alexander Dinelaris',),
-                                 ('Alejandro González Iñárritu',), ('Michael Keaton',),
-                                 ('Emma Stone',)])
+        self.assertEqual(result, [('Worldview Entertainment',), ('New Regency Pictures',), ('TSG Entertainment',),
+                                  ('Le Grisbi Productions',), ('M Productions',)])
 
-        # Inserted into kino.movies2persons
-        sql = """select x.imdb_id, y.fullname, x.role
-                   from kino.movies2persons x
-                   join kino.persons y
-                     on x.person_id = y.person_id"""
+        # Inserted into kino.movies2companies
+        sql = """select x.imdb_id, y.name, x.role
+                   from kino.movies2companies x
+                   join kino.companies y
+                     on x.company_id = y.company_id"""
         self.pg.pg_cur.execute(sql)
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result,[('tt2562232', 'Michael Keaton', 'Actor'),
-                                 ('tt2562232', 'Emma Stone', 'Actor'),
-                                 ('tt2562232', 'Stephen Mirrione', 'Editor'),
-                                 ('tt2562232', 'Alejandro González Iñárritu', 'Director'),
-                                 ('tt2562232', 'Alexander Dinelaris', 'Screenplay')])
+        self.assertEqual(result,[('tt2562232', 'Worldview Entertainment', 'Production'),
+                                 ('tt2562232', 'New Regency Pictures', 'Production'),
+                                 ('tt2562232', 'TSG Entertainment', 'Production'),
+                                 ('tt2562232', 'Le Grisbi Productions', 'Production'),
+                                 ('tt2562232', 'M Productions', 'Production')])
 
         # Check that correctly return the data we need for the destination topic
         self.assertEqual(destination_data, None)
@@ -66,9 +64,9 @@ class TestInsertMovies2Persons(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.pg = Postgres(server, port, db, user, pw)
-        cls.pg.pg_cur.execute('delete from kino.movies2persons')
-        cls.pg.pg_cur.execute('delete from kino.persons')
-        cls.pg.pg_cur.execute('delete from kino.person_roles')
+        cls.pg.pg_cur.execute('delete from kino.movies2companies')
+        cls.pg.pg_cur.execute('delete from kino.companies')
+        cls.pg.pg_cur.execute('delete from kino.company_roles')
         cls.pg.pg_cur.execute('delete from kino.movies')
         cls.pg.pg_conn.commit()
 

@@ -3,6 +3,7 @@ import json
 
 from psycopg2.extras import execute_values, Json
 
+
 class Postgres:
 
     def __init__(self, server, port, database, username, password):

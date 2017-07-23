@@ -1,6 +1,9 @@
 import json
 
-from postgres import Postgres
+try:
+    from postgres import Postgres
+except ImportError:
+    from inserts.postgres import Postgres
 
 
 class InsertData(object):

@@ -1,5 +1,8 @@
 import json
-from postgres import Postgres
+try:
+    from postgres import Postgres
+except ImportError:
+    from inserts.postgres import Postgres
 
 
 class InsertData(object):
@@ -17,6 +20,16 @@ class InsertData(object):
         """
 
         genre_data = data['tmdb_genres']
+
+        sql = """insert into kino.genres(genre)
+                 select x.name
+                   from json_to_recordset(%s) x (name varchar(1000))
+                  where name not in (select genre
+                                       from kino.genres)
+                  group by name """
+
+        self.pg.pg_cur.execute(sql, (json.dumps(genre_data), ))
+        self.pg.pg_conn.commit()
 
         # We have to specify the tstamp, as the default value specificed in Django
         # only populates when called from Django.

@@ -1,13 +1,13 @@
 import json
 import unittest
 
-from apis import GLOBALS
-from inserts.insert_movies2ratings import InsertMovies2Ratings
-from py.postgres import Postgres
+from inserts import GLOBALS
+from inserts.insert_movies2ratings import InsertData
+from inserts.postgres import Postgres
 
 server = GLOBALS.PG_SERVER
 port = GLOBALS.PG_PORT
-db = GLOBALS.PG_DB_DEV
+db = GLOBALS.PG_DB
 user = GLOBALS.PG_USERNAME
 pw = GLOBALS.PG_PASSWORD
 
@@ -18,10 +18,11 @@ class TestInsertMovies2Ratings(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.ins = InsertMovies2Ratings(server, port, db, user, pw)
+        cls.ins = InsertData(server, port, db, user, pw)
         cls.pg = Postgres(server, port, db, user, pw)
-        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released)
-                 values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119 min', 'R', '14 Nov 2014')"""
+        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language)
+                 values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119', 'R', '2014-08-27', 'en')"""
+
         cls.pg.pg_cur.execute(sql)
         cls.pg.pg_conn.commit()
 
