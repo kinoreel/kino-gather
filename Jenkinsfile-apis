@@ -3,7 +3,7 @@
 node {
     registry_url = "${env.REGISTRY_URL}"
     build_tag = "latest"
-    def apis = ["omdb", "tmdb", "itunes", "youtube"];
+    def apis = [ "youtube"];
     stage 'Git'
     git([ url: 'https://github.com/kinoreel/kino-gather.git', branch: 'apis'])
 
