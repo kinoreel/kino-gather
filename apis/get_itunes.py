@@ -17,7 +17,7 @@ class GetAPI(object):
         '''
         imdb_id = request['imdb_id']
         title = request['tmdb_main'][0]['title']
-        data = self.get_itunes_json(title)['results'][0]
+        data = self.get_itunes_json(title).get('results')[0]
         return self.split_data(imdb_id, title, data)
 
     def get_itunes_json(self, title):
