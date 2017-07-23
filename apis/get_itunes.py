@@ -24,10 +24,10 @@ class GetAPI(object):
                                 'title': '',
                                 'url': '',
                                 'released': '',
-                                'hd_rental_price': '',
-                                'rental_price': '',
-                                'hd_purchase_price': '',
-                                'purchase_price': ''
+                                'hd_rental_price': 0.0,
+                                'rental_price': 0.0,
+                                'hd_purchase_price': 0.0,
+                                'purchase_price': 0.0
                                 }
                 }
 
