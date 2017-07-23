@@ -1,5 +1,8 @@
 import json
-from postgres import Postgres
+try:
+    from postgres import Postgres
+except ImportError:
+    from inserts.postgres import Postgres
 
 
 class InsertData(object):
@@ -25,12 +28,12 @@ class InsertData(object):
                  select imdb_id
                       , unnest(array['revenue', 'budget']) as type
                       , unnest(array[revenue, budget]) as value
-                      , CURRENT_DATE
                    from json_to_recordset( %s) x (imdb_id varchar(1000), revenue varchar(100), budget varchar(1000))
                  )
                  select imdb_id
                       , type
                       , cast(value as real)
+                      , CURRENT_DATE
                    from pivoted_data
                   where ( imdb_id, type ) not in (select imdb_id
                                                        , type

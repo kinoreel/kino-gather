@@ -1,0 +1,14 @@
+apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
+kind: Deployment
+metadata:
+  name: insert-movies2ratings
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: insert-movies2ratings
+    spec:
+      containers:
+      - name: insert-movies2ratings
+        image: eu.gcr.io/kino-173106/insert-movies2ratings:latest

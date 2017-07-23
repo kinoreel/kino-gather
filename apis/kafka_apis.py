@@ -48,7 +48,6 @@ class KafkaHandler(object):
             api_data = self.api.get_info(msg_data)
 
             msg_data.update(api_data)
-            print(msg_data['imdb_id'])
 
             self.producer.send(self.api.destination_topic, json.dumps(msg_data).encode())
 

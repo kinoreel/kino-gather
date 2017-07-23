@@ -1,12 +1,16 @@
 import json
-from postgres import Postgres
+
+try:
+    from postgres import Postgres
+except ImportError:
+    from inserts.postgres import Postgres
 
 
 class InsertData(object):
 
     def __init__(self, server, port, database, username, password):
         self.pg = Postgres(server, port, database, username, password)
-        self.source_topic = 'guidebox'
+        self.source_topic = 'youtube'
         self.destination_topic = 'movies'
 
     def insert(self, data):
@@ -18,12 +22,22 @@ class InsertData(object):
         omdb_movie_data = data['omdb_main']
         tmdb_movie_data = data['tmdb_main']
 
+        sql = """insert into kino.languages(language)
+                 select x.original_language
+                   from json_to_recordset(%s) x (original_language varchar(1000))
+                  where original_language not in (select language
+                                                    from kino.languages)
+                  group by original_language """
+
+        self.pg.pg_cur.execute(sql, (json.dumps(tmdb_movie_data),))
+        self.pg.pg_conn.commit()
+
         sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language, tstamp)
                  select x.imdb_id
                       , x.title
                       , y.runtime
                       , x.rated
-                      , y.release_date
+                      , y.release_date::date
                       , y.original_language
                       , CURRENT_DATE
                    from json_to_recordset(%s) x (imdb_id varchar(1000), title varchar(100), rated varchar(1000))

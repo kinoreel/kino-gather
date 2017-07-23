@@ -6,7 +6,7 @@ try:
     OMDB_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from GLOBALS import OMDB_API
+        from apis.GLOBALS import OMDB_API
     except ImportError:
         print("API is not known")
         exit()

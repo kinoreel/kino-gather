@@ -3,8 +3,6 @@ import os
 import sys
 from kafka import KafkaConsumer, KafkaProducer
 
-import GLOBALS
-
 try:
     table_name = __import__("insert_{}".format(os.environ['TABLE_NAME']))
 except KeyError:
@@ -16,9 +14,14 @@ except KeyError:
 
 try:
     KAFKA_BROKER = os.environ['KAFKA_BROKER']
+    PG_SERVER = os.environ['PG_SERVER']
+    PG_PORT = os.environ['PG_PORT']
+    PG_DB = os.environ['PG_DB']
+    PG_USERNAME = os.environ['PG_USERNAME']
+    PG_PASSWORD = os.environ['PG_PASSWORD']
 except KeyError:
     try:
-        from GLOBALS import KAFKA_BROKER
+        from GLOBALS import KAFKA_BROKER, PG_SERVER, PG_PORT, PG_DB, PG_USERNAME, PG_PASSWORD
     except ImportError:
         print("Specify Kafka Brokers")
         exit()
@@ -27,7 +30,7 @@ except KeyError:
 class KafkaInsertHandler(object):
 
     def __init__(self):
-        self.table_name = table_name.InsertData(GLOBALS.PG_SERVER, GLOBALS.PG_PORT, GLOBALS.PG_DB_DEV, GLOBALS.PG_USERNAME, GLOBALS.PG_PASSWORD)
+        self.table_name = table_name.InsertData(PG_SERVER, PG_PORT, PG_DB, PG_USERNAME, PG_PASSWORD)
 
         self.consumer = KafkaConsumer(group_id=self.table_name.destination_topic,
                                       bootstrap_servers=KAFKA_BROKER,

@@ -1,5 +1,8 @@
 import json
-from postgres import Postgres
+try:
+    from postgres import Postgres
+except ImportError:
+    from inserts.postgres import Postgres
 
 
 class InsertData(object):
@@ -22,7 +25,7 @@ class InsertData(object):
         # when the insert is done via Django.
         sql = """insert into kino.movies2keywords (imdb_id, keyword, tstamp)
                  select imdb_id
-                      , name
+                      , lower(name)
                       , CURRENT_DATE
                    from json_to_recordset(%s) x (imdb_id varchar(1000), name varchar(100))
                   where ( imdb_id, name ) not in (select imdb_id

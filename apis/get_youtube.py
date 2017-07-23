@@ -7,7 +7,7 @@ try:
     YOUTUBE_FILMS_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from GLOBALS import YOUTUBE_FILMS_API
+        from apis.GLOBALS import YOUTUBE_FILMS_API
     except ImportError:
         print("API is not known")
         exit()
@@ -61,6 +61,7 @@ class GetAPI(object):
     def search_youtube(self, title):
         response = self.youtube.search().list(
             part='snippet',
+            regionCode='gb',
             q=title,
             type='video',
             videoDuration='long',
