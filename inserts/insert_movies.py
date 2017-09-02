@@ -32,16 +32,17 @@ class InsertData(object):
         self.pg.pg_cur.execute(sql, (json.dumps(tmdb_movie_data),))
         self.pg.pg_conn.commit()
 
-        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language, tstamp)
+        sql = """insert into kino.movies (imdb_id, title, overview, runtime, rated, released, orig_language, tstamp)
                  select x.imdb_id
                       , x.title
+                      , y.overview
                       , y.runtime
                       , x.rated
                       , y.release_date::date
                       , y.original_language
                       , CURRENT_DATE
                    from json_to_recordset(%s) x (imdb_id varchar(1000), title varchar(100), rated varchar(1000))
-                   join json_to_recordset(%s) y (imdb_id varchar(1000), runtime varchar(1000), release_date varchar(1000), original_language varchar(1000))
+                   join json_to_recordset(%s) y (imdb_id varchar(1000), overview varchar(1000), runtime varchar(1000), release_date varchar(1000), original_language varchar(1000))
                      on x.imdb_id = y.imdb_id
                   where x.imdb_id not in (select imdb_id
                                             from kino.movies )"""

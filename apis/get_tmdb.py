@@ -6,7 +6,7 @@ try:
     TMDB_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from apis.GLOBALS import TMDB_API
+        from GLOBALS import TMDB_API
     except ImportError:
         print("API is not known")
         exit()
@@ -66,6 +66,7 @@ class GetAPI(object):
         lists = api_data["lists"]["results"]
         changes = api_data["changes"]["changes"]
         trailers = api_data["trailers"]["youtube"]
+        overview = api_data["overview"]
         release_dates = api_data["release_dates"]["results"][0]["release_dates"]
 
         for i in cast_data:
@@ -89,6 +90,7 @@ class GetAPI(object):
         #TODO We actually want data for spoken languages and belongs_to_collection, but they are dictionaries.
         del api_data['spoken_languages']
         del api_data['belongs_to_collection']
+        del api_data['overview']
         main_data = [api_data]
 
         all_data = {"tmdb_companies":company_data,
@@ -106,7 +108,8 @@ class GetAPI(object):
                     "tmdb_keywords":keywords,
                     "tmdb_backdrops":backdrops_data,
                     "tmdb_trailers":trailers,
-                    "tmdb_release_dates":release_dates
+                    "tmdb_release_dates":release_dates,
+                    "tmdb_overview": overview
                     }
 
         for data_type, jlist in all_data.items():
