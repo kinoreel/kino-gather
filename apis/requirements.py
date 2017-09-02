@@ -1,3 +1,3 @@
 google-api-python-client
 guidebox
-kafka-python
+kafka-python==1.3.3
