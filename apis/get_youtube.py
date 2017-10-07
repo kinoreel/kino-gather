@@ -1,6 +1,6 @@
 import os
 import re
-# from fuzzywuzzy import fuzz
+from fuzzywuzzy import fuzz
 from apiclient.discovery import build
 
 try:
@@ -12,10 +12,6 @@ except KeyError:
         print("API is not known")
         exit()
 
-# TODO: Introduce fuzzy logic to ensure that the film returned matches the film we requested.
-# TODO: There are additional statistic we can be grabbing - line 106
-
-
 class GetAPI(object):
 
     def __init__(self, api_key=YOUTUBE_FILMS_API):
@@ -25,31 +21,64 @@ class GetAPI(object):
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
         self.youtube = build('youtube', 'v3', developerKey=api_key)
+        self.empty_json = {}
 
     def get_info(self, request):
         imdb_id = request['imdb_id']
         title = request['omdb_main'][0]['title']
+        runtime = int(request['omdb_main'][0]['runtime'].replace(' min',''))
         data = self.search_youtube(title)
-        youtube_other = []
-        if data:
-            youtube_main = [self.get_movie_info(imdb_id, title, data[0])]
-            for item in data[1:]:
-                youtube_other.append(self.get_movie_info(imdb_id, title, item))
-        else:
-            youtube_main = [{'imdb_id': '',
-                             'video_id': '',
-                             'definition': ''},
-                            ]
-
         all_data = {}
-        #if fuzz.partial_ratio(youtube_main[0]['title'], title) > 85:
-        if 1 == 1:
-            all_data['youtube_films_main'] = youtube_main
-            all_data['youtube_films_other'] = youtube_other
+        # We check that we have successfully returned a result,
+        # else we return the empty json.
+        if data:
+            clean_data = []
+            for item in data:
+                clean_data.append(self.get_movie_info(imdb_id, title, item))
+            youtube_main = [self.get_youtube_main(clean_data, title, runtime)]
         else:
-            youtube_other.extend(youtube_main)
-            all_data['youtube_films_other'] = youtube_other
-        return all_data
+            youtube_main = self.empty_json
+
+        return {'youtube_films_main': youtube_main}
+
+    def get_youtube_main(self, clean_data, requested_title, requested_runtime ):
+        '''
+        This function determine the film returned by the Youtube
+        API, that best matches the film requested.
+        To do this we use compare the title and the runtime of the film.
+        We then pull the best result based on this.
+        :param cleaned_movie_data: The list of dictionaries containing movie data
+        we want to compare
+        :param requested_title: The name of the title we requested
+        :param requested_runtime: The runtime of the
+        :return:
+        '''
+        # We determine the title scores by a fuzzy comparison of the titles to the requested title.
+        # Higher is better.
+        title_scores = [fuzz.ratio(e['title'], requested_title.lower()) for e in clean_data ]
+        # We determine the runtime score by the absolute difference between runtimes to the requested runtimes.
+        # Lower is better.
+        runtime_scores = [abs(self.get_minutes(e['duration']) - requested_runtime) for e in clean_data ]
+        # We determine the match score as the title_score minus the runtime_score.
+        match_scores = [x - y for (x, y) in zip(title_scores, runtime_scores)]
+        # If the max match_score is greater than 85, we return the corresponding data for that score,
+        # else we return the empty json
+        if max(match_scores) > 85:
+            index_of_best = match_scores.index(max(match_scores))
+            return clean_data[index_of_best]
+        else:
+            return self.empty_json
+
+
+    def get_minutes(self, runtime):
+        '''
+        This function transforms a time string in the form HH:MI:SS into
+        minutes.
+        :param runtime: A time duration in the form HH:MI:SS
+        :return: The corresponding time duration in minutes.
+        '''
+        h,m,s = runtime.split(':')
+        return int(h)*60+int(m)
 
     def get_movie_info(self, imdb_id, title, data):
         movie_info = self.fx_movie_item(data)
