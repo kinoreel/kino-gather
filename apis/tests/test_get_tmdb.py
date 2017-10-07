@@ -1,7 +1,5 @@
-import json
 import unittest
 
-from apis import GLOBALS
 from apis.get_tmdb import GetAPI
 
 class TestGetTMDB(unittest.TestCase):

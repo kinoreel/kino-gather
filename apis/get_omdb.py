@@ -1,18 +1,16 @@
 import json
 import os
+
 import requests
 
 try:
     OMDB_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from apis.GLOBALS import OMDB_API
+        from apis.tests.GLOBALS import OMDB_API
     except ImportError:
         print("API is not known")
         exit()
-
-# TODO Add genres table. Currently, we are deleting it in split_data.
-
 
 class GetAPI(object):
 
