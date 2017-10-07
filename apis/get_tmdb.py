@@ -6,7 +6,7 @@ try:
     TMDB_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from apis.GLOBALS import TMDB_API
+        from GLOBALS import TMDB_API
     except ImportError:
         print("API is not known")
         exit()
@@ -42,6 +42,13 @@ class GetAPI(object):
         html = requests.get(request_url)
         return json.loads(html.text)
 
+    def sort_videos_list(self, video_list):
+        # We sort three times, sorting by the most important condition last.
+        video_list = sorted(video_list, key=lambda x: x['size'], reverse=True)
+        video_list = sorted(video_list, key=lambda x: 'official' in x['name'].lower(), reverse=True)
+        video_list = sorted(video_list, key=lambda x: 'trailer' in x['name'].lower(), reverse=True)
+        return video_list
+
     def split_movie_data(self, imdb_id, api_data):
         cast_data = api_data["credits"]["cast"]
         crew_data = api_data["credits"]["crew"]
@@ -52,7 +59,9 @@ class GetAPI(object):
         backdrops_data = api_data["images"]["backdrops"]
         similar_movies = api_data["similar"]["results"]
         translations = api_data["translations"]["translations"]
-        videos = api_data["videos"]["results"]
+        videos = [e for e in api_data["videos"]["results"]
+                    if e['type'].lower() == 'trailer' and e['site'].lower() == 'youtube' and e['iso_639_1'].lower() == 'en']
+        videos = [self.sort_videos_list(videos)[0]]
         keywords = api_data["keywords"]["keywords"]
         lists = api_data["lists"]["results"]
         changes = api_data["changes"]["changes"]
@@ -92,12 +101,12 @@ class GetAPI(object):
                     "tmdb_similar":similar_movies,
                     "tmdb_translations":translations,
                     "tmdb_videos":videos,
-                    #"tmdb_changes":changes,
+                    "tmdb_changes":changes,
                     "tmdb_lists":lists,
                     "tmdb_keywords":keywords,
                     "tmdb_backdrops":backdrops_data,
-                    #"tmdb_trailers":trailers,
-                    "tmdb_release_dates":release_dates
+                    "tmdb_trailers":trailers,
+                    "tmdb_release_dates":release_dates,
                     }
 
         for data_type, jlist in all_data.items():
@@ -111,6 +120,9 @@ class GetAPI(object):
         del all_data['tmdb_lists']
         del all_data['tmdb_backdrops']
         del all_data['tmdb_release_dates']
-
+        del all_data['tmdb_changes']
+        # Trailers is effectively a copy of tmdb_videos with
+        # less information, so we do not return it
+        del all_data['tmdb_trailers']
 
         return all_data

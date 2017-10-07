@@ -12,10 +12,6 @@ except KeyError:
         print("API is not known")
         exit()
 
-# TODO: Introduce fuzzy logic to ensure that the film returned matches the film we requested.
-# TODO: There are additional statistic we can be grabbing - line 106
-
-
 class GetAPI(object):
 
     def __init__(self, api_key=YOUTUBE_FILMS_API):
