@@ -16,6 +16,7 @@ class TestGetAPI(unittest.TestCase):
         info = self.get.get_info(request)
         self.assertEqual(set(info.keys()), set(expected_keys))
 
+    def test_get_info_bad(self):
         request = {'imdb_id':'X'}
         info = self.get.get_info(request)
         self.assertEqual(info, None)
@@ -28,7 +29,7 @@ class TestRequestAPI(unittest.TestCase):
     def setUpClass(cls):
         cls.req = RequestAPI()
 
-    def test_get_omdbapi_json(self):
+    def test_get_omdb(self):
         # Blade Runner
         imdb_id = 'tt0083658'
         response = self.req.get_omdb(imdb_id)
@@ -49,11 +50,10 @@ class TestRequestAPI(unittest.TestCase):
         self.assertEqual(response['Response'], 'True')
         self.assertEqual(response['Title'], 'True Grit')
 
-
         # Bad imdb_id
         imdb_id = 'X'
         response = self.req.get_omdb(imdb_id)
-        self.assertEqual(response['Response'], 'False')
+        self.assertEqual(response, None)
 
 
 
@@ -142,10 +142,10 @@ class TestStandardiseResponse(unittest.TestCase):
         self.assertEqual(cast_data, expected_result)
 
     def test_get_ratings_data(self):
-        expected_result =[{'value': '8.2', 'source': 'imdb', 'imdb_id': 'tt0083658'},
-                          {'value': '8.2/10', 'source': 'Internet Movie Database', 'imdb_id': 'tt0083658'},
-                          {'value': '90%', 'source': 'Rotten Tomatoes', 'imdb_id': 'tt0083658'},
-                          {'value': '89/100', 'source': 'Metacritic', 'imdb_id': 'tt0083658'}]
+        expected_result = [{'value': '8.2', 'source': 'imdb', 'imdb_id': 'tt0083658'},
+                           {'value': '8.2/10', 'source': 'Internet Movie Database', 'imdb_id': 'tt0083658'},
+                           {'value': '90%', 'source': 'Rotten Tomatoes', 'imdb_id': 'tt0083658'},
+                           {'value': '89/100', 'source': 'Metacritic', 'imdb_id': 'tt0083658'}]
         rating_data = self.stan.get_ratings_data(self.imdb_id, self.response)
         self.assertEqual(rating_data, expected_result)
 

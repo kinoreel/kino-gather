@@ -31,7 +31,7 @@ class GetAPI(object):
     def get_info(self, request):
         imdb_id = request['imdb_id']
         data = self.get_data(imdb_id)
-        if data['Response'] == 'True':
+        if data:
             data = self.standardise_data(imdb_id, data)
             return data
         else:
@@ -55,8 +55,11 @@ class RequestAPI(object):
         """
         request_url = 'http://www.omdbapi.com/?i={0}&apikey={1}'.format(imdb_id, self.api_key)
         html = requests.get(request_url, headers=self.headers)
-        return json.loads(html.text)
-
+        data = json.loads(html.text)
+        if data['Response'] == 'True':
+            return data
+        else:
+            return None
 
 class StandardiseResponse(object):
     """
@@ -71,6 +74,13 @@ class StandardiseResponse(object):
                        'Plot', 'BoxOffice', 'Year', 'Released', 'Country']
 
     def standardise(self, imdb_id, api_data):
+        """
+        We construct a new dictionary from teh API data, standardising the format
+        so we it can be handled easily in later applications.
+        :param imdb_id: The imdb_id for the film that was requested from OMDB API
+        :param api_data: The raw response from teh OMDB API
+        :return: A standardised dictionary.
+        """
         main_data = self.get_main_data(imdb_id, api_data)
         cast_data = self.get_cast_data(imdb_id, api_data)
         crew_data = self.get_crew_data(imdb_id, api_data)
