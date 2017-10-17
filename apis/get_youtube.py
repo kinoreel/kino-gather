@@ -2,6 +2,7 @@ import os
 import re
 from fuzzywuzzy import fuzz
 from apiclient.discovery import build
+from datetime import datetime
 
 try:
     YOUTUBE_FILMS_API = os.environ['API_KEY']
@@ -24,12 +25,16 @@ class GetAPI(object):
 
     def get_info(self, request):
         imdb_id = request['imdb_id']
-        title = request['title']
-        runtime = request['runtime']
+        # title - taken from omdb
+        title = request['omdb_main'][0]['title']
+        # runtime - taken from tmdb - int
+        runtime = request['tmdb_main'][0]['runtime']
+        # release date - taken from tmdb - yyyy-dd-mm
+        release_date = request['tmdb_main'][0]['release_date']
         data = self.get_data(title)
         if data:
             data = self.standardise_data(imdb_id, data)
-            data = self.choose_best(data, title, runtime)
+            data = self.choose_best(data, title, runtime, release_date)
             if data:
                 return data
         else:
@@ -145,9 +150,9 @@ class StandardiseResponse(object):
         :param api_data:
         :return:  A dictionary containing the main info for the film.
         """
-        del api_data['licensedContent']
         api_data['regionRestriction'] = ','.join(api_data['regionRestriction']['allowed'])
         api_data['duration'] = self.fix_runtime(api_data['duration'])
+        api_data['publishedAt'] = self.fix_published_date(api_data['publishedAt'])
         api_data['imdb_id'] = imdb_id
         return api_data
 
@@ -160,7 +165,19 @@ class StandardiseResponse(object):
         """
         runtime = re.sub('H|M', ':', runtime.replace('PT', '').replace('S', ''))
         h, m, s = runtime.split(':')
-        return int(h) * 60 + int(m)
+        return str(int(h) * 60 + int(m))
+
+    def fix_published_date(self, published_date):
+        """
+        This function transforms the formatted date returned by youtube
+        into a string with the format 'yyyymmdd'.
+        :param published_date: Date in the formatted by youtube - 2013-07-19T04:02:19.000Z
+        :return: Duration in minutes
+        """
+        # get the date
+        published_date = published_date.split('T')[0]
+        return published_date
+
 
 class ChooseBest(object):
     """
@@ -168,7 +185,7 @@ class ChooseBest(object):
     the requested film and returns the best match.
     """
 
-    def get_best_match(self, api_data, req_title, req_runtime):
+    def get_best_match(self, api_data, req_title, req_runtime, req_release_date):
         """
         This function determines the film returned by the YouTube
         API, that best matches the film requested.
@@ -177,10 +194,11 @@ class ChooseBest(object):
         :param api_data: The list of dictionaries containing movie data returned from teh YouTube API.
         :param req_title: The name of the title we requested
         :param req_runtime: The runtime of the
+        :param req_release_date: The release date of the requested film
         :return: The film with the best match score, or None if no match score is greater than 85.
         """
-        match_scores = [self.get_match_score(e['title'], e['runtime'], req_title, req_runtime)
-                        for e in api_data]
+        match_scores = [self.get_match_score(e['title'], e['duration'], req_title, req_runtime)
+                        for e in api_data if self.check_published_date(e['publishedAt'], req_release_date)]
         if max(match_scores) > 85:
             return api_data[match_scores.index(max(match_scores))]
         else:
@@ -202,13 +220,13 @@ class ChooseBest(object):
         return match_score
 
     def get_title_score(self, title, requested_title):
-        '''
+        """
         This function provides a score for how closely the a film title
         matches the requested title.
         :param title: The title being compared.
         :param requested_title: The title was are comparing to.
         :return: An integer score between 0 and 100. Higher is better
-        '''
+        """
         title_score = fuzz.ratio(title.lower(), requested_title.lower())
         return title_score
 
@@ -220,5 +238,21 @@ class ChooseBest(object):
         :param requested_title: The runtime was are comparing to.
         :return: An integer score
         """
-        runtime_score = abs(runtime - requested_runtime)
+        runtime_score = abs(int(runtime) - int(requested_runtime))
         return runtime_score
+
+    def check_published_date(self, published_date, release_date):
+        """
+        This function checks that the published date - the date it was uploaded to
+        the youtube channel - is not greater than the release date.
+        :param published_date: A date string in the form yyyymmdd
+        :param release_date: A date string in the form yyyymmdd
+        :return: Boolean - True if the published_date is greater than the release_date.
+        False if the release_date is more recent.
+        """
+        published_date = datetime.strptime(published_date, '%Y-%m-%d')
+        release_date = datetime.strptime(release_date, '%Y-%m-%d')
+        if (published_date-release_date).days > 0:
+            return True
+        else:
+            return False
