@@ -11,6 +11,7 @@ except KeyError:
         print("API is not known")
         exit()
 
+
 class GetAPI(object):
 
     def __init__(self):
@@ -27,6 +28,7 @@ class GetAPI(object):
             return data
         else:
             return None
+
 
 class RequestAPI(object):
     """This class requests data for a given imdb_id from the TMDB API."""

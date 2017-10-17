@@ -11,8 +11,8 @@ class TestGetAPI(unittest.TestCase):
 
     def test_get_info(self):
         # Check get_info for a correct imdb_id
-        request = {'imdb_id':'tt0083658'}
-        expected_keys= ['omdb_main', 'omdb_cast', 'omdb_ratings', 'omdb_crew']
+        request = {'imdb_id': 'tt0083658'}
+        expected_keys = ['omdb_main', 'omdb_cast', 'omdb_ratings', 'omdb_crew']
         info = self.get.get_info(request)
         self.assertEqual(set(info.keys()), set(expected_keys))
 
@@ -105,12 +105,17 @@ class TestStandardiseResponse(unittest.TestCase):
         }
 
     def test_get_main_data(self):
-        expected_result = [{'title': 'Blade Runner', 'year': '1982', 'imdb_id': 'tt0083658',
-                            'plot': 'A blade runner must pursue and try to terminate four replicants who stole a ship in space and have returned to Earth to find their creator.',
-                            'language': 'English, German, Cantonese, Japanese, Hungarian, Arabic', 'rated': 'R',
-                            'poster': 'https://images-na.ssl-images-amazon.com/images/M/MV5BNzQzMzJhZTEtOWM4NS00MTdhLTg0YjgtMjM4MDRkZjUwZDBlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_SX300.jpg',
-                            'country': 'USA, Hong Kong, UK', 'boxoffice': 'N/A', 'runtime': '117 min',
-                            'production': 'Warner Bros. Pictures', 'released': '25 Jun 1982'}]
+        expected_result = [{
+            'plot': 'A blade runner must pursue and try to terminate four replicants who stole a ship in space and have returned to Earth to find their creator.',
+            'production': 'Warner Bros. Pictures',
+            'released': '25 Jun 1982',
+            'language': 'English, German, Cantonese, Japanese, Hungarian, Arabic',
+            'country': 'USA, Hong Kong, UK',
+            'runtime': '117',
+            'title': 'Blade Runner',
+            'imdb_id': 'tt0083658',
+            'rated': 'R'
+        }]
         main_data = self.stan.get_main_data(self.imdb_id, self.response)
         self.assertEqual(expected_result, main_data)
 

@@ -67,18 +67,12 @@ class StandardiseResponse(object):
     a new JSON object that is easier to handle for later applications.
     """
 
-    def __init__(self):
-        # There are many fields returned by the OMDB_API that we do not care about.
-        # We create a list of wanted fields that we will use in the function get_main_data
-        self.fields = ['Title', 'Runtime', 'Language', 'Production', 'Rated', 'Poster',
-                       'Plot', 'BoxOffice', 'Year', 'Released', 'Country']
-
     def standardise(self, imdb_id, api_data):
         """
         We construct a new dictionary from teh API data, standardising the format
         so we it can be handled easily in later applications.
         :param imdb_id: The imdb_id for the film that was requested from OMDB API
-        :param api_data: The raw response from teh OMDB API
+        :param api_data: The raw response from the OMDB API
         :return: A standardised dictionary.
         """
         main_data = self.get_main_data(imdb_id, api_data)
@@ -95,12 +89,17 @@ class StandardiseResponse(object):
         :param api_data: The OMDB API response
         :return: A single entry array containing the main info for the film.
         """
-        main_data = {'imdb_id': imdb_id}
-
-        for field in self.fields:
-            main_data.update({field.lower(): api_data[field]})
-
-        return [main_data]
+        main_data = [{'imdb_id': imdb_id,
+                      'title': api_data['Title'],
+                      'runtime': api_data['Runtime'].replace('min', '').strip(),
+                      'language': api_data['Language'],
+                      'production': api_data['Production'],
+                      'rated': api_data['Rated'],
+                      'plot': api_data['Plot'],
+                      'released': api_data['Released'],
+                      'country': api_data['Country']
+                      }]
+        return main_data
 
     def get_cast_data(self, imdb_id, api_data):
         """
