@@ -94,13 +94,13 @@ class StandardiseResponse(object):
         :return: A single entry array containing the main info for the film.
         """
         main_data = [{'imdb_id' : imdb_id,
-                     'title': api_data['title'],
-                     'release_date': api_data['release_date'],
-                     'plot': api_data['overview'],
-                     'original_language': api_data['original_language'],
-                     'runtime': api_data['runtime'],
-                     'revenue': api_data['revenue'],
-                     'budget': api_data['budget']}]
+                      'title': api_data['title'],
+                      'release_date': api_data['release_date'],
+                      'plot': api_data['overview'],
+                      'original_language': api_data['original_language'],
+                      'runtime': api_data['runtime'],
+                      'revenue': api_data['revenue'],
+                      'budget': api_data['budget']}]
 
         return main_data
 
