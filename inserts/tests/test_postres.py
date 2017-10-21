@@ -1,7 +1,8 @@
 import unittest
 
-from apis import GLOBALS
-from py.postgres import Postgres
+from inserts.postgres import Postgres
+
+from inserts import GLOBALS
 
 server = GLOBALS.PG_SERVER
 port = GLOBALS.PG_PORT

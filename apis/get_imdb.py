@@ -1,5 +1,4 @@
 import json
-import sys
 
 from kafka import KafkaProducer
 
@@ -16,3 +15,9 @@ class PostIMDB(object):
     def push_imdb_id(self, imdb_id):
         data = {'imdb_id': imdb_id}
         self.producer.send('imdb_ids', json.dumps(data).encode())
+
+if __name__=='__main__':
+    import sys
+    imdb_id = sys.argv[1]
+    post = PostIMDB()
+    post.push_imdb_id(imdb_id)

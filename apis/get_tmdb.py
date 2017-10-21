@@ -6,41 +6,175 @@ try:
     TMDB_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from GLOBALS import TMDB_API
+        from apis.GLOBALS import TMDB_API
     except ImportError:
         print("API is not known")
         exit()
 
-"""
-# TODO: create tables for trailers/changes/spoken_langauges/belongs to a collection on gather.kino@kino,
-# then uncomment in split_data
-"""
-
 
 class GetAPI(object):
 
-    def __init__(self, api_key=TMDB_API):
-        self.api_key = api_key
+    def __init__(self):
         self.source_topic = 'omdb'
         self.destination_topic = 'tmdb'
+        self.get_data = RequestAPI().get_tmdb
+        self.standardise_data = StandardiseResponse().standardise
 
     def get_info(self, request):
         imdb_id = request['imdb_id']
-        data = self.get_tmdb_json(imdb_id)
-        all_data = self.split_movie_data(imdb_id, data)
-        return all_data
+        data = self.get_data(imdb_id)
+        if data:
+            data = self.standardise_data(imdb_id, data)
+            return data
+        else:
+            return None
 
-    def get_tmdb_json(self, imdb_id):
 
-        request_url = "https://api.themoviedb.org/3/movie/" \
-          + imdb_id + "?api_key=" + self.api_key
+class RequestAPI(object):
+    """This class requests data for a given imdb_id from the TMDB API."""
 
-        request_url = request_url + "&append_to_response=alternative_titles" \
-          + ",release_dates,credits,images,similar,translations,trailers," \
-          + "videos,keywords,lists,changes"
+    def __init__(self, api_key=TMDB_API):
+        self.api_key = api_key
+        self.headers = {'User-Agent':
+                        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
+    def get_tmdb(self, imdb_id):
+        """
+        For a given imdb_id, we construct the API url, make a get request,
+        and return the response as a JSON object.
+        :param imdb_id: The imdb_id of the film we are requesting.
+        :return: A JSON object containing the response for the given imdb_id.
+        """
+        request_url = 'https://api.themoviedb.org/3/movie/{0}?api_key={1}'.format(imdb_id, self.api_key)
+        request_url = request_url + '&append_to_response=credits,videos,keywords'
         html = requests.get(request_url)
-        return json.loads(html.text)
+        data = json.loads(html.text)
+        if data.get('imdb_id') == imdb_id:
+            return data
+        else:
+            return None
+
+
+class StandardiseResponse(object):
+    """
+    This class reconstructs the response returned from the TMDB API, making
+    a new JSON object that is easier to handle for later applications.
+    """
+
+    def standardise(self, imdb_id, api_data):
+        """
+        We construct a new dictionary from teh API data, standardising the format
+        so we it can be handled easily in later applications.
+        :param imdb_id: The imdb_id for the film that was requested from OMDB API
+        :param api_data: The raw response from teh OMDB API
+        :return: A standardised dictionary.
+        """
+        main_data = self.get_main_data(imdb_id, api_data)
+        cast_data = self.get_cast_data(imdb_id, api_data)
+        crew_data = self.get_crew_data(imdb_id, api_data)
+        keywords_data = self.get_keywords_data(imdb_id, api_data)
+        genre_data = self.get_genre_data(imdb_id, api_data)
+        company_data = self.get_company_data(imdb_id, api_data)
+        trailer_data = self.get_trailer_data(imdb_id, api_data)
+
+        return {'tmdb_main': main_data,
+                'tmdb_crew': crew_data,
+                'tmdb_cast': cast_data,
+                'tmdb_keywords': keywords_data,
+                'tmdb_genre': genre_data,
+                'tmdb_company': company_data,
+                'tmdb_trailer': trailer_data}
+
+    def get_main_data(self, imdb_id, api_data):
+        """
+        Gets the main data returned by the TMDB API, and constructs a dictonary
+        of this information.
+        :param imdb_id: The imdb_id for the film we requested
+        :param api_data: The OMDB API response
+        :return: A single entry array containing the main info for the film.
+        """
+        main_data = [{'imdb_id' : imdb_id,
+                      'title': api_data['title'],
+                      'release_date': api_data['release_date'],
+                      'plot': api_data['overview'],
+                      'original_language': api_data['original_language'],
+                      'runtime': api_data['runtime'],
+                      'revenue': api_data['revenue'],
+                      'budget': api_data['budget']}]
+
+        return main_data
+
+    def get_cast_data(self, imdb_id, api_data):
+        """
+        Gets the cast data returned by the TMDB API.
+        :param api_data: The TMDB API response
+        :return: A array of dictionaries - imdb_id, name, role - for the cast in the film
+        """
+        cast_data = []
+        for cast_member in api_data["credits"]["cast"]:
+            cast_data.append({'imdb_id': imdb_id, 'name': cast_member['name'], 'role': 'actor'})
+        return cast_data
+
+    def get_crew_data(self, imdb_id, api_data):
+        """
+        Gets the crew data returned by the TMDB API.
+        :param api_data: The TMDB API response
+        :return: A array of dictionaries - imdb_id, name, role - for the cast in the film
+        """
+        crew_data = []
+        for crew_member in api_data["credits"]["crew"]:
+            crew_data.append({'imdb_id': imdb_id, 'name': crew_member['name'], 'role': crew_member['job'].lower()})
+        return crew_data
+
+    def get_keywords_data(self, imdb_id, api_data):
+        """
+        Gets the keyword data returned by the TMDB API.
+        :param api_data: The TMDB API response
+        :return: A array of dictionaries - imdb_id, keyword.
+        """
+        keywords_data = []
+        for keyword in api_data["keywords"]["keywords"]:
+            keywords_data.append({'imdb_id': imdb_id, 'keyword':keyword['name']})
+        return keywords_data
+
+    def get_genre_data(self, imdb_id, api_data):
+        """
+        Gets the genre data returned by the TMDB API.
+        :param api_data: The TMDB API response
+        :return: A array of dictionaries - imdb_id, genre.
+        """
+        genre_data = []
+        for genre in api_data["genres"]:
+            genre_data.append({'imdb_id': imdb_id, 'genre': genre['name']})
+        return genre_data
+
+    def get_company_data(self, imdb_id, api_data):
+        """
+        Gets the company data returned by the TMDB API.
+        :param api_data: The TMDB API response
+        :return: A array of dictionaries - imdb_id, company, role.
+        """
+        company_data = []
+        for company in api_data["production_companies"]:
+            company_data.append({'imdb_id': imdb_id, 'name': company['name']})
+        return company_data
+
+    def get_trailer_data(self, imdb_id, api_data):
+        """
+        Gets the trailer data returned by the TMDB API. We choose the best video based on
+        an ordering/criteria determined by the function sory video list.
+        :param api_data: The TMDB API response
+        :return: A array of dictionaries - imdb_id, url.
+        """
+        # We get all videos that are specififed as trailers, are hosted on youtube and are in English.
+        videos = [e for e in api_data["videos"]["results"]
+                  if e['type'].lower() == 'trailer' and e['site'].lower() == 'youtube' and e['iso_639_1'].lower() == 'en']
+        # We then sort these videos based on some criteria, and choose the first result.
+        # - The video title contains the word 'trailer'
+        # - The video title contains the word 'official'
+        # - The quaility/size of the video.
+        trailer_data = [{'imdb_id':imdb_id, 'url':self.sort_videos_list(videos)[0]['key']}]
+        return trailer_data
 
     def sort_videos_list(self, video_list):
         # We sort three times, sorting by the most important condition last.
@@ -48,81 +182,3 @@ class GetAPI(object):
         video_list = sorted(video_list, key=lambda x: 'official' in x['name'].lower(), reverse=True)
         video_list = sorted(video_list, key=lambda x: 'trailer' in x['name'].lower(), reverse=True)
         return video_list
-
-    def split_movie_data(self, imdb_id, api_data):
-        cast_data = api_data["credits"]["cast"]
-        crew_data = api_data["credits"]["crew"]
-        genre_data = api_data["genres"]
-        company_data = api_data["production_companies"]
-        alternative_titles = api_data["alternative_titles"]["titles"]
-        images_data = api_data["images"]["posters"]
-        backdrops_data = api_data["images"]["backdrops"]
-        similar_movies = api_data["similar"]["results"]
-        translations = api_data["translations"]["translations"]
-        videos = [e for e in api_data["videos"]["results"]
-                    if e['type'].lower() == 'trailer' and e['site'].lower() == 'youtube' and e['iso_639_1'].lower() == 'en']
-        videos = [self.sort_videos_list(videos)[0]]
-        keywords = api_data["keywords"]["keywords"]
-        lists = api_data["lists"]["results"]
-        changes = api_data["changes"]["changes"]
-        trailers = api_data["trailers"]["youtube"]
-        release_dates = api_data["release_dates"]["results"][0]["release_dates"]
-
-        for i in cast_data:
-            i["order_of_appearance"] = i["order"]
-            del i["order"]
-
-        del api_data["credits"]
-        del api_data["release_dates"]
-        del api_data["genres"]
-        del api_data["production_companies"]
-        del api_data["production_countries"]
-        del api_data["alternative_titles"]
-        del api_data["images"]
-        del api_data["translations"]
-        del api_data["videos"]
-        del api_data["similar"]
-        del api_data["keywords"]
-        del api_data["lists"]
-        del api_data["changes"]
-        del api_data["trailers"]
-        #TODO We actually want data for spoken languages and belongs_to_collection, but they are dictionaries.
-        del api_data['spoken_languages']
-        del api_data['belongs_to_collection']
-        main_data = [api_data]
-
-        all_data = {"tmdb_companies":company_data,
-                    "tmdb_cast":cast_data,
-                    "tmdb_crew":crew_data,
-                    "tmdb_main":main_data,
-                    "tmdb_genres":genre_data,
-                    "tmdb_alternative_titles":alternative_titles,
-                    "tmdb_posters":images_data,
-                    "tmdb_similar":similar_movies,
-                    "tmdb_translations":translations,
-                    "tmdb_videos":videos,
-                    "tmdb_changes":changes,
-                    "tmdb_lists":lists,
-                    "tmdb_keywords":keywords,
-                    "tmdb_backdrops":backdrops_data,
-                    "tmdb_trailers":trailers,
-                    "tmdb_release_dates":release_dates,
-                    }
-
-        for data_type, jlist in all_data.items():
-            if data_type != "tmdb_main":
-                for item in jlist:
-                    item["imdb_id"] = imdb_id
-
-        del all_data['tmdb_alternative_titles']
-        del all_data['tmdb_posters']
-        del all_data['tmdb_translations']
-        del all_data['tmdb_lists']
-        del all_data['tmdb_backdrops']
-        del all_data['tmdb_release_dates']
-        del all_data['tmdb_changes']
-        # Trailers is effectively a copy of tmdb_videos with
-        # less information, so we do not return it
-        del all_data['tmdb_trailers']
-
-        return all_data
