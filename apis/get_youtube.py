@@ -36,7 +36,7 @@ class GetAPI(object):
             data = self.standardise_data(imdb_id, data)
             data = self.choose_best(data, title, runtime, release_date)
             if data:
-                return data
+                return [{'youtube_main': data}]
         else:
             return None
 
@@ -150,11 +150,22 @@ class StandardiseResponse(object):
         :param api_data:
         :return:  A dictionary containing the main info for the film.
         """
-        api_data['regionRestriction'] = ','.join(api_data['regionRestriction']['allowed'])
-        api_data['duration'] = self.fix_runtime(api_data['duration'])
-        api_data['publishedAt'] = self.fix_published_date(api_data['publishedAt'])
-        api_data['imdb_id'] = imdb_id
-        return api_data
+        main_data = {
+            'likeCount': api_data['likeCount'],
+            'favoriteCount': api_data['favoriteCount'],
+            'dislikeCount': api_data['dislikeCount'],
+            'channelId': api_data['channelId'],
+            'channelTitle': api_data['channelTitle'],
+            'title': api_data['title'],
+            'publishedAt': self.fix_published_date(api_data['publishedAt']),
+            'duration': self.fix_runtime(api_data['duration']),
+            'definition': api_data['definition'],
+            'dimension': api_data['dimension'],
+            'video_id': api_data['video_id'],
+            'imdb_id': imdb_id,
+            'regionRestriction': ','.join(api_data['regionRestriction']['allowed'])
+        }
+        return main_data
 
     def fix_runtime(self, runtime):
         """

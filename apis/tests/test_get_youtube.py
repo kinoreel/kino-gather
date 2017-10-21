@@ -1,4 +1,3 @@
-import os
 import unittest
 
 from apis.get_youtube import GetAPI, RequestAPI, ChooseBest, StandardiseResponse
@@ -18,9 +17,24 @@ class TestGetAPI(unittest.TestCase):
                    'omdb_main': [{'title': 'Blade Runner'}],
                    'tmdb_main': [{'runtime': 117, 'release_date': '1982-06-25'}]}
         info = self.get.get_info(request)
-
-        self.assertEqual(info['video_id'], 'rJ-T1ddFVRw')
-        self.assertEqual(info['imdb_id'], 'tt0083658')
+        expected_result = [{
+            'youtube_main': {
+                'publishedAt': '2014-01-20',
+                'favoriteCount': '0',
+                'likeCount': '43',
+                'video_id': 'rJ-T1ddFVRw',
+                'channelId': 'UCsDKdkvGBqaD-KINQP8WAEA',
+                'title': 'Blade Runner',
+                'regionRestriction': 'IE,GB',
+                'definition': 'hd',
+                'channelTitle': 'warnervoduk',
+                'duration': '117',
+                'dislikeCount': '26',
+                'dimension': '2d',
+                'imdb_id': 'tt0083658'
+            }
+        }]
+        self.assertEqual(info, expected_result)
 
 class TestRequestAPI(unittest.TestCase):
     """Testing RequestAPI"""
@@ -102,29 +116,24 @@ class TestStandardiseResponse(unittest.TestCase):
 
     def test_fix_published_date(self):
         """Testing fix_published_date"""
-        self.stan.fix_published_date('2013-07-19T04:02:19.000Z')
+        published_date = self.stan.fix_published_date('2013-07-19T04:02:19.000Z')
+        self.assertEqual(published_date, '2013-07-19')
 
     def test_get_main_data(self):
         main_data = self.stan.get_main_data('tt0083658', self.response[0])
         expected_result = {
-            'likeCount': '223',
-            'regionRestriction': 'IE,GB',
-            'caption': 'true',
-            'title': 'Blade Runner: The Final Cut Special Edition',
-            'dimension': '2d',
-            'duration': '117',
-            'imdb_id': 'tt0083658',
-            'publishedAt': '2013-07-19',
-            'video_id': '59cQqLrdmK8',
-            'channelId': 'UCsDKdkvGBqaD-KINQP8WAEA',
             'favoriteCount': '0',
-            'liveBroadcastContent': 'none',
-            'projection': 'rectangular',
+            'regionRestriction': 'IE,GB',
+            'channelId': 'UCsDKdkvGBqaD-KINQP8WAEA',
+            'video_id': '59cQqLrdmK8',
+            'likeCount': '223',
+            'title': 'Blade Runner: The Final Cut Special Edition',
+            'publishedAt': '2013-07-19',
+            'imdb_id': 'tt0083658',
+            'dimension': '2d',
             'definition': 'hd',
-            'commentCount': '8',
-            'description': "The one that started it all. Ridley Scott's Blade Runner is one of the most important science-fiction movies of the 20th Century. Its futuristic depiction of a ...",
-            'licensedContent': True,
             'dislikeCount': '55',
+            'duration': '117',
             'channelTitle': 'warnervoduk'
         }
         self.assertEqual(main_data, expected_result)
@@ -132,44 +141,33 @@ class TestStandardiseResponse(unittest.TestCase):
     def test_standardised(self):
         main_data = self.stan.standardise('tt0083658', self.response)
         expected_result = [{
-            'licensedContent': True,
+            'definition': 'hd',
+            'duration': '117',
             'channelTitle': 'warnervoduk',
-            'caption': 'true',
-            'description': "The one that started it all. Ridley Scott's Blade Runner is one of the most important science-fiction movies of the 20th Century. Its futuristic depiction of a ...",
-            'regionRestriction': 'IE,GB',
-            'favoriteCount': '0',
+            'imdb_id': 'tt0083658',
             'title': 'Blade Runner: The Final Cut Special Edition',
-            'projection': 'rectangular',
             'publishedAt': '2013-07-19',
-            'video_id': '59cQqLrdmK8',
-            'duration': '117',
-            'channelId': 'UCsDKdkvGBqaD-KINQP8WAEA',
-            'liveBroadcastContent': 'none',
             'dimension': '2d',
-            'definition': 'hd',
-            'dislikeCount': '55',
-            'imdb_id': 'tt0083658',
             'likeCount': '223',
-            'commentCount': '8'
+            'channelId': 'UCsDKdkvGBqaD-KINQP8WAEA',
+            'regionRestriction': 'IE,GB',
+            'dislikeCount': '55',
+            'video_id': '59cQqLrdmK8',
+            'favoriteCount': '0'
         }, {
+            'definition': 'hd',
             'duration': '117',
             'channelTitle': 'warnervoduk',
-            'caption': 'true',
-            'description': '21st-century detective Rick Deckard brings his masculine-yet-vulnerable presence to this stylish noir thriller. In a future of high-tech possibility soured by urban ...',
-            'regionRestriction': 'GB,IE',
-            'favoriteCount': '0',
-            'title': 'Blade Runner',
-            'projection': 'rectangular',
-            'publishedAt': '2014-01-20',
-            'video_id': 'rJ-T1ddFVRw',
-            'channelId': 'UCsDKdkvGBqaD-KINQP8WAEA',
-            'liveBroadcastContent': 'none',
-            'dimension': '2d',
-            'definition': 'hd',
-            'dislikeCount': '25',
             'imdb_id': 'tt0083658',
-            'licensedContent': True,
-            'likeCount': '43'
+            'title': 'Blade Runner',
+            'publishedAt': '2014-01-20',
+            'dimension': '2d',
+            'likeCount': '43',
+            'channelId': 'UCsDKdkvGBqaD-KINQP8WAEA',
+            'regionRestriction': 'GB,IE',
+            'dislikeCount': '25',
+            'video_id': 'rJ-T1ddFVRw',
+            'favoriteCount': '0'
         }]
         self.assertEqual(main_data, expected_result)
 
