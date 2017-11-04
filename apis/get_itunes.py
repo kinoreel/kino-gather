@@ -28,13 +28,15 @@ class GetAPI(object):
         # release date - taken from tmdb - yyyy-dd-mm
         release_date = request['tmdb_main'][0]['release_date']
         data = self.get_data(title)
-        if data:
-            data = self.standardise_data(imdb_id, data)
-            data = self.choose_best(data, title, release_date)
-            if data:
-                return [{'itunes_main': data}]
-        else:
-            return None
+        if data is None:
+            return {'itunes_main': 'no_data'}
+        data = self.standardise_data(imdb_id, data)
+        data = self.choose_best(data, title, release_date)
+        if data is None:
+            return {'itunes_main': 'no_data'}
+        if data['hd_rental_price'] is None and data['rental_price'] is None:
+            return {'itunes_main': 'no_data'}
+        return {'itunes_main': data}
 
 
 class RequestAPI(object):
@@ -126,13 +128,12 @@ class ChooseBest(object):
         :param req_release_date: The release date of the requested film
         :return: The film with the best match score, or None if no match score is greater than 85.
         """
-
         match_scores = [self.get_match_score(e['title'], e['released'], req_title, req_release_date) for e in api_data]
-
-        if max(match_scores) > 85:
-            return api_data[match_scores.index(max(match_scores))]
-        else:
+        if len(match_scores) == 0:
             return None
+        if max(match_scores) < 85:
+            return None
+        return api_data[match_scores.index(max(match_scores))]
 
     def get_match_score(self, title, release_date, requested_title, requested_release_date):
         """

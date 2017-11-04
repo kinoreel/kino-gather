@@ -1,6 +1,6 @@
 import json
 import os
-import re
+from apis.GatherException import GatherException
 
 import requests
 
@@ -31,11 +31,10 @@ class GetAPI(object):
     def get_info(self, request):
         imdb_id = request['imdb_id']
         data = self.get_data(imdb_id)
-        if data:
-            data = self.standardise_data(imdb_id, data)
-            return data
-        else:
-            return None
+        if data is None:
+            raise GatherException('No response from OMDB API')
+        data = self.standardise_data(imdb_id, data)
+        return data
 
 
 class RequestAPI(object):
@@ -87,13 +86,16 @@ class StandardiseResponse(object):
         :param api_data: The OMDB API response
         :return: A single entry array containing the main info for the film.
         """
-        main_data = [{'imdb_id': imdb_id,
-                      'title': api_data['Title'],
-                      'language': api_data['Language'],
-                      'rated': api_data['Rated'],
-                      'plot': api_data['Plot'],
-                      'country': api_data['Country']
-                      }]
+        try:
+            main_data = [{'imdb_id': imdb_id,
+                          'title': api_data['Title'],
+                          'language': api_data['Language'],
+                          'rated': api_data['Rated'],
+                          'plot': api_data['Plot'],
+                          'country': api_data['Country']
+                          }]
+        except:
+            raise GatherException('No main data could be found from OMDB')
         return main_data
 
     def get_ratings_data(self, imdb_id, api_data):
@@ -125,5 +127,8 @@ class StandardiseResponse(object):
         for rating in ratings_data:
             if rating['value'] == 'N/A':
                 ratings_data.remove(rating)
+
+        if len(ratings_data) == 0:
+            raise GatherException('No ratings data could be found from OMDB')
 
         return ratings_data

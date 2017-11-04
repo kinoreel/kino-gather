@@ -2,6 +2,8 @@ import json
 import os
 import requests
 
+from apis.GatherException import GatherException
+
 try:
     TMDB_API = os.environ['API_KEY']
 except KeyError:
@@ -23,11 +25,11 @@ class GetAPI(object):
     def get_info(self, request):
         imdb_id = request['imdb_id']
         data = self.get_data(imdb_id)
-        if data:
-            data = self.standardise_data(imdb_id, data)
-            return data
-        else:
-            return None
+        if data is None:
+            raise GatherException('No response from TMDB API')
+        data = self.standardise_data(imdb_id, data)
+        return data
+
 
 
 class RequestAPI(object):
@@ -45,8 +47,9 @@ class RequestAPI(object):
         :param imdb_id: The imdb_id of the film we are requesting.
         :return: A JSON object containing the response for the given imdb_id.
         """
-        request_url = 'https://api.themoviedb.org/3/movie/{0}?api_key={1}'.format(imdb_id, self.api_key)
-        request_url = request_url + '&append_to_response=credits,videos,keywords'
+        request_url = 'https://api.themoviedb.org/3/movie/{0}?api_key={1}&append_to_response={2}'
+        requested_data = 'credits,videos,keywords'
+        request_url = request_url.format(imdb_id, self.api_key, requested_data)
         html = requests.get(request_url)
         data = json.loads(html.text)
         if data.get('imdb_id') == imdb_id:
@@ -93,14 +96,17 @@ class StandardiseResponse(object):
         :param api_data: The OMDB API response
         :return: A single entry array containing the main info for the film.
         """
-        main_data = [{'imdb_id' : imdb_id,
-                      'title': api_data['title'],
-                      'release_date': api_data['release_date'],
-                      'plot': api_data['overview'],
-                      'original_language': api_data['original_language'],
-                      'runtime': api_data['runtime'],
-                      'revenue': api_data['revenue'],
-                      'budget': api_data['budget']}]
+        try:
+            main_data = [{'imdb_id': imdb_id,
+                          'title': api_data['title'],
+                          'release_date': api_data['release_date'],
+                          'plot': api_data['overview'],
+                          'original_language': api_data['original_language'],
+                          'runtime': api_data['runtime'],
+                          'revenue': api_data['revenue'],
+                          'budget': api_data['budget']}]
+        except:
+            raise GatherException('No main data could be found from TMDB')
 
         return main_data
 
@@ -112,7 +118,9 @@ class StandardiseResponse(object):
         """
         cast_data = []
         for cast_member in api_data["credits"]["cast"]:
-            cast_data.append({'imdb_id': imdb_id, 'name': cast_member['name'], 'role': 'actor'})
+            cast_data.append({'imdb_id': imdb_id, 'name': cast_member['name'], 'role': 'actor', 'cast_order': cast_member['order'] })
+        if len(cast_data) == 0:
+            raise GatherException('No cast data could be found from TMDB')
         return cast_data
 
     def get_crew_data(self, imdb_id, api_data):
@@ -124,6 +132,8 @@ class StandardiseResponse(object):
         crew_data = []
         for crew_member in api_data["credits"]["crew"]:
             crew_data.append({'imdb_id': imdb_id, 'name': crew_member['name'], 'role': crew_member['job'].lower()})
+        if len(crew_data) == 0:
+            raise GatherException('No crew data could be found from TMDB')
         return crew_data
 
     def get_keywords_data(self, imdb_id, api_data):
@@ -146,6 +156,8 @@ class StandardiseResponse(object):
         genre_data = []
         for genre in api_data["genres"]:
             genre_data.append({'imdb_id': imdb_id, 'genre': genre['name']})
+        if len(genre_data) == 0:
+            raise GatherException('No genre data could be found from TMDB')
         return genre_data
 
     def get_company_data(self, imdb_id, api_data):
@@ -169,11 +181,13 @@ class StandardiseResponse(object):
         # We get all videos that are specififed as trailers, are hosted on youtube and are in English.
         videos = [e for e in api_data["videos"]["results"]
                   if e['type'].lower() == 'trailer' and e['site'].lower() == 'youtube' and e['iso_639_1'].lower() == 'en']
+        if len(videos) == 0:
+            raise GatherException('No trailer could be found from TMDB')
         # We then sort these videos based on some criteria, and choose the first result.
         # - The video title contains the word 'trailer'
         # - The video title contains the word 'official'
-        # - The quaility/size of the video.
-        trailer_data = [{'imdb_id':imdb_id, 'url':self.sort_videos_list(videos)[0]['key']}]
+        # - The quality/size of the video.
+        trailer_data = [{'imdb_id': imdb_id, 'url':self.sort_videos_list(videos)[0]['key']}]
         return trailer_data
 
     def sort_videos_list(self, video_list):

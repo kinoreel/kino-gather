@@ -10,7 +10,7 @@ class TestGetAPI(unittest.TestCase):
 
     def test_get_info(self):
         # Check get_info for a correct imdb_id
-        request = {'imdb_id':'tt0083658'}
+        request = {'imdb_id': 'tt0083658'}
         expected_keys= ['tmdb_main', 'tmdb_cast', 'tmdb_crew', 'tmdb_company', 'tmdb_genre', 'tmdb_keywords',
                         'tmdb_trailer']
         info = self.get.get_info(request)

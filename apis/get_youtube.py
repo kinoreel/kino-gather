@@ -4,6 +4,9 @@ from fuzzywuzzy import fuzz
 from apiclient.discovery import build
 from datetime import datetime
 
+from apis.GatherException import GatherException
+
+
 try:
     YOUTUBE_FILMS_API = os.environ['API_KEY']
 except KeyError:
@@ -12,7 +15,6 @@ except KeyError:
     except ImportError:
         print("API is not known")
         exit()
-
 
 class GetAPI(object):
 
@@ -31,14 +33,19 @@ class GetAPI(object):
         runtime = request['tmdb_main'][0]['runtime']
         # release date - taken from tmdb - yyyy-dd-mm
         release_date = request['tmdb_main'][0]['release_date']
-        data = self.get_data(title)
-        if data:
-            data = self.standardise_data(imdb_id, data)
-            data = self.choose_best(data, title, runtime, release_date)
-            if data:
-                return [{'youtube_main': data}]
+        # Check if rental available on youtube.
+        if request['itunes_main'] == 'no_data':
+            has_other_stream = False
         else:
-            return None
+            has_other_stream = True
+        data = self.get_data(title)
+        if data is None and not has_other_stream:
+            raise GatherException('No stream available')
+        data = self.standardise_data(imdb_id, data)
+        data = self.choose_best(data, title, runtime, release_date)
+        if data is None and not has_other_stream:
+            raise GatherException('No stream available')
+        return {'youtube_main': data}
 
 
 class RequestAPI(object):
@@ -151,9 +158,9 @@ class StandardiseResponse(object):
         :return:  A dictionary containing the main info for the film.
         """
         main_data = {
-            'likeCount': api_data['likeCount'],
-            'favoriteCount': api_data['favoriteCount'],
-            'dislikeCount': api_data['dislikeCount'],
+            'likeCount': api_data.get('likeCount'),
+            'favoriteCount': api_data.get('favoriteCount'),
+            'dislikeCount': api_data.get('dislikeCount'),
             'channelId': api_data['channelId'],
             'channelTitle': api_data['channelTitle'],
             'title': api_data['title'],
@@ -163,9 +170,20 @@ class StandardiseResponse(object):
             'dimension': api_data['dimension'],
             'video_id': api_data['video_id'],
             'imdb_id': imdb_id,
-            'regionRestriction': ','.join(api_data['regionRestriction']['allowed'])
+            'regionRestriction': self.get_region_restriction(api_data)
         }
         return main_data
+
+    def get_region_restriction(self, api_data):
+        """
+        This function returns region restriction for a film.
+        The region restriction is only provided when the content is licenced.
+        :return: The regions that are able to watch the video.
+        """
+        try:
+            return ','.join(api_data['regionRestriction']['allowed'])
+        except KeyError:
+            return None
 
     def fix_runtime(self, runtime):
         """
@@ -174,8 +192,16 @@ class StandardiseResponse(object):
         :param time: Time in the formatted by youtube - PT1H59M15S
         :return: Duration in minutes
         """
-        runtime = re.sub('H|M', ':', runtime.replace('PT', '').replace('S', ''))
-        h, m, s = runtime.split(':')
+        #runtime = re.sub('H|M', ':', runtime.replace('PT', '').replace('S', ''))
+        runtime = runtime.replace('PT', '')
+        try:
+            h = re.findall('\d{1,2}(?=H)', runtime)[0]
+        except IndexError:
+            h = 0
+        try:
+            m = re.findall('\d{1,2}(?=M)', runtime)[0]
+        except:
+            m = 0
         return str(int(h) * 60 + int(m))
 
     def fix_published_date(self, published_date):
@@ -210,10 +236,13 @@ class ChooseBest(object):
         """
         match_scores = [self.get_match_score(e['title'], e['duration'], req_title, req_runtime)
                         for e in api_data if self.check_published_date(e['publishedAt'], req_release_date)]
-        if max(match_scores) > 85:
-            return api_data[match_scores.index(max(match_scores))]
-        else:
+        if len(match_scores) == 0:
             return None
+        if max(match_scores) < 85:
+            return None
+
+        return api_data[match_scores.index(max(match_scores))]
+
 
     def get_match_score(self, title, runtime, requested_title, requested_runtime):
         """

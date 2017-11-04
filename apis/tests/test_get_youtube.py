@@ -17,7 +17,7 @@ class TestGetAPI(unittest.TestCase):
                    'omdb_main': [{'title': 'Blade Runner'}],
                    'tmdb_main': [{'runtime': 117, 'release_date': '1982-06-25'}]}
         info = self.get.get_info(request)
-        expected_result = [{
+        expected_result = {
             'youtube_main': {
                 'publishedAt': '2014-01-20',
                 'favoriteCount': '0',
@@ -33,7 +33,7 @@ class TestGetAPI(unittest.TestCase):
                 'dimension': '2d',
                 'imdb_id': 'tt0083658'
             }
-        }]
+        }
         self.assertEqual(info, expected_result)
 
 class TestRequestAPI(unittest.TestCase):
@@ -118,6 +118,17 @@ class TestStandardiseResponse(unittest.TestCase):
         """Testing fix_published_date"""
         published_date = self.stan.fix_published_date('2013-07-19T04:02:19.000Z')
         self.assertEqual(published_date, '2013-07-19')
+
+    def test_fix_runtime(self):
+        """Testing fix_runtime"""
+        runtime = self.stan.fix_runtime('PT1H41M19S')
+        self.assertEqual(runtime, '101')
+
+        runtime = self.stan.fix_runtime('PT41M19S')
+        self.assertEqual(runtime, '41')
+
+        runtime = self.stan.fix_runtime('PT1H19S')
+        self.assertEqual(runtime, '60')
 
     def test_get_main_data(self):
         main_data = self.stan.get_main_data('tt0083658', self.response[0])

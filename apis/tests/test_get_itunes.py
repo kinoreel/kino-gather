@@ -17,7 +17,7 @@ class TestGetAPI(unittest.TestCase):
                    'omdb_main': [{'title': 'Blade Runner'}],
                    'tmdb_main': [{'runtime': 117, 'release_date': '1982-06-25'}]}
         info = self.get.get_info(request)
-        expected_result = [{
+        expected_result = {
             'itunes_main': {
                 'released': '1982-09-09',
                 'purchase_price': 6.99,
@@ -28,7 +28,7 @@ class TestGetAPI(unittest.TestCase):
                 'imdb_id': 'tt0083658',
                 'url': 'https://itunes.apple.com/gb/movie/blade-runner/id594314564'
             }
-        }]
+        }
         self.assertEqual(expected_result, info)
 
 class TestRequestAPI(unittest.TestCase):
