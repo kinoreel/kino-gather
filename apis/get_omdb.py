@@ -76,10 +76,8 @@ class StandardiseResponse(object):
         :return: A standardised dictionary.
         """
         main_data = self.get_main_data(imdb_id, api_data)
-        cast_data = self.get_cast_data(imdb_id, api_data)
-        crew_data = self.get_crew_data(imdb_id, api_data)
         ratings_data = self.get_ratings_data(imdb_id, api_data)
-        return {'omdb_main': main_data, 'omdb_ratings': ratings_data, 'omdb_crew': crew_data, 'omdb_cast': cast_data}
+        return {'omdb_main': main_data, 'omdb_ratings': ratings_data}
 
     def get_main_data(self, imdb_id, api_data):
         """
@@ -91,74 +89,12 @@ class StandardiseResponse(object):
         """
         main_data = [{'imdb_id': imdb_id,
                       'title': api_data['Title'],
-                      'runtime': api_data['Runtime'].replace('min', '').strip(),
                       'language': api_data['Language'],
-                      'production': api_data['Production'],
                       'rated': api_data['Rated'],
                       'plot': api_data['Plot'],
-                      'released': api_data['Released'],
                       'country': api_data['Country']
                       }]
         return main_data
-
-    def get_cast_data(self, imdb_id, api_data):
-        """
-        Gets the cast data returned by the OMDB API, and turns a comma
-        separated string into an array of dictionaries
-        There is no guarantee that any of cast information will be returned in the response.
-        :param api_data: The OMDB API response
-        :return: A array of dictionaries - imdb_id, name, role - for the cast in the film
-        """
-        cast_data = []
-        if 'Actors' in api_data.keys():
-            for actor in api_data['Actors'].split(','):
-                cast_data.append({'name': actor.strip(), 'imdb_id': imdb_id, 'role': 'actor'})
-        return cast_data
-
-    def get_crew_data(self, imdb_id, api_data):
-        """
-        Gets the crew data returned by the OMDB API, and turns a number of comma
-        separated string into an array of dictionaries
-        There is no guarantee that any of crew information will be returned in the response.
-        :param api_data: The OMDB API response
-        :return: A array of dictionaries - imdb_id, name, actor - for the crew in the film
-        """
-        crew_data = []
-        if 'Director' in api_data.keys():
-            for director in api_data['Director'].split(','):
-                name, spec = self.split_role_specification(director.strip())
-                role = 'director'
-                if spec != None:
-                    role = role + ' ' + spec
-                crew_data.append({'name': director.strip(), 'imdb_id': imdb_id, 'role': role})
-
-        if 'Writer' in api_data.keys():
-            for writer in api_data['Writer'].split(','):
-                name, spec = self.split_role_specification(writer.strip())
-                role = 'writer'
-                if spec != None:
-                    role = role+' '+spec
-                crew_data.append({'name': name, 'imdb_id': imdb_id, 'role': role})
-
-        return crew_data
-
-    def split_role_specification(self, name):
-        """
-        This function removes any role specification from a crew members name.
-        OMDB can specify more information on the role after a crew members name,
-        for instance - 'Phillip K Dick (novel)' is returned rather than 'Phillip K Dick'.
-        We want to remove these role specification from the and add them instead to the role.
-        :param crew_name: The crew name -either writer or directory returned by the OMDB API.
-        :return: The split name and role specification.
-        """
-        try:
-            spec = re.search(r'\(.*\)', name).group(0)
-            name = name.replace(spec, '').strip()
-        # If we error on Attribute we know there is no specification attached to the name.
-        except AttributeError:
-            spec = None
-        return name, spec
-
 
     def get_ratings_data(self, imdb_id, api_data):
         """
