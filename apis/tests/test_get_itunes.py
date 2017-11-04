@@ -20,7 +20,7 @@ class TestGetAPI(unittest.TestCase):
         expected_result = {
             'itunes_main': {
                 'released': '1982-09-09',
-                'purchase_price': 6.99,
+                'purchase_price': 7.99,
                 'rental_price': 3.49,
                 'hd_purchase_price': 7.99,
                 'title': 'Blade Runner',

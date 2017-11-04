@@ -32,7 +32,7 @@ class GetAPI(object):
         imdb_id = request['imdb_id']
         data = self.get_data(imdb_id)
         if data is None:
-            raise GatherException('No response from OMDB API')
+            raise GatherException(imdb_id, 'No response from OMDB API')
         data = self.standardise_data(imdb_id, data)
         return data
 

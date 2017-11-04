@@ -13,27 +13,29 @@ class TestGetAPI(unittest.TestCase):
         """
         An integration test checking that we pull back the expected film.
         """
-        request = {'imdb_id': 'tt0083658',
-                   'omdb_main': [{'title': 'Blade Runner'}],
-                   'tmdb_main': [{'runtime': 117, 'release_date': '1982-06-25'}]}
+        request = {'imdb_id': 'tt0117509',
+                   'omdb_main': [{'title': 'Romeo + Juliet'}],
+                   'tmdb_main': [{'runtime': 120, 'release_date': '1997-03-28'}],
+                   'itunes_main': [{'hq_rental_price': '1.99'}]}
         info = self.get.get_info(request)
         expected_result = {
             'youtube_main': {
-                'publishedAt': '2014-01-20',
+                'likeCount': '138',
                 'favoriteCount': '0',
-                'likeCount': '43',
-                'video_id': 'rJ-T1ddFVRw',
-                'channelId': 'UCsDKdkvGBqaD-KINQP8WAEA',
-                'title': 'Blade Runner',
-                'regionRestriction': 'IE,GB',
-                'definition': 'hd',
-                'channelTitle': 'warnervoduk',
-                'duration': '117',
-                'dislikeCount': '26',
+                'channelId': 'UCkE4NeJ68HT8mBkP97DG3Rg',
+                'duration': '120',
                 'dimension': '2d',
-                'imdb_id': 'tt0083658'
+                'definition': 'sd',
+                'imdb_id': 'tt0117509',
+                'video_id': 'lOkJ-bV_la0',
+                'title': 'Romeo + Juliet',
+                'publishedAt': '2013-07-24',
+                'regionRestriction': 'GB,IE',
+                'dislikeCount': '93',
+                'channelTitle': 'FoxInternationalHEGB'
             }
         }
+        self.maxDiff = None
         self.assertEqual(info, expected_result)
 
 class TestRequestAPI(unittest.TestCase):

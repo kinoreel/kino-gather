@@ -40,11 +40,11 @@ class GetAPI(object):
             has_other_stream = True
         data = self.get_data(title)
         if data is None and not has_other_stream:
-            raise GatherException('No stream available')
+            raise GatherException('No data returned from Youtube')
         data = self.standardise_data(imdb_id, data)
         data = self.choose_best(data, title, runtime, release_date)
         if data is None and not has_other_stream:
-            raise GatherException('No stream available')
+            raise GatherException('No film has met match score limit')
         return {'youtube_main': data}
 
 
@@ -181,7 +181,10 @@ class StandardiseResponse(object):
         :return: The regions that are able to watch the video.
         """
         try:
-            return ','.join(api_data['regionRestriction']['allowed'])
+            region_data = api_data['regionRestriction']['allowed']
+            # Need to sort for testing.
+            region_data.sort()
+            return ','.join(region_data)
         except KeyError:
             return None
 

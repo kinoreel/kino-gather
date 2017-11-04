@@ -16,11 +16,6 @@ class TestGetAPI(unittest.TestCase):
         info = self.get.get_info(request)
         self.assertEqual(set(info.keys()), set(expected_keys))
 
-    def test_get_info_bad(self):
-        request = {'imdb_id':'X'}
-        info = self.get.get_info(request)
-        self.assertEqual(info, None)
-
 
 class TestRequestAPI(unittest.TestCase):
     """Testing RequestAPI"""
@@ -49,13 +44,6 @@ class TestRequestAPI(unittest.TestCase):
         response = self.req.get_omdb(imdb_id)
         self.assertEqual(response['Response'], 'True')
         self.assertEqual(response['Title'], 'True Grit')
-
-        # Bad imdb_id
-        imdb_id = 'X'
-        response = self.req.get_omdb(imdb_id)
-        self.assertEqual(response, None)
-
-
 
 class TestStandardiseResponse(unittest.TestCase):
     """Testing StardardiseResponse"""

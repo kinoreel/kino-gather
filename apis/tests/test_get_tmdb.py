@@ -16,10 +16,6 @@ class TestGetAPI(unittest.TestCase):
         info = self.get.get_info(request)
         self.assertEqual(set(info.keys()), set(expected_keys))
 
-    def test_get_info_bad(self):
-        request = {'imdb_id':'X'}
-        info = self.get.get_info(request)
-        self.assertEqual(info, None)
 
 class TestRequestAPI(unittest.TestCase):
     """Testing RequestAPI"""
@@ -247,9 +243,9 @@ class TestStandardiseResponse(unittest.TestCase):
         self.assertEqual(crew_data, expected_result)
 
     def test_get_cast_data(self):
-        expected_result = [{'imdb_id': 'tt0083658', 'name': 'Harrison Ford', 'role': 'actor'},
-                           {'imdb_id': 'tt0083658', 'name': 'Rutger Hauer', 'role': 'actor'},
-                           {'imdb_id': 'tt0083658', 'name': 'Sean Young', 'role': 'actor'}]
+        expected_result = [{'imdb_id': 'tt0083658', 'name': 'Harrison Ford', 'role': 'actor', 'cast_order': 0},
+                           {'imdb_id': 'tt0083658', 'name': 'Rutger Hauer', 'role': 'actor', 'cast_order': 1},
+                           {'imdb_id': 'tt0083658', 'name': 'Sean Young', 'role': 'actor', 'cast_order': 2}]
         cast_data = self.stan.get_cast_data(self.imdb_id, self.response)
         self.assertEqual(cast_data, expected_result)
 
