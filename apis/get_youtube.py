@@ -40,11 +40,11 @@ class GetAPI(object):
             has_other_stream = True
         data = self.get_data(title)
         if data is None and not has_other_stream:
-            raise GatherException('No data returned from Youtube')
+            raise GatherException(imdb_id, 'No streams found')
         data = self.standardise_data(imdb_id, data)
         data = self.choose_best(data, title, runtime, release_date)
         if data is None and not has_other_stream:
-            raise GatherException('No film has met match score limit')
+            raise GatherException(imdb_id, 'No streams found')
         return {'youtube_main': [data]}
 
 

@@ -104,7 +104,7 @@ class StandardiseResponse(object):
                           'revenue': api_data['revenue'],
                           'budget': api_data['budget']}]
         except:
-            raise GatherException('No main data could be found from TMDB')
+            raise GatherException(imdb_id, 'No main data could be found from TMDB')
 
         return main_data
 
@@ -120,7 +120,7 @@ class StandardiseResponse(object):
             cast_data.append({'imdb_id': imdb_id, 'name': cast_member['name'], 'role': 'actor', 'cast_order': cast_member['order'] })
 
         if len(cast_data) == 0:
-            raise GatherException('No cast data could be found from TMDB')
+            raise GatherException(imdb_id, 'No cast data could be found from TMDB')
 
         return cast_data
 
@@ -136,7 +136,7 @@ class StandardiseResponse(object):
             crew_data.append({'imdb_id': imdb_id, 'name': crew_member['name'], 'role': crew_member['job'].lower()})
 
         if len(crew_data) == 0:
-            raise GatherException('No crew data could be found from TMDB')
+            raise GatherException(imdb_id, 'No crew data could be found from TMDB')
 
         return crew_data
 
@@ -161,7 +161,7 @@ class StandardiseResponse(object):
         for genre in api_data["genres"]:
             genre_data.append({'imdb_id': imdb_id, 'genre': genre['name']})
         if len(genre_data) == 0:
-            raise GatherException('No genre data could be found from TMDB')
+            raise GatherException(imdb_id, 'No genre data could be found from TMDB')
         return genre_data
 
     def get_company_data(self, imdb_id, api_data):
@@ -186,7 +186,7 @@ class StandardiseResponse(object):
         videos = [e for e in api_data["videos"]["results"]
                   if e['type'].lower() == 'trailer' and e['site'].lower() == 'youtube' and e['iso_639_1'].lower() == 'en']
         if len(videos) == 0:
-            raise GatherException('No trailer could be found from TMDB')
+            raise GatherException(imdb_id, 'No trailer could be found from TMDB')
         # We then sort these videos based on some criteria, and choose the first result.
         # - The video title contains the word 'trailer'
         # - The video title contains the word 'official'
