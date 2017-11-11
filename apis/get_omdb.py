@@ -1,6 +1,7 @@
 import json
 import os
-from apis.GatherException import GatherException
+
+from GatherException import GatherException
 
 import requests
 
@@ -8,7 +9,7 @@ try:
     OMDB_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from apis.GLOBALS import OMDB_API
+        from GLOBALS import OMDB_API
     except ImportError:
         print("API is not known")
         exit()

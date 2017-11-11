@@ -1,7 +1,10 @@
+import sys
+sys.path.append('..')
+
 import unittest
 
-from apis.get_tmdb import GetAPI, RequestAPI, StandardiseResponse
-from apis.GatherException import GatherException
+from get_tmdb import GetAPI, RequestAPI, StandardiseResponse
+from GatherException import GatherException
 
 class TestGetAPI(unittest.TestCase):
     """Testing GetAPI"""

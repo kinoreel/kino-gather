@@ -2,10 +2,7 @@ import json
 
 from kafka import KafkaProducer
 
-try:
-    from api.GLOBALS import KAFKA_BROKER
-except ImportError:
-    from GLOBALS import KAFKA_BROKER
+from GLOBALS import KAFKA_BROKER
 
 class PostIMDB(object):
 

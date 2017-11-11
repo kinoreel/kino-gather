@@ -1,6 +1,9 @@
+import sys
+sys.path.append('..')
+
 import unittest
 
-from apis.get_youtube import GetAPI, RequestAPI, ChooseBest, StandardiseResponse
+from get_youtube import GetAPI, RequestAPI, ChooseBest, StandardiseResponse
 
 
 class TestGetAPI(unittest.TestCase):

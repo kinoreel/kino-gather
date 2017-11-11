@@ -1,6 +1,9 @@
-import os
+import sys
+sys.path.append('..')
+
 import unittest
-from apis.get_omdb import GetAPI, RequestAPI, StandardiseResponse
+
+from get_omdb import GetAPI, RequestAPI, StandardiseResponse
 
 
 class TestGetAPI(unittest.TestCase):

@@ -1,7 +1,6 @@
 import requests
 import json
 
-
 from fuzzywuzzy import fuzz
 from datetime import datetime
 

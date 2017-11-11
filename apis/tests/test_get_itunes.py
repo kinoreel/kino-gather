@@ -1,6 +1,9 @@
+import sys
+sys.path.append('..')
+
 import unittest
 
-from apis.get_itunes import RequestAPI, Standardise, GetAPI, ChooseBest
+from get_itunes import RequestAPI, Standardise, GetAPI, ChooseBest
 
 
 class TestGetAPI(unittest.TestCase):
