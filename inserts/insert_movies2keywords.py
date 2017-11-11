@@ -20,18 +20,16 @@ class InsertData(object):
         """
 
         keyword_data = data['tmdb_keywords']
-
+        print(keyword_data)
         # We have to specify the tstamp, as the default value is only populated
         # when the insert is done via Django.
         sql = """insert into kino.movies2keywords (imdb_id, keyword, tstamp)
                  select imdb_id
-                      , lower(name)
+                      , lower(keyword)
                       , CURRENT_DATE
-                   from json_to_recordset(%s) x (imdb_id varchar(1000), name varchar(100))
-                  where ( imdb_id, name ) not in (select imdb_id
-                                                       , keyword
-                                                    from kino.movies2keywords )"""
-
+                   from json_to_recordset(%s) x (imdb_id varchar(1000), keyword varchar(100))
+                     on conflict on constraint movies2keywords_pkey
+                     do nothing"""
         self.pg.pg_cur.execute(sql, (json.dumps(keyword_data), ))
         self.pg.pg_conn.commit()
 

@@ -45,7 +45,10 @@ class KafkaHandler(object):
         for message in self.consumer:
             msg_data = json.loads(message.value.decode('utf-8'))
 
-            api_data = self.api.get_info(msg_data)
+            try:
+                api_data = self.api.get_info(msg_data)
+            except:
+                continue
 
             msg_data.update(api_data)
 

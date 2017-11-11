@@ -14,11 +14,10 @@ class TestGetAPI(unittest.TestCase):
         An integration test checking that we pull back the expected film.
         """
         request = {'imdb_id': 'tt0083658',
-                   'omdb_main': [{'title': 'Blade Runner'}],
-                   'tmdb_main': [{'runtime': 117, 'release_date': '1982-06-25'}]}
+                   'tmdb_main': [{'title': 'Blade Runner', 'runtime': 117, 'release_date': '1982-06-25'}]}
         info = self.get.get_info(request)
         expected_result = {
-            'itunes_main': {
+            'itunes_main': [{
                 'released': '1982-09-09',
                 'purchase_price': 7.99,
                 'rental_price': 3.49,
@@ -27,7 +26,7 @@ class TestGetAPI(unittest.TestCase):
                 'hd_rental_price': 3.49,
                 'imdb_id': 'tt0083658',
                 'url': 'https://itunes.apple.com/gb/movie/blade-runner/id594314564'
-            }
+            }]
         }
         self.assertEqual(expected_result, info)
 

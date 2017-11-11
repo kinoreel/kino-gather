@@ -14,13 +14,12 @@ class TestGetAPI(unittest.TestCase):
         An integration test checking that we pull back the expected film.
         """
         request = {'imdb_id': 'tt0117509',
-                   'omdb_main': [{'title': 'Romeo + Juliet'}],
-                   'tmdb_main': [{'runtime': 120, 'release_date': '1997-03-28'}],
+                   'tmdb_main': [{'title': 'Romeo + Juliet', 'runtime': 120, 'release_date': '1997-03-28'}],
                    'itunes_main': [{'hq_rental_price': '1.99'}]}
         info = self.get.get_info(request)
         expected_result = {
-            'youtube_main': {
-                'likeCount': '138',
+            'youtube_main': [{
+                'likeCount': '139',
                 'favoriteCount': '0',
                 'channelId': 'UCkE4NeJ68HT8mBkP97DG3Rg',
                 'duration': '120',
@@ -33,7 +32,7 @@ class TestGetAPI(unittest.TestCase):
                 'regionRestriction': 'GB,IE',
                 'dislikeCount': '93',
                 'channelTitle': 'FoxInternationalHEGB'
-            }
+            }]
         }
         self.maxDiff = None
         self.assertEqual(info, expected_result)
@@ -136,7 +135,7 @@ class TestStandardiseResponse(unittest.TestCase):
         main_data = self.stan.get_main_data('tt0083658', self.response[0])
         expected_result = {
             'favoriteCount': '0',
-            'regionRestriction': 'IE,GB',
+            'regionRestriction': 'GB,IE',
             'channelId': 'UCsDKdkvGBqaD-KINQP8WAEA',
             'video_id': '59cQqLrdmK8',
             'likeCount': '223',
@@ -163,7 +162,7 @@ class TestStandardiseResponse(unittest.TestCase):
             'dimension': '2d',
             'likeCount': '223',
             'channelId': 'UCsDKdkvGBqaD-KINQP8WAEA',
-            'regionRestriction': 'IE,GB',
+            'regionRestriction': 'GB,IE',
             'dislikeCount': '55',
             'video_id': '59cQqLrdmK8',
             'favoriteCount': '0'

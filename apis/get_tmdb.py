@@ -25,8 +25,6 @@ class GetAPI(object):
     def get_info(self, request):
         imdb_id = request['imdb_id']
         data = self.get_data(imdb_id)
-        if data is None:
-            raise GatherException('No response from TMDB API')
         data = self.standardise_data(imdb_id, data)
         return data
 
@@ -55,7 +53,7 @@ class RequestAPI(object):
         if data.get('imdb_id') == imdb_id:
             return data
         else:
-            return None
+            raise GatherException(imdb_id, 'No response from TMDB API')
 
 
 class StandardiseResponse(object):
@@ -117,10 +115,13 @@ class StandardiseResponse(object):
         :return: A array of dictionaries - imdb_id, name, role - for the cast in the film
         """
         cast_data = []
+
         for cast_member in api_data["credits"]["cast"]:
             cast_data.append({'imdb_id': imdb_id, 'name': cast_member['name'], 'role': 'actor', 'cast_order': cast_member['order'] })
+
         if len(cast_data) == 0:
             raise GatherException('No cast data could be found from TMDB')
+
         return cast_data
 
     def get_crew_data(self, imdb_id, api_data):
@@ -130,10 +131,13 @@ class StandardiseResponse(object):
         :return: A array of dictionaries - imdb_id, name, role - for the cast in the film
         """
         crew_data = []
+
         for crew_member in api_data["credits"]["crew"]:
             crew_data.append({'imdb_id': imdb_id, 'name': crew_member['name'], 'role': crew_member['job'].lower()})
+
         if len(crew_data) == 0:
             raise GatherException('No crew data could be found from TMDB')
+
         return crew_data
 
     def get_keywords_data(self, imdb_id, api_data):

@@ -15,7 +15,7 @@ with open('test_data.json') as data_file:
     data = json.load(data_file)
     # select specific data to mirror the data found in
     # then source topic.
-    data = {'tmdb_companies': data['tmdb_companies']}
+    data = {'tmdb_company': data['tmdb_company']}
 
 class TestInsertMovies2Persons(unittest.TestCase):
 
@@ -25,8 +25,8 @@ class TestInsertMovies2Persons(unittest.TestCase):
         cls.pg = Postgres(server, port, db, user, pw)
         # We insert the corresponding film into kino.movies
         # due to the foreign key constraint.
-        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language)
-                 values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119', 'R', '2014-08-27', 'en')"""
+        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language, plot)
+                 values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', 119, 'R', '2014-08-27', 'en', 'Some plot')"""
         cls.pg.pg_cur.execute(sql)
         cls.pg.pg_conn.commit()
 

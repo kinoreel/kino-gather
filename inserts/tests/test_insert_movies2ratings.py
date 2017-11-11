@@ -20,8 +20,8 @@ class TestInsertMovies2Ratings(unittest.TestCase):
     def setUpClass(cls):
         cls.ins = InsertData(server, port, db, user, pw)
         cls.pg = Postgres(server, port, db, user, pw)
-        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language)
-                 values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119', 'R', '2014-08-27', 'en')"""
+        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language, plot)
+            values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', 119, 'R', '2014-08-27', 'en', 'Some plot')"""
 
         cls.pg.pg_cur.execute(sql)
         cls.pg.pg_conn.commit()
@@ -33,7 +33,7 @@ class TestInsertMovies2Ratings(unittest.TestCase):
         self.assertEqual(result, [('tt2562232', 'metascore', '88'),
                                   ('tt2562232', 'imdb', '7.8'),
                                   ('tt2562232', 'internet movie database', '7.8/10'),
-                                  ('tt2562232', 'rotten tomatoes', '91%'),
+                                  ('tt2562232', 'rotten tomatoes', '92%'),
                                   ('tt2562232', 'metacritic', '88/100')])
 
     @classmethod

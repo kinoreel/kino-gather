@@ -23,8 +23,8 @@ class GetAPI(object):
 
     def get_info(self, request):
         imdb_id = request['imdb_id']
-        # title - taken from omdb
-        title = request['omdb_main'][0]['title']
+        # title - taken from tmdb
+        title = request['tmdb_main'][0]['title']
         # release date - taken from tmdb - yyyy-dd-mm
         release_date = request['tmdb_main'][0]['release_date']
         data = self.get_data(title)
@@ -36,7 +36,7 @@ class GetAPI(object):
             return {'itunes_main': 'no_data'}
         if data['hd_rental_price'] is None and data['rental_price'] is None:
             return {'itunes_main': 'no_data'}
-        return {'itunes_main': data}
+        return {'itunes_main': [data]}
 
 
 class RequestAPI(object):

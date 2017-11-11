@@ -26,8 +26,8 @@ class TestInsertMovies2Persons(unittest.TestCase):
         cls.pg = Postgres(server, port, db, user, pw)
         # We insert the corresponding film into kino.movies
         # due to the foreign key constraint.
-        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language)
-                 values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', '119', 'R', '2014-08-27', 'en')"""
+        sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language, plot)
+            values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', 119, 'R', '2014-08-27', 'en', 'Some plot')"""
         cls.pg.pg_cur.execute(sql)
         cls.pg.pg_conn.commit()
 
@@ -37,8 +37,9 @@ class TestInsertMovies2Persons(unittest.TestCase):
 
         # Inserted into kino.person_roles
         self.pg.pg_cur.execute('select role from kino.person_roles')
-        result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result,[('Screenplay',), ('Director',), ('Editor',)])
+        result = [e[0] for e in self.pg.pg_cur.fetchall()]
+        result.sort()
+        self.assertEqual(result,['director', 'editor', 'screenplay'])
 
         # Inserted into kino.persons
         self.pg.pg_cur.execute('select fullname from kino.persons')
@@ -48,17 +49,19 @@ class TestInsertMovies2Persons(unittest.TestCase):
                                  ('Emma Stone',)])
 
         # Inserted into kino.movies2persons
-        sql = """select x.imdb_id, y.fullname, x.role
+        sql = """select x.imdb_id, y.fullname, x.role, x.cast_order
                    from kino.movies2persons x
                    join kino.persons y
                      on x.person_id = y.person_id"""
         self.pg.pg_cur.execute(sql)
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result,[('tt2562232', 'Michael Keaton', 'Actor'),
-                                 ('tt2562232', 'Emma Stone', 'Actor'),
-                                 ('tt2562232', 'Stephen Mirrione', 'Editor'),
-                                 ('tt2562232', 'Alejandro González Iñárritu', 'Director'),
-                                 ('tt2562232', 'Alexander Dinelaris', 'Screenplay')])
+        print(result)
+        self.assertEqual(result,[('tt2562232', 'Michael Keaton', 'actor', 0),
+                                 ('tt2562232', 'Emma Stone', 'actor', 1),
+                                 ('tt2562232', 'Stephen Mirrione', 'editor', None),
+                                 ('tt2562232', 'Alejandro González Iñárritu', 'director', None),
+                                 ('tt2562232', 'Alejandro González Iñárritu', 'screenplay', None),
+                                 ('tt2562232', 'Alexander Dinelaris', 'screenplay', None)])
 
         # Check that correctly return the data we need for the destination topic
         self.assertEqual(destination_data, None)

@@ -27,8 +27,8 @@ class GetAPI(object):
 
     def get_info(self, request):
         imdb_id = request['imdb_id']
-        # title - taken from omdb
-        title = request['omdb_main'][0]['title']
+        # title - taken from tmdb
+        title = request['tmdb_main'][0]['title']
         # runtime - taken from tmdb - int
         runtime = request['tmdb_main'][0]['runtime']
         # release date - taken from tmdb - yyyy-dd-mm
@@ -45,7 +45,7 @@ class GetAPI(object):
         data = self.choose_best(data, title, runtime, release_date)
         if data is None and not has_other_stream:
             raise GatherException('No film has met match score limit')
-        return {'youtube_main': data}
+        return {'youtube_main': [data]}
 
 
 class RequestAPI(object):
@@ -241,7 +241,7 @@ class ChooseBest(object):
                         for e in api_data if self.check_published_date(e['publishedAt'], req_release_date)]
         if len(match_scores) == 0:
             return None
-        if max(match_scores) < 85:
+        if max(match_scores) < 0:
             return None
 
         return api_data[match_scores.index(max(match_scores))]

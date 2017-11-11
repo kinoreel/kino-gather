@@ -1,6 +1,7 @@
 import unittest
 
 from apis.get_tmdb import GetAPI, RequestAPI, StandardiseResponse
+from apis.GatherException import GatherException
 
 class TestGetAPI(unittest.TestCase):
     """Testing GetAPI"""
@@ -47,8 +48,7 @@ class TestRequestAPI(unittest.TestCase):
 
         # Bad imdb_id
         imdb_id = 'tt1234578'
-        response = self.req.get_tmdb(imdb_id)
-        self.assertEqual(response, None)
+        self.assertRaises(GatherException, self.req.get_tmdb, imdb_id)
 
 class TestStandardiseResponse(unittest.TestCase):
     """Testing StardardiseResponse"""

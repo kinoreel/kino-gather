@@ -31,8 +31,6 @@ class GetAPI(object):
     def get_info(self, request):
         imdb_id = request['imdb_id']
         data = self.get_data(imdb_id)
-        if data is None:
-            raise GatherException(imdb_id, 'No response from OMDB API')
         data = self.standardise_data(imdb_id, data)
         return data
 
@@ -58,7 +56,7 @@ class RequestAPI(object):
         if data['Response'] == 'True':
             return data
         else:
-            return None
+            raise GatherException(imdb_id, 'No response from OMDB API')
 
 class StandardiseResponse(object):
     """
@@ -76,7 +74,10 @@ class StandardiseResponse(object):
         """
         main_data = self.get_main_data(imdb_id, api_data)
         ratings_data = self.get_ratings_data(imdb_id, api_data)
-        return {'omdb_main': main_data, 'omdb_ratings': ratings_data}
+        if ratings_data and main_data:
+            return {'omdb_main': main_data, 'omdb_ratings': ratings_data}
+        else:
+            raise GatherException(imdb_id, 'Failed standardise')
 
     def get_main_data(self, imdb_id, api_data):
         """
@@ -129,6 +130,6 @@ class StandardiseResponse(object):
                 ratings_data.remove(rating)
 
         if len(ratings_data) == 0:
-            raise GatherException('No ratings data could be found from OMDB')
+            return None
 
         return ratings_data
