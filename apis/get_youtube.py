@@ -4,14 +4,17 @@ from fuzzywuzzy import fuzz
 from apiclient.discovery import build
 from datetime import datetime
 
-from GatherException import GatherException
+try:
+    from GatherException import GatherException
+except:
+    from apis.GatherException import GatherException
 
 
 try:
     YOUTUBE_FILMS_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from GLOBALS import YOUTUBE_FILMS_API
+        from apis.GLOBALS import YOUTUBE_FILMS_API
     except ImportError:
         print("API is not known")
         exit()
@@ -45,6 +48,8 @@ class GetAPI(object):
         data = self.choose_best(data, title, runtime, release_date)
         if data is None and not has_other_stream:
             raise GatherException(imdb_id, 'No streams found')
+        if data is None:
+            return {'youtube_main': 'no_data'}
         return {'youtube_main': [data]}
 
 
@@ -237,17 +242,22 @@ class ChooseBest(object):
         :param req_release_date: The release date of the requested film
         :return: The film with the best match score, or None if no match score is greater than 85.
         """
-        match_scores = [self.get_match_score(e['title'], e['duration'], req_title, req_runtime)
-                        for e in api_data if self.check_published_date(e['publishedAt'], req_release_date)]
+        match_scores = [self.get_match_score( e['title']
+                                            , e['duration']
+                                            , e['publishedAt']
+                                            , req_title
+                                            , req_runtime
+                                            , req_release_date)
+                        for e in api_data]
         if len(match_scores) == 0:
             return None
-        if max(match_scores) < 0:
+        if max(match_scores) < 85:
             return None
 
         return api_data[match_scores.index(max(match_scores))]
 
 
-    def get_match_score(self, title, runtime, requested_title, requested_runtime):
+    def get_match_score(self, title, runtime, release_date, requested_title, requested_runtime, requested_release_date):
         """
         This returns a match score for a film returned by the YouTube API, constructed
         from the title score minus the runtime score.
@@ -259,7 +269,8 @@ class ChooseBest(object):
         """
         title_score = self.get_title_score(title, requested_title)
         runtime_score = self.get_runtime_score(runtime, requested_runtime)
-        match_score = title_score - runtime_score
+        release_date_score = self.get_release_date_score(release_date, requested_release_date)
+        match_score = title_score - (runtime_score + release_date_score)
         return match_score
 
     def get_title_score(self, title, requested_title):
@@ -284,18 +295,19 @@ class ChooseBest(object):
         runtime_score = abs(int(runtime) - int(requested_runtime))
         return runtime_score
 
-    def check_published_date(self, published_date, release_date):
+    def get_release_date_score(self, upload_date, requested_release_date):
         """
-        This function checks that the published date - the date it was uploaded to
-        the youtube channel - is not greater than the release date.
-        :param published_date: A date string in the form yyyymmdd
-        :param release_date: A date string in the form yyyymmdd
+        This function calculates the release_date score.
+        If the video was uploaded before the film was released
+        we take 100 away from match_score.
+        :param upload_date: A date string in the form yyyymmdd
+        :param requested_release_date: A date string in the form yyyymmdd
         :return: Boolean - True if the published_date is greater than the release_date.
         False if the release_date is more recent.
         """
-        published_date = datetime.strptime(published_date, '%Y-%m-%d')
-        release_date = datetime.strptime(release_date, '%Y-%m-%d')
-        if (published_date-release_date).days > 0:
-            return True
-        else:
-            return False
+
+        upload_date = datetime.strptime(upload_date, '%Y-%m-%d')
+        requested_release_date = datetime.strptime(requested_release_date, '%Y-%m-%d')
+        if (upload_date-requested_release_date).days < 0:
+            return 100
+        return 0

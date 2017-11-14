@@ -220,12 +220,15 @@ class TestChooseBest(unittest.TestCase):
         score = self.cb.get_match_score('Jaws', 124, 'Jaws 2', 116)
         self.assertEqual(score, 72)
 
-    def test_check_published_date(self):
-        """Testing check_published_date"""
-        result = self.cb.check_published_date('2010-01-01', '2011-01-01')
-        self.assertFalse(result)
-        result = self.cb.check_published_date('2011-01-01', '2010-01-01')
-        self.assertTrue(result)
+    def test_get_release_date_score(self):
+        """Testing get_release_date"""
+        # Upload date sooner than release date is a good score
+        # return 0
+        score = self.cb.get_release_date_score('2016-07-03', '2016-02-19')
+        self.assertEqual(score, 0)
+
+        score = self.cb.get_release_date_score('2016-01-01', '2017-01-11')
+        self.assertEqual(score, 100)
 
     def test_get_best_match(self):
         """
