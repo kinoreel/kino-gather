@@ -2,13 +2,13 @@ import json
 import os
 import requests
 
-from GatherException import GatherException
+from apis.GatherException import GatherException
 
 try:
     TMDB_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from GLOBALS import TMDB_API
+        from apis.GLOBALS import TMDB_API
     except ImportError:
         print("API is not known")
         exit()

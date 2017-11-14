@@ -305,9 +305,7 @@ class ChooseBest(object):
         :return: Boolean - True if the published_date is greater than the release_date.
         False if the release_date is more recent.
         """
-
         upload_date = datetime.strptime(upload_date, '%Y-%m-%d')
         requested_release_date = datetime.strptime(requested_release_date, '%Y-%m-%d')
-        if (upload_date-requested_release_date).days < 0:
-            return 100
-        return 0
+        days = (upload_date-requested_release_date).days
+        return round(days/30)

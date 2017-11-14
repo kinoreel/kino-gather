@@ -1,7 +1,7 @@
 import json
 import os
 
-from GatherException import GatherException
+from apis.GatherException import GatherException
 
 import requests
 
@@ -9,7 +9,7 @@ try:
     OMDB_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from GLOBALS import OMDB_API
+        from apis.GLOBALS import OMDB_API
     except ImportError:
         print("API is not known")
         exit()
@@ -92,7 +92,7 @@ class StandardiseResponse(object):
             main_data = [{'imdb_id': imdb_id,
                           'title': api_data['Title'],
                           'language': api_data['Language'],
-                          'rated': api_data['Rated'],
+                          'rated': api_data['Rated'].replace('N/A','').replace('NOT RATED', ''),
                           'plot': api_data['Plot'],
                           'country': api_data['Country']
                           }]
