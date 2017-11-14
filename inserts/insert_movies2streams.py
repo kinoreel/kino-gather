@@ -22,7 +22,7 @@ class InsertData(object):
         imdb_id = data['imdb_id']
         itunes_data = data['itunes_main']
         youtube_data = data['youtube_main']
-        if youtube_data != ['no_data']:
+        if youtube_data != 'no_data':
 
             sql = """
                 insert into kino.movies2streams (imdb_id, source, url,  format, purchase_type, tstamp)
@@ -49,7 +49,8 @@ class InsertData(object):
 
             self.pg.pg_cur.execute(sql)
 
-        if itunes_data != ['no_data']:
+        if itunes_data != 'no_data':
+
             sql = """
                 insert into kino.movies2streams (imdb_id, source, url, currency, price, format, purchase_type, tstamp)
                 select *

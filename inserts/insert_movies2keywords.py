@@ -20,7 +20,6 @@ class InsertData(object):
         """
 
         keyword_data = data['tmdb_keywords']
-        print(keyword_data)
         # We have to specify the tstamp, as the default value is only populated
         # when the insert is done via Django.
         sql = """insert into kino.movies2keywords (imdb_id, keyword, tstamp)
