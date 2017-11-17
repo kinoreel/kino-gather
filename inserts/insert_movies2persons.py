@@ -42,9 +42,12 @@ class InsertData(object):
                       , CURRENT_DATE
                    from ( select name
                             from json_to_recordset( %s) x (name varchar(1000))
+                           group by name
                            union
                           select name
-                            from  json_to_recordset( %s) y (name varchar(1000)) ) z
+                            from  json_to_recordset( %s) y (name varchar(1000))
+                           group by name
+                         ) z
                  where z.name not in (select fullname
                                        from kino.persons )"""
         self.pg.pg_cur.execute(sql, (json.dumps(crew_data), json.dumps(cast_data)))
@@ -70,10 +73,8 @@ class InsertData(object):
                         ) x
                    join kino.persons y
                      on x.name = y.fullname
-                  where ( imdb_id, person_id, role ) not in ( select imdb_id
-                                                                  , person_id
-                                                                  , role
-                                                               from kino.movies2persons )"""
+                     on conflict on constraint movies2persons_pkey
+                     do nothing"""
 
         self.pg.pg_cur.execute(sql, (json.dumps(cast_data), json.dumps(crew_data)))
 

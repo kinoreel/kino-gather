@@ -134,6 +134,18 @@ class TestStandardiseResponse(unittest.TestCase):
         runtime = self.stan.fix_runtime('PT1H19S')
         self.assertEqual(runtime, '60')
 
+    def test_fix_title(self):
+        """Testing fix_title"""
+        title = self.stan.fix_title('Test movie (2016)')
+        self.assertEqual(title, 'Test movie')
+
+        title = self.stan.fix_title('Test movie (Subbed)')
+        self.assertEqual(title, 'Test movie')
+
+        title = self.stan.fix_title('1984')
+        self.assertEqual(title, '1984')
+
+
     def test_get_main_data(self):
         main_data = self.stan.get_main_data('tt0083658', self.response[0])
         expected_result = {
@@ -228,7 +240,7 @@ class TestChooseBest(unittest.TestCase):
         self.assertEqual(score, 0)
 
         score = self.cb.get_release_date_score('2016-01-01', '2017-01-11')
-        self.assertEqual(score, 100)
+        self.assertEqual(score, -13)
 
     def test_get_best_match(self):
         """

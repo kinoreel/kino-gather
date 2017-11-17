@@ -1,3 +1,4 @@
+import re
 import os
 import re
 from fuzzywuzzy import fuzz
@@ -168,7 +169,7 @@ class StandardiseResponse(object):
             'dislikeCount': api_data.get('dislikeCount'),
             'channelId': api_data['channelId'],
             'channelTitle': api_data['channelTitle'],
-            'title': api_data['title'],
+            'title': self.fix_title(api_data['title']),
             'publishedAt': self.fix_published_date(api_data['publishedAt']),
             'duration': self.fix_runtime(api_data['duration']),
             'definition': api_data['definition'],
@@ -192,6 +193,18 @@ class StandardiseResponse(object):
             return ','.join(region_data)
         except KeyError:
             return None
+
+    @staticmethod
+    def fix_title(title):
+        """
+        Edits the title, to increase the chances of a match
+        :param title: A movie title
+        :return: A fixed move title
+        """
+        title = re.sub( '\((1|2)(0|9)\d{1,2}\)', '', title)
+        title = title.replace('(Subbed)', '')
+        title = title.strip()
+        return title
 
     def fix_runtime(self, runtime):
         """
@@ -249,6 +262,11 @@ class ChooseBest(object):
                                             , req_runtime
                                             , req_release_date)
                         for e in api_data]
+        print(match_scores)
+        print(api_data)
+        print(req_title)
+        print(req_runtime)
+        print(req_release_date)
         if len(match_scores) == 0:
             return None
         if max(match_scores) < 85:
@@ -288,8 +306,8 @@ class ChooseBest(object):
         """
         This function provides a score for how closely the a file runtime
         matches the requested film runtime. Lower is better.
-        :param title: The film runtime being compared.
-        :param requested_title: The runtime was are comparing to.
+        :param runtime: The film runtime being compared.
+        :param requested_runtime: The runtime was are comparing to.
         :return: An integer score
         """
         runtime_score = abs(int(runtime) - int(requested_runtime))
@@ -308,4 +326,8 @@ class ChooseBest(object):
         upload_date = datetime.strptime(upload_date, '%Y-%m-%d')
         requested_release_date = datetime.strptime(requested_release_date, '%Y-%m-%d')
         days = (upload_date-requested_release_date).days
-        return round(days/30)
+        if days < 0:
+            return abs(round(days/30))
+        return 0
+
+

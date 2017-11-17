@@ -48,7 +48,13 @@ class InsertData(object):
                   where x.imdb_id not in (select imdb_id
                                             from kino.movies )
                      on conflict on constraint movies_pkey
-                     do nothing"""
+                     do update
+                   set title = excluded.title
+                     , runtime = excluded.runtime
+                     , rated = excluded.rated
+                     , released = excluded.released
+                     , orig_language = excluded.orig_language
+                     , plot = excluded.plot"""
         self.pg.pg_cur.execute(sql, (json.dumps(omdb_movie_data), json.dumps(tmdb_movie_data)))
         self.pg.pg_conn.commit()
 

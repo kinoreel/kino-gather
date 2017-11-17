@@ -92,7 +92,7 @@ class StandardiseResponse(object):
             main_data = [{'imdb_id': imdb_id,
                           'title': api_data['Title'],
                           'language': api_data['Language'],
-                          'rated': api_data['Rated'].replace('N/A','').replace('NOT RATED', ''),
+                          'rated': api_data['Rated'].replace('N/A','').replace('NOT RATED', '').replace('UNRATED', ''),
                           'plot': api_data['Plot'],
                           'country': api_data['Country']
                           }]
