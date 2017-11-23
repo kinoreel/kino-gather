@@ -322,5 +322,3 @@ class ChooseBest(object):
         if days < 0:
             return abs(round(days/30))
         return 0
-
-
