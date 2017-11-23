@@ -11,6 +11,7 @@ class InsertData(object):
     def __init__(self, server, port, database, username, password):
         self.pg = Postgres(server, port, database, username, password)
         self.source_topic = 'errored'
+        self.destination_topic = 'DONE'
 
     def insert(self, data):
         """

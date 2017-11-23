@@ -14,6 +14,7 @@ node {
                       ,'movies2ratings'
                       ,'movies2streams'
                       ,'movies2trailers'
+                      ,'errored'
                       ]
 
     stage 'Git'

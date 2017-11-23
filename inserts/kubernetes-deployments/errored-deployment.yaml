@@ -1,0 +1,14 @@
+apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
+kind: Deployment
+metadata:
+  name: insert-errored
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: insert-errored
+    spec:
+      containers:
+      - name: insert-errored
+        image: eu.gcr.io/kino-173106/insert-errored:latest
