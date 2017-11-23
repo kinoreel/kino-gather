@@ -2,13 +2,13 @@ import json
 import os
 import requests
 
-from apis.GatherException import GatherException
+from GatherException import GatherException
 
 try:
     TMDB_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from apis.GLOBALS import TMDB_API
+        from GLOBALS import TMDB_API
     except ImportError:
         print("API is not known")
         exit()
@@ -118,9 +118,6 @@ class StandardiseResponse(object):
 
         for cast_member in api_data["credits"]["cast"]:
             cast_data.append({'imdb_id': imdb_id, 'name': cast_member['name'], 'role': 'actor', 'cast_order': cast_member['order'] })
-
-        if len(cast_data) == 0:
-            raise GatherException(imdb_id, 'No cast data could be found from TMDB')
 
         return cast_data
 

@@ -5,17 +5,15 @@ from fuzzywuzzy import fuzz
 from apiclient.discovery import build
 from datetime import datetime
 
-try:
-    from GatherException import GatherException
-except:
-    from apis.GatherException import GatherException
+from GatherException import GatherException
+
 
 
 try:
     YOUTUBE_FILMS_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from apis.GLOBALS import YOUTUBE_FILMS_API
+        from GLOBALS import YOUTUBE_FILMS_API
     except ImportError:
         print("API is not known")
         exit()
@@ -262,11 +260,6 @@ class ChooseBest(object):
                                             , req_runtime
                                             , req_release_date)
                         for e in api_data]
-        print(match_scores)
-        print(api_data)
-        print(req_title)
-        print(req_runtime)
-        print(req_release_date)
         if len(match_scores) == 0:
             return None
         if max(match_scores) < 85:
