@@ -1,7 +1,6 @@
 import json
 import os
 import sys
-
 from kafka import KafkaConsumer, KafkaProducer
 
 try:
@@ -19,7 +18,7 @@ except KeyError:
     try:
         from GLOBALS import KAFKA_BROKER
     except ImportError:
-        print("Specify Kafka Brokers")
+        print("Specify Kafka brokers")
         exit()
 
 
@@ -32,9 +31,11 @@ class KafkaHandler(object):
                                       bootstrap_servers=KAFKA_BROKER,
                                       auto_offset_reset='earliest')
 
-        self.consumer.subscribe(pattern=self.api.source_topic)
+        self.consumer.subscribe(topics=[self.api.source_topic])
 
         self.producer = KafkaProducer(bootstrap_servers=KAFKA_BROKER)
+
+        self.error_topic = 'errored'
 
     def run(self):
         """
@@ -46,13 +47,21 @@ class KafkaHandler(object):
             msg_data = json.loads(message.value.decode('utf-8'))
 
             try:
+
                 api_data = self.api.get_info(msg_data)
-            except:
-                continue
 
-            msg_data.update(api_data)
+                msg_data.update(api_data)
 
-            self.producer.send(self.api.destination_topic, json.dumps(msg_data).encode())
+                self.producer.send(self.api.destination_topic, json.dumps(msg_data).encode())
+
+            except Exception as e:
+
+                err_msg = [{'imdb_id': msg_data['imdb_id'], 'error_message': str(e)}]
+
+                self.producer.send(self.error_topic, json.dumps(err_msg).encode('utf-8'))
+
+            self.consumer.commit()
+
 
 if __name__ == '__main__':
     c = KafkaHandler()
