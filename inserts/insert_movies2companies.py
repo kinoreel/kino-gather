@@ -12,7 +12,6 @@ class InsertData(object):
         self.source_topic = 'movies'
         self.destination_topic = 'movies2companies'
 
-
     def insert(self, data):
         """
         This inserts the relevant json information
@@ -20,13 +19,13 @@ class InsertData(object):
         :param data: json data holding information on films.
         """
 
-        company_data = data['tmdb_companies']
+        company_data = data['tmdb_company']
 
         # Insert into company roles.
         sql = '''insert into kino.company_roles (role)
                  select 'Production'::text as role
-                  where 'Production' not in (select role
-                                               from kino.company_roles)
+                     on conflict on constraint company_roles_pkey
+                     do nothing
               '''
 
         self.pg.pg_cur.execute(sql)
@@ -35,8 +34,8 @@ class InsertData(object):
         sql = '''insert into kino.companies (name)
                     select x.name
                       from json_to_recordset( %s) x (name varchar(1000))
-                     where x.name not in (select name
-                                            from kino.companies )
+                        on conflict on constraint companies_pkey
+                        do nothing
                  '''
 
         self.pg.pg_cur.execute(sql, (json.dumps(company_data),))
@@ -49,12 +48,10 @@ class InsertData(object):
                       from json_to_recordset( %s) x (imdb_id varchar(1000), name varchar(1000))
                       join kino.companies y
                         on x.name = y.name
-                      left join kino.movies2companies z
-                        on y.company_id = z.company_id
-                       and x.imdb_id = z.imdb_id
-                     where z.imdb_id is null
                      group by x.imdb_id
                          , y.company_id
+                        on conflict
+                        do nothing
                 """
 
         self.pg.pg_cur.execute(sql, (json.dumps(company_data), ))

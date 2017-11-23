@@ -36,9 +36,11 @@ class KafkaInsertHandler(object):
                                       bootstrap_servers=KAFKA_BROKER,
                                       auto_offset_reset='earliest')
 
-        self.consumer.subscribe(pattern=self.table_name.source_topic)
+        self.consumer.subscribe(topics=[self.table_name.source_topic])
 
         self.producer = KafkaProducer(bootstrap_servers=KAFKA_BROKER)
+
+        self.error_topic = 'errored'
 
     def run(self):
         """
@@ -47,13 +49,24 @@ class KafkaInsertHandler(object):
         Sends the results to the next topic.
         """
         for message in self.consumer:
+
             msg_data = json.loads(message.value.decode('utf-8'))
 
             producer_data = self.table_name.insert(msg_data)
-
             if producer_data:
 
                 self.producer.send(self.table_name.destination_topic, json.dumps(producer_data).encode())
+            '''
+            except Exception as e:
+
+                err_msg = [{'imdb_id': msg_data['imdb_id'], 'error_message': str(e)}]
+                self.producer.send(self.error_topic, json.dumps(err_msg).encode('utf-8'))
+            '''
+            self.consumer.commit()
+
+
+
+
 
 if __name__ == '__main__':
     c = KafkaInsertHandler()

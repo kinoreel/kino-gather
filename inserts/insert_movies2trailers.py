@@ -20,16 +20,15 @@ class InsertData(object):
         into the table kino.movies.
         :param data: json data holding information on films.
         """
-
-        trailer_data = data['tmdb_videos']
+        trailer_data = data['tmdb_trailer']
 
         sql = """insert into kino.movies2trailers (imdb_id, url, tstamp)
                  select imdb_id
-                      , 'https://www.youtube.com/watch?v=' || key
+                      , 'https://www.youtube.com/watch?v=' || url
                       , CURRENT_DATE
-                   from json_to_recordset( %s) x (imdb_id varchar(1000), key varchar(100))
-                  where imdb_id not in (select imdb_id
-                                          from kino.movies2trailers )"""
+                   from json_to_recordset( %s) x (imdb_id varchar(1000), url varchar(100))
+                     on conflict on constraint movies2trailers_pkey
+                     do nothing"""
 
         self.pg.pg_cur.execute(sql, (json.dumps(trailer_data), ))
         self.pg.pg_conn.commit()

@@ -1,101 +1,136 @@
 import json
 import os
+
+from GatherException import GatherException
+
 import requests
 
 try:
     OMDB_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from apis.GLOBALS import OMDB_API
+        from GLOBALS import OMDB_API
     except ImportError:
         print("API is not known")
         exit()
 
-# TODO Add genres table. Currently, we are deleting it in split_data.
-
 
 class GetAPI(object):
+    """
+    Top level class imported by kafka_apis.py.
+    This class gets, and standardises, the response from the OMDB API
+    for a given imdb_id. The class also hold responsibility of the topic
+    it consumes from and the topic it produces to.
+    """
 
-    def __init__(self, api_key=OMDB_API):
-        self.api_key = api_key
+    def __init__(self):
         self.source_topic = 'imdb_ids'
         self.destination_topic = 'omdb'
-        self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+        self.get_data = RequestAPI().get_omdb
+        self.standardise_data = StandardiseResponse().standardise
 
     def get_info(self, request):
         imdb_id = request['imdb_id']
-        data = self.get_omdbapi_json(imdb_id)
-        if data['Response'] == 'False':
+        data = self.get_data(imdb_id)
+        data = self.standardise_data(imdb_id, data)
+        return data
+
+
+class RequestAPI(object):
+    """This class requests data for a given imdb_id from the OMDB API."""
+
+    def __init__(self, api_key=OMDB_API):
+        self.api_key = api_key
+        self.headers = {'User-Agent':
+                        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+
+    def get_omdb(self, imdb_id):
+        """
+        For a given imdb_id, we construct the API url, make a get request,
+        and return the response as a JSON object.
+        :param imdb_id: The imdb_id of the film we are requesting.
+        :return: A JSON object containing the response for the given imdb_id.
+        """
+        request_url = 'http://www.omdbapi.com/?i={0}&apikey={1}'.format(imdb_id, self.api_key)
+        html = requests.get(request_url, headers=self.headers)
+        data = json.loads(html.text)
+        if data['Response'] == 'True':
+            return data
+        else:
+            raise GatherException(imdb_id, 'No response from OMDB API')
+
+class StandardiseResponse(object):
+    """
+    This class reconstructs the response returned from the OMDB API, making
+    a new JSON object that is easier to handle for later applications.
+    """
+
+    def standardise(self, imdb_id, api_data):
+        """
+        We construct a new dictionary from teh API data, standardising the format
+        so we it can be handled easily in later applications.
+        :param imdb_id: The imdb_id for the film that was requested from OMDB API
+        :param api_data: The raw response from the OMDB API
+        :return: A standardised dictionary.
+        """
+        main_data = self.get_main_data(imdb_id, api_data)
+        ratings_data = self.get_ratings_data(imdb_id, api_data)
+        if ratings_data and main_data:
+            return {'omdb_main': main_data, 'omdb_ratings': ratings_data}
+        else:
+            raise GatherException(imdb_id, 'Failed standardise')
+
+    def get_main_data(self, imdb_id, api_data):
+        """
+        Gets the main data returned by the OMDB API, and constructs a dictonary
+        of this information.
+        :param imdb_id: The imdb_id for the film we requested
+        :param api_data: The OMDB API response
+        :return: A single entry array containing the main info for the film.
+        """
+        try:
+            main_data = [{'imdb_id': imdb_id,
+                          'title': api_data['Title'],
+                          'language': api_data['Language'],
+                          'rated': api_data['Rated'].replace('N/A','').replace('NOT RATED', '').replace('UNRATED', ''),
+                          'plot': api_data['Plot'],
+                          'country': api_data['Country']
+                          }]
+        except:
+            raise GatherException('No main data could be found from OMDB')
+        return main_data
+
+    def get_ratings_data(self, imdb_id, api_data):
+        """
+        Gets the rating data returned by the OMDB API, and creates an array of dictionaries
+        detailing the ratings of the films. The ratings are not standardised in the OMDB output.
+        Some are contained in the array 'Ratings', others - Metascore and IMDB - are displayed
+        in the main branch of the response.
+        There is no guarantee that any of rating information will be returned in the response.
+        :param api_data: The OMDB API response
+        :return: A array of dictionaries - imdb_id, source, value - for the film ratings
+        """
+        ratings_data = []
+
+        if 'Metascore' in api_data.keys():
+            ratings_data.append({'imdb_id': imdb_id, 'source': 'metascore', 'value': api_data['Metascore']})
+
+        if 'imdbRating' in api_data.keys():
+            ratings_data.append({'imdb_id': imdb_id, 'source': 'imdb', 'value': api_data['imdbRating']})
+
+        if 'Ratings' in api_data.keys():
+            for rating in api_data['Ratings']:
+                # Each rating is already a dictionary containing two key values - Source and Value.
+                # We construct a new dictionary for each rating.
+                ratings_data.append({'imdb_id': imdb_id, 'source': rating['Source'], 'value': rating['Value']}  )
+
+        # Finally, do a quick hack to ensure no rating contains the value 'N/A' which the OMDB API
+        # sometimes returns.
+        for rating in ratings_data:
+            if rating['value'] == 'N/A':
+                ratings_data.remove(rating)
+
+        if len(ratings_data) == 0:
             return None
-        all_data = self.split_data(data, imdb_id)
-        return all_data
 
-    def get_omdbapi_json(self, imdb_id):
-        html = requests.get('http://www.omdbapi.com/?i=' + imdb_id + '&apikey=' + self.api_key
-                            , headers=self.headers)
-        return json.loads(html.text)
-
-
-    def lower_keys(self, dictionary):
-        return dict((k.lower(), v) for k, v in dictionary.items())
-
-
-    def split_data(self, api_data, imdb_id):
-
-        api_data = self.lower_keys(api_data)
-        bad_fields = [ 'response'
-                      , 'season'
-                      , 'totalseasons'
-                      , 'seriesid'
-                      , 'dvd'
-                      , 'genre'
-                      ]
-
-        for i in bad_fields:
-            try:
-                del api_data[i]
-            except:
-                pass
-
-        cast_data=[]
-        if 'actors' in api_data.keys():
-            for actor in api_data['actors'].split(','):
-                cast_data.append({'name':actor.strip(), 'imdb_id':imdb_id, 'role':'actor'})
-            del api_data['actors']
-
-        crew_data=[]
-        if 'director' in api_data.keys():
-            for director in api_data['director'].split(','):
-                crew_data.append({'name':director.strip(), 'imdb_id':imdb_id, 'role':'director'})
-            del api_data['director']
-
-        if 'writer' in api_data.keys():
-            for writer in api_data['writer'].split(','):
-                crew_data.append({'name':writer.strip(), 'imdb_id':imdb_id, 'role':'writer'})
-            del api_data['writer']
-
-        ratings_data=[]
-
-        if 'metascore' in api_data.keys():
-            ratings_data.append({'source':'metascore', 'imdb_id':imdb_id, 'value':api_data['metascore']})
-            del api_data['metascore']
-        ratings_data.append({'source':'imdb', 'imdb_id':imdb_id, 'value':api_data['imdbrating']})
-        del api_data['imdbrating']
-        if 'ratings' in api_data.keys():
-            other_ratings = api_data['ratings']
-            for rating in other_ratings:
-                rating.update({'imdb_id': imdb_id})
-                rating = self.lower_keys(rating)
-                ratings_data.append(rating)
-            del api_data['ratings']
-
-        # We change the name of the key from imdbid to imdb_id
-        # This is to conform to the structure in the rest of the apis
-        # which allows for ease of testing.
-        api_data["imdb_id"] = api_data["imdbid"]
-        del api_data["imdbid"]
-        main_data = [api_data]
-
-        all_data = {'omdb_main':main_data, 'omdb_ratings':ratings_data, 'omdb_crew':crew_data, 'omdb_cast':cast_data}
-        return all_data
+        return ratings_data
