@@ -1,3 +1,4 @@
 # kino-gather
 
-Kino-gather is a python application that pulls down movie information from a number of apis using imdb_ids/movie names, and inserts that data into a postgres database. 
+Kino gather is an event streaming platform that collates movie data from numerous apis and writes the data to a Postgres database.
+The event platform can be automatically deployed to a kubernetes cluster through Jenkins.

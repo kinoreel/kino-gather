@@ -13,7 +13,6 @@ class InsertData(object):
         self.source_topic = 'movies'
         self.destination_topic = 'movies2trailers'
 
-
     def insert(self, data):
         """
         This inserts the relevant json information
@@ -32,4 +31,3 @@ class InsertData(object):
 
         self.pg.pg_cur.execute(sql, (json.dumps(trailer_data), ))
         self.pg.pg_conn.commit()
-
