@@ -212,15 +212,5 @@ class TestChooseBest(unittest.TestCase):
         self.assertEqual(best_film['url'], 'https://itunes.apple.com/gb/movie/blade-runner/id594314564')
 
 
-
 if __name__ == '__main__':
-    unittest.main()
-
-
-
-
-
-
-
-if __name__=='__main__':
     unittest.main()
