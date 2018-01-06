@@ -13,7 +13,7 @@ class PostIMDB(object):
         data = {'imdb_id': imdb_id}
         self.producer.send('imdb_ids', json.dumps(data).encode())
 
-if __name__=='__main__':
+if __name__ == '__main__':
     import sys
     imdb_ids = sys.argv[0]
     post = PostIMDB()
