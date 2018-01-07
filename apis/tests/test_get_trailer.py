@@ -17,9 +17,17 @@ class TestGetAPI(unittest.TestCase):
         Top level test checking that we pull back the bes trailer for a film
         """
         request = {'imdb_id': 'tt0117509',
-                   'tmdb_main': [{'title': 'Blade Runner', 'release_date': '2000-01-01'}]}
-        info = [e.main_data for e in self.get.get_info(request)]
-        print(info)
+                   'tmdb_main': [{'title': 'Revolutionary Road', 'release_date': '2008-01-01'}]}
+        result = self.get.get_info(request)
+        expected = {
+            'trailer_main': [{
+                'imdb_id': 'tt0117509',
+                'video_id': 'qADM67ZgYxM',
+                'channelId': 'UC9YHyj7QSkkSg2pjQ7M8Khg',
+                'channelTitle': 'Paramount Movies'
+            }]
+        }
+        self.assertEqual(result, expected)
 
 class TestRequestAPI(unittest.TestCase):
     """Testing RequestAPI"""
@@ -32,7 +40,6 @@ class TestRequestAPI(unittest.TestCase):
         # Blade Runner
         title = 'Blade Runner hd trailer'
         response = self.req.get_trailer(title)
-        print(response)
 
 class TestResponse(unittest.TestCase):
     """Testing the class StandardiseResponse"""
@@ -95,11 +102,11 @@ class TestChooseBest(unittest.TestCase):
         self.assertFalse(ChooseBest.check_duration(6))
 
     def test_choose_best(self):
-        responses = [{
+        data = [{
             # Was published too long ago, should be dropped
             'definition': 'hd',
             'imdb_id': 'tt1234567',
-            'duration': '2',
+            'duration': 'PT3M15S',
             'publishedAt': '1990-01-01',
             'channelId': 'UCjmJDM5pRKbUlVIzDYYWb6g',
             'viewCount': '100',
@@ -110,7 +117,7 @@ class TestChooseBest(unittest.TestCase):
             # Has bad duration
             'definition': 'hd',
             'imdb_id': 'tt1234567',
-            'duration': '10',
+            'duration': 'PT13M15S',
             'publishedAt': '2005-01-01',
             'channelId': 'abcde',
             'viewCount': '100',
@@ -121,18 +128,18 @@ class TestChooseBest(unittest.TestCase):
             # Has bad title
             'definition': 'hd',
             'imdb_id': 'tt1234567',
-            'duration': '3',
+            'duration': 'PT3M15S',
             'publishedAt': '2005-01-01',
             'channelId': 'abcde',
             'viewCount': '100',
             'video_id': '3',
             'channelTitle': 'TrailerChannel',
-            'title': 'Awesome Movie - Trailer'
+            'title': 'Awesome - Trailer'
         }, {
             # SD trailer should be dropped
             'definition': 'sd',
             'imdb_id': 'tt1234567',
-            'duration': '2',
+            'duration': 'PT3M15S',
             'publishedAt': '2005-01-01',
             'channelId': 'abcde',
             'viewCount': '100',
@@ -143,7 +150,7 @@ class TestChooseBest(unittest.TestCase):
             # HD trailer, but low view count
             'definition': 'hd',
             'imdb_id': 'tt1234567',
-            'duration': '3',
+            'duration': 'PT3M15S',
             'publishedAt': '2005-01-01',
             'channelId': 'abcde',
             'viewCount': '10',
@@ -154,7 +161,7 @@ class TestChooseBest(unittest.TestCase):
             # HD trailer with high view count. Should be chosen
             'definition': 'hd',
             'imdb_id': 'tt1234567',
-            'duration': '3',
+            'duration': 'PT3M15S',
             'publishedAt': '2005-01-01',
             'channelId': 'abcde',
             'viewCount': '50',
@@ -163,9 +170,10 @@ class TestChooseBest(unittest.TestCase):
             'title': 'Awesome Movie - Trailer'
         }]
         # Create response classes from our responses
-        responses = [StandardisedResponse('tt1234567', e) for e in responses]
-        a = ChooseBest().choose_best(responses, '2000-01-01', 'Awesome Movie')
-        print(a)
+        responses = [StandardisedResponse('tt1234567', e) for e in data]
+        result = ChooseBest().choose_best(responses, '2000-01-01', 'Awesome Movie')
+        # Confirm the last response was chosen
+        self.assertEqual(data[-1], result.main_data)
 
 
 

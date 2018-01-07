@@ -29,11 +29,14 @@ class GetAPI(object):
         title = request['tmdb_main'][0]['title']
         # release date - taken from tmdb - yyyy-dd-mm
         release_date = request['tmdb_main'][0]['release_date']
-        data = self.get_data(title)
+        data = self.get_data(title, release_date[0:4])
         responses = [StandardisedResponse(imdb_id, e) for e in data]
-        #best_reponse = ChooseBest().choose_best(responses, release_date, title)
-        #return {'trailer_main': [best_reponses]}
-        return responses
+        best_response = ChooseBest().choose_best(responses, release_date, title)
+        main_data = [{'imdb_id': imdb_id,
+                      'video_id': best_response.main_data['video_id'],
+                      'channelTitle': best_response.main_data['channelTitle'],
+                      'channelId': best_response.main_data['channelId']}]
+        return {'trailer_main': main_data}
 
 
 class RequestAPI(object):
@@ -45,7 +48,7 @@ class RequestAPI(object):
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
         self.youtube = build('youtube', 'v3', developerKey=api_key)
 
-    def get_trailer(self, title):
+    def get_trailer(self, title, year):
         """
         This function searches YouTube API for our requested title using the
         function search_youtube. Then for each result, we request the content
@@ -54,7 +57,7 @@ class RequestAPI(object):
         :return: A JSON object containing the response from the YouTube API.
         """
         youtube_data = []
-        response = self.search_youtube(title)
+        response = self.search_youtube(title, year)
         # For each film we in the youtube response, we
         # request the content_details and statistics for the film, constructing
         # a new dictionary of this information. We append these dictionaries
@@ -71,7 +74,7 @@ class RequestAPI(object):
 
         return youtube_data
 
-    def search_youtube(self, title):
+    def search_youtube(self, title, year):
         """
         This function searches the youtube api for a specific film
         :param title: The film we are requesting from the youtube api.
@@ -82,7 +85,7 @@ class RequestAPI(object):
         response = self.youtube.search().list(
             part='snippet',
             regionCode='gb',
-            q=title+' Trailer HD',
+            q=title+' ('+year+') Trailer HD',
             type='video',
         ).execute()
         return response['items']
@@ -136,7 +139,7 @@ class StandardisedResponse(object):
                 'video_id': self.api_data['video_id'],
                 'viewCount': self.api_data['viewCount'],
                 'definition': self.api_data['definition'],
-                'duration': self.fix_duration(self.api_data['duration']),
+                'duration': self.api_data['duration'],
                 'channelTitle': self.api_data['channelTitle'],
                 'channelId': self.api_data['channelId'],
                 'publishedAt': self.api_data['publishedAt'].split('T')[0]
@@ -149,7 +152,6 @@ class StandardisedResponse(object):
         :param duration: Time in the formatted by youtube - PT1H59M15S
         :return: Duration in minutes
         """
-        #runtime = re.sub('H|M', ':', runtime.replace('PT', '').replace('S', ''))
         runtime = duration.replace('PT', '')
         try:
             h = re.findall('\d{1,2}(?=H)', runtime)[0]
@@ -168,9 +170,7 @@ class ChooseBest(object):
     """
     def choose_best(self, responses, release_date, movie_title):
         # Remove videos without a reasonable duration
-        print([e.main_data['duration'] for e in responses])
         responses = [e for e in responses if self.check_duration(e.main_data['duration'])]
-        print(responses)
         # Remove videos that were published to early
         responses = [e for e in responses if self.check_published_date(e.main_data['publishedAt'], release_date)]
         # Check title
@@ -179,7 +179,7 @@ class ChooseBest(object):
         if len(hd) > 0:
             responses = hd
         # sort by view count
-        responses = sorted(responses, key=lambda x: x.main_data['viewCount'], reverse=True)
+        responses = sorted(responses, key=lambda x: int(x.main_data['viewCount']), reverse=True)
         return responses[0]
 
     @staticmethod
@@ -188,7 +188,7 @@ class ChooseBest(object):
         Checks that the video duration is between 1 and 6 minutes
         :param duration: The length of the video
         """
-        if 0 < int(duration) < 6:
+        if 0 < int(StandardisedResponse.fix_duration(duration)) < 6:
             return True
         return False
 
