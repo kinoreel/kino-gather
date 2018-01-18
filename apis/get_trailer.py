@@ -28,28 +28,19 @@ class GetAPI(object):
         self.destination_topic = 'itunes'
 
     def get_info(self, request):
+        # Get information on film collected from upstream apis
+        imdb_id, title, tmdb_trailer, release_date, year = self.retrieve_data(request)
 
-        # Get information on film collected from apis
-        imdb_id = request['imdb_id']
-        title = request['tmdb_main'][0]['title']
-        try:
-            tmdb_trailer = request['tmdb_trailer'][0]['video_id']
-        except IndexError:
-            tmdb_trailer = None
-        release_date = request['tmdb_main'][0]['release_date']
-        year = release_date[0:4]
+        tmdb_trailer_data = self.get_tmdb_trailer_data(tmdb_trailer)
 
-        # Get trailer information from the YouTube API.
-        data = RequestAPI().get_trailer_by_title(title, year)
+        if tmdb_trailer_data:
+            data = StandardisedResponse.get_main_data(imdb_id, tmdb_trailer_data)
+            return {'trailer_main': data}
 
-        # Get information on the trailer provided from TMDB from the YouTube api
-        # if it has not already been collected
-        if tmdb_trailer and tmdb_trailer not in [e['video_id'] for e in data]:
-            tmdb_trailer_data = RequestAPI().get_trailer_by_id(tmdb_trailer)
-            data.append(tmdb_trailer_data)
-
+        data = RequestAPI().get_trailers(title, year)
         responses = [StandardisedResponse.get_main_data(imdb_id, e) for e in data]
         best_response = ChooseBest().choose_best(responses, release_date, title)
+
         if best_response is None:
             main_data = None
         else:
@@ -60,18 +51,40 @@ class GetAPI(object):
                           'channel_id': best_response.main_data['channelId']}]
         return {'trailer_main': main_data}
 
+    @staticmethod
+    def retrieve_data(request):
+        """
+        Gets data from upstream apis needed for the retrieving the trailer
+        for a film.
+        :param request: The data collected from upstream apis
+        :return: Film info needed in the collection of a film trailer from the YouTube api
+        """
+        imdb_id = request['imdb_id']
+        title = request['tmdb_main'][0]['title']
+        try:
+            tmdb_trailer = request['tmdb_trailer'][0]['video_id']
+        except IndexError:
+            tmdb_trailer = None
+        release_date = request['tmdb_main'][0]['release_date']
+        year = release_date[0:4]
+        return imdb_id, title, tmdb_trailer, release_date, year
+
+    @staticmethod
+    def get_tmdb_trailer_data(tmdb_trailer):
+        response = RequestAPI().get_tmdb_trailer(tmdb_trailer)
+        if response and ValidateVideo.validate(response):
+            return response
+        return None
+
 
 class RequestAPI(object):
     """This class requests data for a given imdb_id from the YouTube API."""
 
     def __init__(self, api_key=YOUTUBE_FILMS_API):
         self.api_key = api_key
-        self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko)'
-                          ' Chrome/39.0.2171.95 Safari/537.36'}
         self.youtube = build('youtube', 'v3', developerKey=api_key)
 
-    def get_trailer_by_title(self, title, year):
+    def get_trailers(self, title, year):
         """
         This function searches YouTube API for our requested title using the
         function search_youtube. Then for each result, we request the content
@@ -80,24 +93,31 @@ class RequestAPI(object):
         :param year: The year the requested film was released
         :return: A JSON object containing the response from the YouTube API.
         """
-        youtube_data = []
         search_string = '{0} ({1}) Trailer HD'.format(title, year)
         response = self.search_youtube_by_string(search_string)
-        # For each film we in the youtube response, we
-        # request the content_details and statistics for the film, constructing
-        # a new dictionary of this information. We append these dictionaries
-        # to the array youtube_data.
-        for film in response:
-            video_id = film['id']['videoId']
-            info = film['snippet']
-            content_details = self.get_content_details(video_id)
-            stats = self.get_stats(video_id)
-            info.update(content_details)
-            info.update(stats)
-            info.update({'video_id': video_id})
-            youtube_data.append(info)
+
+        youtube_data = []
+        for video in response:
+            video_id = video['id']['videoId']
+            additional_info = self.get_additional_info(video_id)
+            video.update(additional_info)
+            youtube_data.append(video)
 
         return youtube_data
+
+    def get_tmdb_trailer(self, tmdb_trailer):
+        """
+        This function searches YouTube API for our requested title using the
+        function search_youtube. Then for each result, we request the content
+        and statistics information.
+        :param tmdb_trailer: The video id for the trailer provided by the TMDB api
+        :return: A JSON object containing the response from the YouTube API.
+        """
+        response = self.search_youtube_by_id(tmdb_trailer)
+        if response:
+            additional_info = self.get_additional_info(tmdb_trailer)
+            response.update(additional_info)
+        return response
 
     def search_youtube_by_string(self, search_string):
         """
@@ -114,6 +134,31 @@ class RequestAPI(object):
             type='video',
         ).execute()
         return response['items']
+
+    def search_youtube_by_id(self, video_id):
+        """
+        This function returns the content information - length, -
+        for a particular video.
+        :param video_id: The youtube video id.
+        :return: A JSON object containing the response from youtube.
+        """
+        response = self.youtube.videos().list(
+            part='snippet',
+            id=video_id,
+        ).execute()
+        try:
+            return response['items'][0]['snippet']
+        except TypeError:
+            return None
+
+    def get_additional_info(self, video_id):
+        info = {}
+        content_details = self.get_content_details(video_id)
+        stats = self.get_stats(video_id)
+        info.update(content_details)
+        info.update(stats)
+        info.update({'video_id': video_id})
+        return info
 
     def get_content_details(self, video_id):
         """
@@ -140,6 +185,46 @@ class RequestAPI(object):
             id=video_id
         ).execute()
         return response['items'][0]['statistics']
+
+
+class ValidateVideo(object):
+    """
+    This class validates a YouTube video, ensuring that the video is still up, it is not
+    regionally restricted, etc
+    """
+
+    @staticmethod
+    def validate(video):
+        if ValidateVideo.check_region(video) and \
+                ValidateVideo.check_title(video) and \
+                ValidateVideo.check_channel_title(video):
+            return True
+        return False
+
+    @staticmethod
+    def check_region(video):
+        try:
+            if 'GB' in video['regionRestriction']['blocked']:
+                return False
+            return True
+        except KeyError:
+            return True
+
+    @staticmethod
+    def check_title(video):
+        bad_words = ['german', 'deutsch', 'spanish', 'españa', 'espana']
+        for word in bad_words:
+            if word in video['title'].lower():
+                return False
+        return True
+
+    @staticmethod
+    def check_channel_title(video):
+        bad_channels = ['moviepilot trailer', 'diekinokritiker', '7even3hreetv', 'kilkenny1978']
+        for channel in bad_channels:
+            if channel in video['channelTitle'].lower():
+                return False
+        return True
 
 
 class StandardisedResponse(object):

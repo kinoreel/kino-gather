@@ -1,9 +1,12 @@
-import sys
-sys.path.append('..')
-
 import unittest
+import os
+import sys
+from mock import patch
 
-from get_trailer import GetAPI, RequestAPI, StandardisedResponse, ChooseBest
+current_dir = (os.path.abspath(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.join(current_dir, '..', '..'))
+
+from apis.get_trailer import GetAPI, RequestAPI, StandardisedResponse, ChooseBest, ValidateVideo
 
 
 class TestGetAPI(unittest.TestCase):
@@ -11,6 +14,34 @@ class TestGetAPI(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.get = GetAPI()
+
+    def test_retrieve_data(self):
+        """Testing GetApi.retrieve_data"""
+
+        request = {'imdb_id': 'tt0117509',
+                   'tmdb_main': [{'title': 'Revolutionary Road', 'release_date': '2008-01-01'}],
+                   'tmdb_trailer': [{'video_id': 'qADM67ZgYxM'}]}
+        result = GetAPI.retrieve_data(request)
+        expected = ('tt0117509', 'Revolutionary Road', 'qADM67ZgYxM', '2008-01-01', '2008')
+        self.assertEqual(result, expected)
+
+    def test_retrieve_data_no_trailer(self):
+        """Testing GetApi.retrieve_data"""
+
+        request = {'imdb_id': 'tt0117509',
+                   'tmdb_main': [{'title': 'Revolutionary Road', 'release_date': '2008-01-01'}],
+                   'tmdb_trailer': []}
+        result = GetAPI.retrieve_data(request)
+        expected = ('tt0117509', 'Revolutionary Road', None, '2008-01-01', '2008')
+        self.assertEqual(result, expected)
+
+    def test_get_tmdb_trailer_data_fail(self):
+        a = GetAPI.get_tmdb_trailer_data('a')
+        self.assertIsNone(a)
+
+    def test_get_tmdb_trailer_data_pass(self):
+        a = GetAPI.get_tmdb_trailer_data('qADM67ZgYxM')
+        print(a)
 
     def test_get_info(self):
         """
@@ -30,6 +61,7 @@ class TestGetAPI(unittest.TestCase):
         }
         self.assertEqual(result, expected)
 
+
 class TestRequestAPI(unittest.TestCase):
     """Testing RequestAPI"""
 
@@ -37,10 +69,72 @@ class TestRequestAPI(unittest.TestCase):
     def setUpClass(cls):
         cls.req = RequestAPI()
 
-    def test_search_youtube(self):
+    # todo patch the youtube search functions
+    def test_search_youtube_by_string(self):
+        # Mock the request to the API
         # Blade Runner
-        title = 'Blade Runner hd trailer'
-        response = self.req.get_trailer(title)
+        response = self.req.search_youtube_by_string('Revolutionary Road (2008) HD Trailer')
+        print(response)
+
+    # todo patch the youtube search functions
+    def test_search_youtube_by_id(self):
+        # Mock the request to the API
+        # Blade Runner
+        response = self.req.search_youtube_by_id('b1Stfe7Puk0')
+        print(response)
+
+    def test_get_trailers(self):
+        response = self.req.get_trailers('Revolutionary Road', '2008')
+        print(response)
+
+    def test_get_tmdb_trailer(self):
+        response = self.req.get_tmdb_trailer('1tTIQ8pkGf0')
+        print(response)
+
+
+class TestValidateVideo(unittest.TestCase):
+    """Testing the class ValidateVideo"""
+
+    def test_validate_pass(self):
+        video = {'channelTitle': 'paramount picture', 'title': 'Trailer'}
+        self.assertTrue(ValidateVideo.validate(video))
+
+    def test_validate_fail_title(self):
+        video = {'channelTitle': 'paramount picture', 'title': 'Deutsch Trailer'}
+        self.assertFalse(ValidateVideo.validate(video))
+
+    def test_validate_fail_channel(self):
+        video = {'channelTitle': '7even3hreetv', 'title': 'Trailer'}
+        self.assertFalse(ValidateVideo.validate(video))
+
+    def test_validate_fail_region(self):
+        video = {'channelTitle': '7even3hreetv', 'title': 'Trailer', 'regionRestriction': {'blocked': ['GB']}}
+        self.assertFalse(ValidateVideo.validate(video))
+
+    def test_check_region_fail(self):
+        video = {'regionRestriction': {'blocked': ['GB']}}
+        self.assertFalse(ValidateVideo.check_region(video))
+
+    def test_check_region_pass(self):
+        video = {}
+        self.assertTrue(ValidateVideo.check_region(video))
+
+    def test_check_title_fail(self):
+        video = {'title': 'Deutsch Trailer'}
+        self.assertFalse(ValidateVideo.check_title(video))
+
+    def test_check_title_pass(self):
+        video = {'title': 'Trailer'}
+        self.assertTrue(ValidateVideo.check_title(video))
+
+    def test_check_channel_fail(self):
+        video = {'channelTitle': '7even3hreetv'}
+        self.assertFalse(ValidateVideo.check_channel_title(video))
+
+    def test_check_channel_pass(self):
+        video = {'channelTitle': 'paramount picture'}
+        self.assertTrue(ValidateVideo.check_channel_title(video))
+
 
 class TestResponse(unittest.TestCase):
     """Testing the class StandardiseResponse"""
