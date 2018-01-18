@@ -16,26 +16,48 @@ except KeyError:
         print("API is not known")
         exit()
 
-class GetAPI(object):
 
+class GetAPI(object):
+    """
+    Top level class imported by kafka_apis.py.
+    Gets and standardises data from YouTube api, searching for trailers
+    The class also hold responsibility of the topic it consumes from and the topic it produces to.
+    """
     def __init__(self):
         self.source_topic = 'tmdb'
         self.destination_topic = 'itunes'
-        self.get_data = RequestAPI().get_trailer
 
     def get_info(self, request):
+
+        # Get information on film collected from apis
         imdb_id = request['imdb_id']
-        # title - taken from tmdb
         title = request['tmdb_main'][0]['title']
-        # release date - taken from tmdb - yyyy-dd-mm
+        try:
+            tmdb_trailer = request['tmdb_trailer'][0]['video_id']
+        except IndexError:
+            tmdb_trailer = None
         release_date = request['tmdb_main'][0]['release_date']
-        data = self.get_data(title, release_date[0:4])
-        responses = [StandardisedResponse(imdb_id, e) for e in data]
+        year = release_date[0:4]
+
+        # Get trailer information from the YouTube API.
+        data = RequestAPI().get_trailer_by_title(title, year)
+
+        # Get information on the trailer provided from TMDB from the YouTube api
+        # if it has not already been collected
+        if tmdb_trailer and tmdb_trailer not in [e['video_id'] for e in data]:
+            tmdb_trailer_data = RequestAPI().get_trailer_by_id(tmdb_trailer)
+            data.append(tmdb_trailer_data)
+
+        responses = [StandardisedResponse.get_main_data(imdb_id, e) for e in data]
         best_response = ChooseBest().choose_best(responses, release_date, title)
-        main_data = [{'imdb_id': imdb_id,
-                      'video_id': best_response.main_data['video_id'],
-                      'channelTitle': best_response.main_data['channelTitle'],
-                      'channelId': best_response.main_data['channelId']}]
+        if best_response is None:
+            main_data = None
+        else:
+            main_data = [{'imdb_id': imdb_id,
+                          'video_id': best_response.main_data['video_id'],
+                          'definition': best_response.main_data['definition'],
+                          'channel_title': best_response.main_data['channelTitle'],
+                          'channel_id': best_response.main_data['channelId']}]
         return {'trailer_main': main_data}
 
 
@@ -45,19 +67,22 @@ class RequestAPI(object):
     def __init__(self, api_key=YOUTUBE_FILMS_API):
         self.api_key = api_key
         self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko)'
+                          ' Chrome/39.0.2171.95 Safari/537.36'}
         self.youtube = build('youtube', 'v3', developerKey=api_key)
 
-    def get_trailer(self, title, year):
+    def get_trailer_by_title(self, title, year):
         """
         This function searches YouTube API for our requested title using the
         function search_youtube. Then for each result, we request the content
         and statistics information.
         :param title: The film we are requesting from the YouTube API.
+        :param year: The year the requested film was released
         :return: A JSON object containing the response from the YouTube API.
         """
         youtube_data = []
-        response = self.search_youtube(title, year)
+        search_string = '{0} ({1}) Trailer HD'.format(title, year)
+        response = self.search_youtube_by_string(search_string)
         # For each film we in the youtube response, we
         # request the content_details and statistics for the film, constructing
         # a new dictionary of this information. We append these dictionaries
@@ -66,18 +91,18 @@ class RequestAPI(object):
             video_id = film['id']['videoId']
             info = film['snippet']
             content_details = self.get_content_details(video_id)
-            get_stats = self.get_stats(video_id)
+            stats = self.get_stats(video_id)
             info.update(content_details)
-            info.update(get_stats)
+            info.update(stats)
             info.update({'video_id': video_id})
             youtube_data.append(info)
 
         return youtube_data
 
-    def search_youtube(self, title, year):
+    def search_youtube_by_string(self, search_string):
         """
         This function searches the youtube api for a specific film
-        :param title: The film we are requesting from the youtube api.
+        :param search_string: The search string
         :return: A JSON object containing the responses from youtube.
         """
         # We specify a number of parameters to ensure we
@@ -85,7 +110,7 @@ class RequestAPI(object):
         response = self.youtube.search().list(
             part='snippet',
             regionCode='gb',
-            q=title+' ('+year+') Trailer HD',
+            q=search_string,
             type='video',
         ).execute()
         return response['items']
@@ -122,34 +147,29 @@ class StandardisedResponse(object):
     This class reconstructs the response returned from the YouTube API, making
     a new JSON object that is easier to handle for later applications.
     """
-    def __init__(self, imdb_id, api_data):
-        self.api_data = api_data
-        self.imdb_id = imdb_id
-        self.main_data = self.get_main_data()
 
-    def get_main_data(self):
+    @staticmethod
+    def get_main_data(imdb_id, api_data):
         """
         Extracts the relevant information for comparing trailers
-        :param imdb_id: The imdb_id for the film
-        :param api_data: The raw response from Youtube API
         :return: A dictionary containing the relevant information
         """
-        return {'imdb_id': self.imdb_id,
-                'title': self.api_data['title'],
-                'video_id': self.api_data['video_id'],
-                'viewCount': self.api_data['viewCount'],
-                'definition': self.api_data['definition'],
-                'duration': self.api_data['duration'],
-                'channelTitle': self.api_data['channelTitle'],
-                'channelId': self.api_data['channelId'],
-                'publishedAt': self.api_data['publishedAt'].split('T')[0]
+        return {'imdb_id': imdb_id,
+                'title': api_data['title'],
+                'video_id': api_data['video_id'],
+                'viewCount': api_data.get('viewCount') or 0,
+                'definition': api_data['definition'],
+                'duration': api_data['duration'],
+                'channelTitle': api_data['channelTitle'],
+                'channelId': api_data['channelId'],
+                'publishedAt': api_data['publishedAt'].split('T')[0]
                 }
 
     @staticmethod
     def fix_duration(duration):
         """
-        Reformats duration youtube - PT1H59M15S into minutes
-        :param duration: Time in the formatted by youtube - PT1H59M15S
+        Reformat youtube duration from PT1H59M15S into minutes
+        :param duration: Time in the YouTube format - PT1H59M15S
         :return: Duration in minutes
         """
         runtime = duration.replace('PT', '')
@@ -179,8 +199,11 @@ class ChooseBest(object):
         if len(hd) > 0:
             responses = hd
         # sort by view count
-        responses = sorted(responses, key=lambda x: int(x.main_data['viewCount']), reverse=True)
-        return responses[0]
+        responses = sorted(responses, key=lambda x: int(x.main_data.get('viewCount')), reverse=True)
+        try:
+            return responses[0]
+        except IndexError:
+            return None
 
     @staticmethod
     def check_duration(duration):
@@ -214,6 +237,10 @@ class ChooseBest(object):
         :param video_title: Title of the YouTube video
         :param movie_title: Title of the movie
         """
+        bad_words = ['German', 'Deuthch']
+        for word in bad_words:
+            if word in video_title.lower():
+                return False
         if movie_title.lower() in video_title.lower() and 'trailer' in video_title.lower():
             return True
         return False

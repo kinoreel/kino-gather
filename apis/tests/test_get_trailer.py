@@ -23,8 +23,9 @@ class TestGetAPI(unittest.TestCase):
             'trailer_main': [{
                 'imdb_id': 'tt0117509',
                 'video_id': 'qADM67ZgYxM',
-                'channelId': 'UC9YHyj7QSkkSg2pjQ7M8Khg',
-                'channelTitle': 'Paramount Movies'
+                'definition': 'hd',
+                'channel_id': 'UC9YHyj7QSkkSg2pjQ7M8Khg',
+                'channel_title': 'Paramount Movies'
             }]
         }
         self.assertEqual(result, expected)
