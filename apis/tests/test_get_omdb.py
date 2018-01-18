@@ -1,9 +1,12 @@
-import sys
-sys.path.append('..')
-
 import unittest
+import os
+import sys
+import responses
 
-from get_omdb import GetAPI, RequestAPI, StandardiseResponse
+current_dir = (os.path.abspath(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.join(current_dir, '..', '..'))
+
+from apis.get_omdb import GetAPI, RequestAPI, StandardiseResponse, GatherException
 
 
 class TestGetAPI(unittest.TestCase):
@@ -12,12 +15,67 @@ class TestGetAPI(unittest.TestCase):
     def setUpClass(cls):
         cls.get = GetAPI()
 
+    @responses.activate
     def test_get_info(self):
+        # Mock the request to the API
+        responses.add(responses.GET, 'http://www.omdbapi.com',
+                      json={'Title': 'Blade Runner',
+                            'Runtime': '117 min',
+                            'Metascore': 'N/A',
+                            'Language': 'English, German, Cantonese, Japanese, Hungarian, Arabic',
+                            'Response': 'True',
+                            'Ratings': [{
+                                'Source': 'Internet Movie Database',
+                                'Value': '8.2/10'
+                            }, {
+                                'Source': 'Rotten Tomatoes',
+                                'Value': '90%'
+                            }, {
+                                'Source': 'Metacritic',
+                                'Value': '89/100'
+                            }],
+                            'Rated': 'R',
+                            'DVD': '27 Aug 1997',
+                            'Plot': 'A blade runner must pursue and try to terminate four replicants who stole a '
+                                    'ship in space and have returned to Earth to find their creator.',
+                            'Genre': 'Sci-Fi, Thriller',
+                            'Year': '1982',
+                            'imdbRating': '8.2',
+                            'imdbID': 'tt0083658',
+                            'Country': 'USA, Hong Kong, UK'
+                            }, status=200)
         # Check get_info for a correct imdb_id
         request = {'imdb_id': 'tt0083658'}
-        expected_keys = ['omdb_main', 'omdb_ratings']
-        info = self.get.get_info(request)
-        self.assertEqual(set(info.keys()), set(expected_keys))
+        result = self.get.get_info(request)
+        expected = {
+            'omdb_ratings': [{
+                'source': 'imdb',
+                'value': '8.2',
+                'imdb_id': 'tt0083658'
+            }, {
+                'source': 'Internet Movie Database',
+                'value': '8.2',
+                'imdb_id': 'tt0083658'
+            }, {
+                'source': 'Rotten Tomatoes',
+                'value': '90',
+                'imdb_id': 'tt0083658'
+            }, {
+                'source': 'Metacritic',
+                'value': '89',
+                'imdb_id': 'tt0083658'
+            }],
+            'omdb_main': [{
+                'imdb_id': 'tt0083658',
+                'title': 'Blade Runner',
+                'language': 'English, German, Cantonese, Japanese, Hungarian, Arabic',
+                'plot': 'A blade runner must pursue and try to terminate four replicants who stole a ship in space '
+                        'and have returned to Earth to find their creator.',
+                'rated': 'R',
+                'country': 'USA, Hong Kong, UK'
+            }]
+        }
+        self.assertEqual(expected, result)
 
 
 class TestRequestAPI(unittest.TestCase):
@@ -27,26 +85,27 @@ class TestRequestAPI(unittest.TestCase):
     def setUpClass(cls):
         cls.req = RequestAPI()
 
-    def test_get_omdb(self):
-        # Blade Runner
+    @responses.activate
+    def test_get_omdb_good(self):
+        # Mock the request to the API
+        responses.add(responses.GET, 'http://www.omdbapi.com',
+                      json={'Response': 'True', 'Title': 'Blade Runner'},
+                      status=200)
         imdb_id = 'tt0083658'
         response = self.req.get_omdb(imdb_id)
         self.assertEqual(response['Response'], 'True')
         self.assertEqual(response['Title'], 'Blade Runner')
 
-        # Run Lola Run
-        imdb_id = 'tt0130827'
-        response = self.req.get_omdb(imdb_id)
-        self.assertEqual(response['Response'], 'True')
-        self.assertEqual(response['Title'], 'Run Lola Run')
+    @responses.activate
+    def test_get_omdb_bad(self):
+        # Mock the request to the API
+        responses.add(responses.GET, 'http://www.omdbapi.com'.format('tt0083658', self.req.api_key),
+                      json={'Response': 'False', 'Error': 'Incorrect IMDb ID.'},
+                      status=200)
+        # Blade Runner
+        imdb_id = 'invalid'
+        self.failUnlessRaises(GatherException, self.req.get_omdb, imdb_id)
 
-        # True Grit - 1969
-        # Testing that the release year is not appending for films
-        # that have been remade.
-        imdb_id = 'tt0065126'
-        response = self.req.get_omdb(imdb_id)
-        self.assertEqual(response['Response'], 'True')
-        self.assertEqual(response['Title'], 'True Grit')
 
 class TestStandardiseResponse(unittest.TestCase):
     """Testing StardardiseResponse"""
@@ -55,19 +114,13 @@ class TestStandardiseResponse(unittest.TestCase):
     def setUpClass(cls):
         cls.stan = StandardiseResponse()
         cls.imdb_id = 'tt0083658'
-        # Response for Blade Runner from the OMDBAPI, edited to test additional functionality.
-        # The edits have been highlighted.
+        # Mock response from OMDBAPI.
         cls.response = {
-            'Writer': 'Hampton Fancher (screenplay), David Webb Peoples (screenplay), Philip K. Dick (novel)',
-            'Website': 'N/A',
             'Title': 'Blade Runner',
             'Runtime': '117 min',
-            # Actual metascore replaced with 'N/A'
             'Metascore': 'N/A',
             'Language': 'English, German, Cantonese, Japanese, Hungarian, Arabic',
             'Response': 'True',
-            'Director': 'Ridley Scott',
-            'Actors': 'Harrison Ford, Rutger Hauer, Sean Young, Edward James Olmos',
             'Ratings': [{
                 'Source': 'Internet Movie Database',
                 'Value': '8.2/10'
@@ -78,26 +131,21 @@ class TestStandardiseResponse(unittest.TestCase):
                 'Source': 'Metacritic',
                 'Value': '89/100'
             }],
-            'Production': 'Warner Bros. Pictures',
             'Rated': 'R',
-            'Poster': 'https://images-na.ssl-images-amazon.com/images/M/MV5BNzQzMzJhZTEtOWM4NS00MTdhLTg0YjgtMjM4MDRkZjUwZDBlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_SX300.jpg',
             'DVD': '27 Aug 1997',
-            'Plot': 'A blade runner must pursue and try to terminate four replicants who stole a ship in space and have returned to Earth to find their creator.',
-            'imdbVotes': '522,827',
+            'Plot': 'A blade runner must pursue and try to terminate four replicants who stole a ship in space and'
+                    ' have returned to Earth to find their creator.',
             'Genre': 'Sci-Fi, Thriller',
-            'Awards': 'Nominated for 2 Oscars. Another 11 wins & 16 nominations.',
-            'BoxOffice': 'N/A',
             'Year': '1982',
-            'Type': 'movie',
             'imdbRating': '8.2',
             'imdbID': 'tt0083658',
-            'Released': '25 Jun 1982',
             'Country': 'USA, Hong Kong, UK'
         }
 
     def test_get_main_data(self):
         expected_result = [{
-            'plot': 'A blade runner must pursue and try to terminate four replicants who stole a ship in space and have returned to Earth to find their creator.',
+            'plot': 'A blade runner must pursue and try to terminate four replicants who stole a ship in space and'
+                    ' have returned to Earth to find their creator.',
             'language': 'English, German, Cantonese, Japanese, Hungarian, Arabic',
             'country': 'USA, Hong Kong, UK',
             'title': 'Blade Runner',
@@ -109,9 +157,9 @@ class TestStandardiseResponse(unittest.TestCase):
 
     def test_get_ratings_data(self):
         expected_result = [{'value': '8.2', 'source': 'imdb', 'imdb_id': 'tt0083658'},
-                           {'value': '8.2/10', 'source': 'Internet Movie Database', 'imdb_id': 'tt0083658'},
-                           {'value': '90%', 'source': 'Rotten Tomatoes', 'imdb_id': 'tt0083658'},
-                           {'value': '89/100', 'source': 'Metacritic', 'imdb_id': 'tt0083658'}]
+                           {'value': '8.2', 'source': 'Internet Movie Database', 'imdb_id': 'tt0083658'},
+                           {'value': '90', 'source': 'Rotten Tomatoes', 'imdb_id': 'tt0083658'},
+                           {'value': '89', 'source': 'Metacritic', 'imdb_id': 'tt0083658'}]
         rating_data = self.stan.get_ratings_data(self.imdb_id, self.response)
         self.assertEqual(rating_data, expected_result)
 

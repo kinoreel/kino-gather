@@ -2,32 +2,34 @@ import json
 import os
 import requests
 
-from GatherException import GatherException
+from apis.GatherException import GatherException
 
 try:
     TMDB_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from GLOBALS import TMDB_API
+        from apis.GLOBALS import TMDB_API
     except ImportError:
         print("API is not known")
         exit()
 
 
 class GetAPI(object):
+    """
+    Top level class imported by kafka_apis.py.
+    Gets and standardises data from TMDB api for a given imdb_id.
+    The class also hold responsibility of the topic it consumes from and the topic it produces to.
+    """
 
     def __init__(self):
         self.source_topic = 'omdb'
         self.destination_topic = 'tmdb'
-        self.get_data = RequestAPI().get_tmdb
-        self.standardise_data = StandardiseResponse().standardise
 
     def get_info(self, request):
         imdb_id = request['imdb_id']
-        data = self.get_data(imdb_id)
-        data = self.standardise_data(imdb_id, data)
+        data = RequestAPI().get_tmdb(imdb_id)
+        data = StandardiseResponse().standardise(imdb_id, data)
         return data
-
 
 
 class RequestAPI(object):
@@ -86,7 +88,8 @@ class StandardiseResponse(object):
                 'tmdb_company': company_data,
                 'tmdb_trailer': trailer_data}
 
-    def get_main_data(self, imdb_id, api_data):
+    @staticmethod
+    def get_main_data(imdb_id, api_data):
         """
         Gets the main data returned by the TMDB API, and constructs a dictonary
         of this information.
@@ -108,62 +111,66 @@ class StandardiseResponse(object):
 
         return main_data
 
-    def get_cast_data(self, imdb_id, api_data):
+    @staticmethod
+    def get_cast_data(imdb_id, api_data):
         """
         Gets the cast data returned by the TMDB API.
+        :param imdb_id: The imdb_id for the requested film.
         :param api_data: The TMDB API response
         :return: A array of dictionaries - imdb_id, name, role - for the cast in the film
         """
-        cast_data = []
-
-        for cast_member in api_data["credits"]["cast"]:
-            cast_data.append({'imdb_id': imdb_id, 'name': cast_member['name'], 'role': 'actor', 'cast_order': cast_member['order'] })
+        cast_data = [{'imdb_id': imdb_id,
+                      'name': e['name'],
+                      'role': 'actor',
+                      'cast_order': e['order']} for e in api_data["credits"]["cast"]]
 
         return cast_data
 
-    def get_crew_data(self, imdb_id, api_data):
+    @staticmethod
+    def get_crew_data(imdb_id, api_data):
         """
         Gets the crew data returned by the TMDB API.
+        :param imdb_id: The imdb_id for the requested film.
         :param api_data: The TMDB API response
         :return: A array of dictionaries - imdb_id, name, role - for the cast in the film
         """
-        crew_data = []
-
-        for crew_member in api_data["credits"]["crew"]:
-            crew_data.append({'imdb_id': imdb_id, 'name': crew_member['name'], 'role': crew_member['job'].lower()})
-
-        if len(crew_data) == 0:
-            raise GatherException(imdb_id, 'No crew data could be found from TMDB')
+        crew_data = [{'imdb_id': imdb_id,
+                      'name': e['name'],
+                      'role': e['job'].lower()} for e in api_data["credits"]["crew"]]
 
         return crew_data
 
-    def get_keywords_data(self, imdb_id, api_data):
+    @staticmethod
+    def get_keywords_data(imdb_id, api_data):
         """
         Gets the keyword data returned by the TMDB API.
+        :param imdb_id: The imdb_id for the requested film.
         :param api_data: The TMDB API response
         :return: A array of dictionaries - imdb_id, keyword.
         """
         keywords_data = []
         for keyword in api_data["keywords"]["keywords"]:
-            keywords_data.append({'imdb_id': imdb_id, 'keyword':keyword['name']})
+            keywords_data.append({'imdb_id': imdb_id, 'keyword': keyword['name']})
         return keywords_data
 
-    def get_genre_data(self, imdb_id, api_data):
+    @staticmethod
+    def get_genre_data(imdb_id, api_data):
         """
         Gets the genre data returned by the TMDB API.
+        :param imdb_id: The imdb_id for the requested film.
         :param api_data: The TMDB API response
         :return: A array of dictionaries - imdb_id, genre.
         """
-        genre_data = []
-        for genre in api_data["genres"]:
-            genre_data.append({'imdb_id': imdb_id, 'genre': genre['name']})
-        if len(genre_data) == 0:
-            raise GatherException(imdb_id, 'No genre data could be found from TMDB')
+        genre_data = [{'imdb_id': imdb_id,
+                       'genre': e['name']} for e in api_data["genres"]]
+
         return genre_data
 
-    def get_company_data(self, imdb_id, api_data):
+    @staticmethod
+    def get_company_data(imdb_id, api_data):
         """
         Gets the company data returned by the TMDB API.
+        :param imdb_id: The imdb_id for the requested film.
         :param api_data: The TMDB API response
         :return: A array of dictionaries - imdb_id, company, role.
         """
@@ -172,27 +179,43 @@ class StandardiseResponse(object):
             company_data.append({'imdb_id': imdb_id, 'name': company['name']})
         return company_data
 
-    def get_trailer_data(self, imdb_id, api_data):
+    @staticmethod
+    def get_trailer_data(imdb_id, api_data):
         """
         Gets the trailer data returned by the TMDB API. We choose the best video based on
-        an ordering/criteria determined by the function sory video list.
+        an ordering/criteria determined by the function order_video_list.
+        :param imdb_id: The imdb_id for the requested film.
         :param api_data: The TMDB API response
         :return: A array of dictionaries - imdb_id, url.
         """
-        # We get all videos that are specififed as trailers, are hosted on youtube and are in English.
+        # We get all videos that are specified as trailers that are hosted on youtube and are in English.
         videos = [e for e in api_data["videos"]["results"]
-                  if e['type'].lower() == 'trailer' and e['site'].lower() == 'youtube' and e['iso_639_1'].lower() == 'en']
-        if len(videos) == 0:
-            raise GatherException(imdb_id, 'No trailer could be found from TMDB')
-        # We then sort these videos based on some criteria, and choose the first result.
-        # - The video title contains the word 'trailer'
-        # - The video title contains the word 'official'
-        # - The quality/size of the video.
-        trailer_data = [{'imdb_id': imdb_id, 'url':self.sort_videos_list(videos)[0]['key']}]
+                  if e['type'].lower() == 'trailer' and
+                  e['site'].lower() == 'youtube' and
+                  e['iso_639_1'].lower() == 'en']
+
+        try:
+            best_trailer = StandardiseResponse.sort_videos_list(videos)[0]
+        except IndexError:
+            return []
+
+        trailer_data = [{'imdb_id': imdb_id,
+                         'video_id': best_trailer['key'],
+                         'size': best_trailer['size']},
+                        ]
+
         return trailer_data
 
-    def sort_videos_list(self, video_list):
-        # We sort three times, sorting by the most important condition last.
+    @staticmethod
+    def sort_videos_list(video_list):
+        """
+        Orders the list of videos based on the following criteria:
+        - The video title contains the word 'trailer'
+        - The video title contains the word 'official'
+        - The quality/size of the video.
+        :param video_list: A list of videos
+        :return: An list of videos ordered by chosen criteria
+        """
         video_list = sorted(video_list, key=lambda x: x['size'], reverse=True)
         video_list = sorted(video_list, key=lambda x: 'official' in x['name'].lower(), reverse=True)
         video_list = sorted(video_list, key=lambda x: 'trailer' in x['name'].lower(), reverse=True)
