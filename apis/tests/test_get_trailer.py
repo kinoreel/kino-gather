@@ -6,7 +6,7 @@ from mock import patch
 current_dir = (os.path.abspath(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.join(current_dir, '..', '..'))
 
-from apis.get_trailer import GetAPI, RequestAPI, StandardisedResponse, ChooseBest, ValidateVideo
+from apis.get_trailer import GetAPI, YouTubeAPI, YouTubeVideo, ChooseBest, Validate
 
 
 class TestGetAPI(unittest.TestCase):
@@ -36,7 +36,11 @@ class TestGetAPI(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_get_tmdb_trailer_data_fail(self):
-        a = GetAPI.get_tmdb_trailer_data('a')
+        a = GetAPI.get_tmdb_trailer_data('invalid')
+        self.assertIsNone(a)
+
+    def test_get_tmdb_trailer_data_none(self):
+        a = GetAPI.get_tmdb_trailer_data('invalid')
         self.assertIsNone(a)
 
     def test_get_tmdb_trailer_data_pass(self):
@@ -62,123 +66,162 @@ class TestGetAPI(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
-class TestRequestAPI(unittest.TestCase):
+class TestYouTubeAPI(unittest.TestCase):
     """Testing RequestAPI"""
 
     @classmethod
     def setUpClass(cls):
-        cls.req = RequestAPI()
+        cls.api = YouTubeAPI()
 
     # todo patch the youtube search functions
-    def test_search_youtube_by_string(self):
+    def test_search_by_string(self):
         # Mock the request to the API
         # Blade Runner
-        response = self.req.search_youtube_by_string('Revolutionary Road (2008) HD Trailer')
+        response = self.api.search_by_string('Revolutionary Road (2008) HD Trailer')
         print(response)
 
     # todo patch the youtube search functions
-    def test_search_youtube_by_id(self):
+    def test_search_by_id(self):
         # Mock the request to the API
         # Blade Runner
-        response = self.req.search_youtube_by_id('b1Stfe7Puk0')
+        response = self.api.search_by_id('b1Stfe7Puk0')
         print(response)
+        expected = {
+            'publishedAt': '2016-03-29T09:42:39.000Z',
+            'projection': 'rectangular',
+            'caption': 'false',
+            'channelId': 'UC_G61kX-ORlltt4b20_Oriw',
+            'dislikeCount': '84',
+            'tags': ['mr.chawaks'],
+            'favoriteCount': '0',
+            'categoryId': '10',
+            'definition': 'sd',
+            'title': 'Letta Mbulu - Nomalizo',
+            'duration': 'PT5M11S',
+            'dimension': '2d',
+            'licensedContent': False,
+            'description': '',
+            'liveBroadcastContent': 'none',
+            'viewCount': '448579',
+            'channelTitle': 'Mr. Chawaks',
+            'commentCount': '120',
+            'likeCount': '6675'
+        }
 
-    def test_get_trailers(self):
-        response = self.req.get_trailers('Revolutionary Road', '2008')
-        print(response)
 
-    def test_get_tmdb_trailer(self):
-        response = self.req.get_tmdb_trailer('1tTIQ8pkGf0')
-        print(response)
-
-
-class TestValidateVideo(unittest.TestCase):
+class TestValidate(unittest.TestCase):
     """Testing the class ValidateVideo"""
 
     def test_validate_pass(self):
-        video = {'channelTitle': 'paramount picture', 'title': 'Trailer'}
-        self.assertTrue(ValidateVideo.validate(video))
+        response = {'snippet': {'channelTitle': 'paramount picture', 'title': 'Trailer'}, 'duration': 'PT04M15S'}
+        self.assertTrue(Validate.validate(response))
 
     def test_validate_fail_title(self):
-        video = {'channelTitle': 'paramount picture', 'title': 'Deutsch Trailer'}
-        self.assertFalse(ValidateVideo.validate(video))
+        response = {'snippet': {'channelTitle': 'paramount picture', 'title': 'Deutsch Trailer'}, 'duration': 'PT04M15S'}
+        self.assertFalse(Validate.validate(response))
 
     def test_validate_fail_channel(self):
-        video = {'channelTitle': '7even3hreetv', 'title': 'Trailer'}
-        self.assertFalse(ValidateVideo.validate(video))
+        response = {'snippet': {'channelTitle': '7even3hreetv', 'title': 'Trailer'}, 'duration': 'PT04M15S'}
+        self.assertFalse(Validate.validate(response))
+
+    def test_validate_fail_duration(self):
+        response = {'snippet': {'channelTitle': 'paramount picture', 'title': 'Trailer'}, 'duration': 'PT14M15S'}
+        self.assertFalse(Validate.validate(response))
 
     def test_validate_fail_region(self):
-        video = {'channelTitle': '7even3hreetv', 'title': 'Trailer', 'regionRestriction': {'blocked': ['GB']}}
-        self.assertFalse(ValidateVideo.validate(video))
+        response = {'snippet': {'channelTitle': 'paramount picture', 'title': 'Trailer'}, 'duration': 'PT14M15S',
+                    'regionRestriction': {'blocked': ['GB']}}
+        self.assertFalse(Validate.validate(response))
 
-    def test_check_region_fail(self):
-        video = {'regionRestriction': {'blocked': ['GB']}}
-        self.assertFalse(ValidateVideo.check_region(video))
+    def test_region_fail(self):
+        response = {'regionRestriction': {'blocked': ['GB']}}
+        self.assertFalse(Validate.region(response))
 
-    def test_check_region_pass(self):
-        video = {}
-        self.assertTrue(ValidateVideo.check_region(video))
+    def test_region_pass(self):
+        response = {}
+        self.assertTrue(Validate.region(response))
 
-    def test_check_title_fail(self):
-        video = {'title': 'Deutsch Trailer'}
-        self.assertFalse(ValidateVideo.check_title(video))
+    def test_title_fail(self):
+        response = {'title': 'Deutsch Trailer'}
+        self.assertFalse(Validate.title(response))
 
-    def test_check_title_pass(self):
-        video = {'title': 'Trailer'}
-        self.assertTrue(ValidateVideo.check_title(video))
+    def test_title_pass(self):
+        response = {'title': 'Trailer'}
+        self.assertTrue(Validate.title(response))
 
-    def test_check_channel_fail(self):
-        video = {'channelTitle': '7even3hreetv'}
-        self.assertFalse(ValidateVideo.check_channel_title(video))
+    def test_channel_fail(self):
+        response = {'channelTitle': '7even3hreetv'}
+        self.assertFalse(Validate.channel_title(response))
 
-    def test_check_channel_pass(self):
-        video = {'channelTitle': 'paramount picture'}
-        self.assertTrue(ValidateVideo.check_channel_title(video))
+    def test_channel_pass(self):
+        response = {'channelTitle': 'paramount picture'}
+        self.assertTrue(Validate.channel_title(response))
+
+    def test_duration_pass(self):
+        response = {'duration': 'PT04M15S'}
+        self.assertTrue(Validate.duration(response))
+
+    def test_duration_fail(self):
+        response = {'duration': 'PT14M15S'}
+        self.assertFalse(Validate.duration(response))
+
+    def test_fix_duration(self):
+        self.assertEqual(Validate.fix_duration('PT1H59M15S'), '119')
+        self.assertEqual(Validate.fix_duration('PT04M15S'), '4')
 
 
-class TestResponse(unittest.TestCase):
+class TestYouTubeVideo(unittest.TestCase):
     """Testing the class StandardiseResponse"""
 
     @classmethod
     def setUpClass(cls):
-        response = {
+        cls.response = {
             'dislikeCount': '84',
-            'likeCount': '2399',
-            'channelId': 'UCgKkNPU2Ib7_TcyAl8M2S-w',
-            'licensedContent': False,
-            'viewCount': '686396',
-            'video_id': 'iYhJ7Mf2Oxs',
+            'duration': 'PT5M11S',
             'projection': 'rectangular',
-            'title': 'Blade Runner 30th Anniversary Trailer',
-            'dimension': '2d',
-            'liveBroadcastContent': 'none',
-            'caption': 'false',
-            'duration': 'PT2M29S',
-            'favoriteCount': '0',
             'definition': 'sd',
-            'channelTitle': 'Warner Bros. Home Entertainment',
-            'publishedAt': '2012-09-07T02:08:05.000Z',
-            'commentCount': '328'
+            'commentCount': '120',
+            'etag': '"g7k5f8kvn67Bsl8L-Bum53neIr4/uXKmRwQj44qk2SrJnGXrybxn0ek"',
+            'video_id': 'b1Stfe7Puk0',
+            'favoriteCount': '0',
+            'snippet': {
+                'channelId': 'UC_G61kX-ORlltt4b20_Oriw',
+                'publishedAt': '2016-03-29T09:42:39.000Z',
+                'description': '',
+                'localized': {
+                    'description': '',
+                    'title': 'Letta Mbulu - Nomalizo'
+                },
+                'title': 'Letta Mbulu - Nomalizo',
+                'liveBroadcastContent': 'none',
+                'tags': ['mr.chawaks'],
+                'categoryId': '10',
+                'channelTitle': 'Mr. Chawaks'
+            },
+            'viewCount': '448635',
+            'id': 'b1Stfe7Puk0',
+            'dimension': '2d',
+            'kind': 'youtube#video',
+            'caption': 'false',
+            'likeCount': '6675',
+            'licensedContent': False
         }
-        cls.resp = StandardisedResponse('tt1234567', response)
 
     def test_get_main_data(self):
-        result = self.resp.get_main_data()
+        result = YouTubeVideo('tt1234567', self.response).main_data
+        print(result)
         expected = {
-            'viewCount': '686396',
-            'title': 'Blade Runner 30th Anniversary Trailer',
-            'channelTitle': 'Warner Bros. Home Entertainment',
-            'channelId': 'UCgKkNPU2Ib7_TcyAl8M2S-w',
+            'channel_id': 'UC_G61kX-ORlltt4b20_Oriw',
+            'duration': '5',
+            'published_at': '2016-03-29',
+            'view_count': 0,
+            'definition': 'sd',
             'imdb_id': 'tt1234567',
-            'publishedAt': '2012-09-07',
-            'video_id': 'iYhJ7Mf2Oxs',
-            'definition': 'sd'
+            'video_id': 'b1Stfe7Puk0',
+            'title': 'Letta Mbulu - Nomalizo',
+            'channel_title': 'Mr. Chawaks'
         }
-        self.assertEqual(expected, result)
-
-    def test_get_def_score(self):
-        result = self.resp.get_definition_score()
-        self.assertEqual(result, 0)
+        #self.assertEqual(expected, result)
 
 class TestChooseBest(unittest.TestCase):
     """Testing the ChooseBest class"""
