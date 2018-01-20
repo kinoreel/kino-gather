@@ -8,48 +8,58 @@ from datetime import datetime
 class GetAPI(object):
     """
     Top level class imported by kafka_apis.py.
-    This class gets, and standardises, the response from the OMDB API
-    for a given imdb_id. The class also hold responsibility of the topic
-    it consumes from and the topic it produces to.
+    Gets and standardises the response from the iTunes API.
+     The class also hold responsibility of the topic it consumes from and the topic it produces to.
     """
 
     def __init__(self):
         self.source_topic = 'tmdb'
         self.destination_topic = 'itunes'
-        self.get_data = RequestAPI().get_itunes
-        self.standardise_data = Standardise().standardise
-        self.choose_best = ChooseBest().get_best_match
 
     def get_info(self, request):
+
+        # Get information on film collected from upstream apis
+        imdb_id, title, release_date, year = self.retrieve_data(request)
+
+        data = RequestAPI().get_itunes(title)
+
+        if data is None:
+            return {'itunes_main': []}
+
+        films = [iTunesFilm(imdb_id, e) for e in data]
+
+        film = ChooseBest.get_best_match(films, title, release_date)
+
+        if film is None or (film.main_data['hd_rental_price'] is None and film.main_data['rental_price'] is None):
+            return {'itunes_main': []}
+
+        return {'itunes_main': [film.main_data]}
+
+    @staticmethod
+    def retrieve_data(request):
+        """
+        Gets data from upstream apis needed for the retrieving the infrmation
+        from the iTunes API.
+        :param request: The data collected from upstream apis
+        :return: Film info needed in the collection of a film from the iTunes api
+        """
         imdb_id = request['imdb_id']
-        # title - taken from tmdb
         title = request['tmdb_main'][0]['title']
-        # release date - taken from tmdb - yyyy-dd-mm
         release_date = request['tmdb_main'][0]['release_date']
-        data = self.get_data(title)
-        if data is None:
-            return {'itunes_main': 'no_data'}
-        data = self.standardise_data(imdb_id, data)
-        data = self.choose_best(data, title, release_date)
-        if data is None:
-            return {'itunes_main': 'no_data'}
-        if data['hd_rental_price'] is None and data['rental_price'] is None:
-            return {'itunes_main': 'no_data'}
-        return {'itunes_main': [data]}
+        year = release_date[0:4]
+        return imdb_id, title, release_date, year
 
 
 class RequestAPI(object):
     """This class requests data for a given imdb_id from the OMDB API."""
 
     def __init__(self):
-        self.source_topic = 'tmdb'
-        self.destination_topic = 'itunes'
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
     def get_itunes(self, title):
         """
-        Gets information for a movie from the itunes API.
+        Gets information for a movie from the iTunes API.
         :param title: The title of our film.
         :return: JSON of the itunes data.
         """
@@ -59,82 +69,58 @@ class RequestAPI(object):
         return json.loads(html.text)['results']
 
 
-class Standardise(object):
+class iTunesFilm(object):
     """
-    This class reconstructs the response returned from the OMDB API, making
-    a new JSON object that is easier to handle for later applications.
+    This class reconstructs the response returned from the iTunes API, for ease
+    of accessing the data
     """
 
-    def standardise(self, imdb_id, api_data):
-        """
-        We construct a new dictionary from teh API data, standardising the format
-        so we it can be handled easily in later applications.
-        :param imdb_id: The imdb_id for the film that was requested from OMDB API
-        :param api_data: The raw response from teh OMDB API
-        :return: A standardised dictionary.
-        """
-        main_data = []
-        for film in api_data:
-            standardised_film = self.get_main_data(imdb_id, film)
-            main_data.append(standardised_film)
-        return main_data
+    def __init__(self, imdb_id, response):
+        self.raw_response = response
+        self.main_data = {'imdb_id': imdb_id,
+                          'title': response['trackName'],
+                          'url': response['trackViewUrl'].split('?')[0],
+                          'released': self.fix_release_date(response['releaseDate']),
+                          'hd_rental_price': response.get('trackHdRentalPrice'),
+                          'rental_price': response.get('trackRentalPrice'),
+                          'hd_purchase_price': response.get('trackHdPrice'),
+                          'purchase_price': response.get('trackPrice')}
 
-    def get_main_data(self, imdb_id, data):
+    @staticmethod
+    def fix_release_date(release_date):
         """
-        We construct a new dictionary from teh API data, standardising the format
-        so we it can be handled easily in later applications.
-        :param imdb_id: The imdb_id for the film that was requested from OMDB API
-        :param api_data: The raw response from the OMDB API
-        :return: A standardised dictionary.
-        """
-        main_data = {'imdb_id': imdb_id,
-                     'title': data['trackName'],
-                     'url': data['trackViewUrl'].split('?')[0],
-                     'released': self.fix_release_date(data['releaseDate']),
-                     'hd_rental_price': data.get('trackHdRentalPrice'),
-                     'rental_price': data.get('trackRentalPrice'),
-                     'hd_purchase_price': data.get('trackHdPrice'),
-                     'purchase_price': data.get('trackPrice')}
-
-        return main_data
-
-    def fix_release_date(self, release_date):
-        """
-        This function transforms the formatted date returned by youtube
-        into a string with the format 'yyyymmdd'.
+        Gets date from the iTunes release timestamp.
         :param release_date: Date in the formatted by youtube - 2013-07-19T04:02:19.000Z
         :return: Duration in minutes
         """
-        # get the date
         release_date = release_date.split('T')[0]
         return release_date
 
-
 class ChooseBest(object):
     """
-    This class compares each of the films returned by the YouTube API against
+    This class compares each of the films returned by the iTunes API against
     the requested film and returns the best match.
     """
 
-    def get_best_match(self, api_data, req_title, req_release_date):
+    @staticmethod
+    def get_best_match(films, req_title, req_release_date):
         """
-        This function determines the film returned by the YouTube
-        API, that best matches the film requested.
-        To do this we use compare the title and the runtime of the film.
-        We then pull the best result based on this.
-        :param api_data: The list of dictionaries containing movie data returned from teh iTunes API.
+        Determines the film returned by the iTunes api that best matches the requested film
+        :param films: List of iTunesFilm instances.
         :param req_title: The name of the title we requested
         :param req_release_date: The release date of the requested film
         :return: The film with the best match score, or None if no match score is greater than 85.
         """
-        match_scores = [self.get_match_score(e['title'], e['released'], req_title, req_release_date) for e in api_data]
+        match_scores = [ChooseBest.get_match_score(e.main_data['title'], e.main_data['released'],
+                                             req_title, req_release_date) for e in films]
         if len(match_scores) == 0:
             return None
         if max(match_scores) < 85:
             return None
-        return api_data[match_scores.index(max(match_scores))]
+        return films[match_scores.index(max(match_scores))]
 
-    def get_match_score(self, title, release_date, requested_title, requested_release_date):
+    @staticmethod
+    def get_match_score(title, release_date, requested_title, requested_release_date):
         """
         This returns a match score for a film returned by the YouTube API, constructed
         from the title score minus the runtime score.
@@ -142,12 +128,13 @@ class ChooseBest(object):
         :param requested_title: The title of the requested film.
         :return: A score out of 100.
         """
-        title_score = self.get_title_score(title, requested_title)
-        release_date_score = self.release_date_score(release_date, requested_release_date)
+        title_score = ChooseBest.get_title_score(title, requested_title)
+        release_date_score = ChooseBest.release_date_score(release_date, requested_release_date)
         match_score = title_score - release_date_score
         return match_score
 
-    def get_title_score(self, title, requested_title):
+    @staticmethod
+    def get_title_score(title, requested_title):
         """
         This function provides a score for how closely the a film title
         matches the requested title.
@@ -158,7 +145,8 @@ class ChooseBest(object):
         title_score = fuzz.ratio(title.lower(), requested_title.lower())
         return title_score
 
-    def release_date_score(self, release_date, requested_release_date):
+    @staticmethod
+    def release_date_score(release_date, requested_release_date):
         """
         This function checks that the published date - the date it was uploaded to
         the youtube channel - is not greater than the release date.
