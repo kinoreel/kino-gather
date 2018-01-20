@@ -31,15 +31,15 @@ class GetAPI(object):
         imdb_id, title, suggested_video_id, release_date, year = self.retrieve_data(request)
 
         # Get the youtube api response for the video id provided by the tmdb api
-        response = YouTubeAPI().search_by_id(suggested_video_id)
-
-        # We preference tmdb. Whilst quality tends to be better when
-        # directly querying the YouTube api, we cannot guarantee
-        # we return the trailer for the correct film.
-        if response:
-            # Return api data to kafka stream
-            video = YouTubeVideo(imdb_id, response)
-            return {'trailer_main': video.main_data}
+        if suggested_video_id:
+            response = YouTubeAPI().search_by_id(suggested_video_id)
+            # We preference tmdb. Whilst quality tends to be better when
+            # directly querying the YouTube api, we cannot guarantee
+            # we return the trailer for the correct film.
+            if response:
+                # Return api data to kafka stream
+                video = YouTubeVideo(imdb_id, response)
+                return {'trailer_main': [video.main_data]}
 
         # If there was no response when searching for the tmdb trailer,
         # search YouTube for trailers
@@ -51,11 +51,11 @@ class GetAPI(object):
         best_video = ChooseBest().choose_best(videos)
 
         if best_video:
-            return {'trailer_main': best_video.main_data}
+            return {'trailer_main': [best_video.main_data]}
         else:
             # If we could not find a trailer we can't do much
             # so throw an error to prevent further streaming.
-            GatherException('COuld not find a trailer')
+            GatherException('Could not find a trailer')
 
     @staticmethod
     def retrieve_data(request):
@@ -95,7 +95,10 @@ class YouTubeAPI(object):
             part='snippet',
             id=video_id,
         ).execute()
-        response = response['items'][0]
+        try:
+            response = response['items'][0]
+        except IndexError:
+            return
         response['video_id'] = video_id
         if response:
             response.update(self.get_content_details(video_id))
@@ -122,6 +125,7 @@ class YouTubeAPI(object):
         ).execute()['items']
         for video in response:
             video_id = video['id']['videoId']
+            video['video_id'] = video_id
             video.update(self.get_content_details(video_id))
             video.update(self.get_stats(video_id))
 
@@ -189,7 +193,7 @@ class Validate(object):
 
     @staticmethod
     def channel_title(response):
-        bad_channels = ['moviepilot trailer', 'diekinokritiker', '7even3hreetv', 'kilkenny1978']
+        bad_channels = ['moviepilot trailer', 'diekinokritiker', '7even3hreetv', 'kilkenny1978', 'movieclips']
         for channel in bad_channels:
             if channel in response['channelTitle'].lower():
                 return False
@@ -219,7 +223,7 @@ class Validate(object):
             h = 0
         try:
             m = re.findall('\d{1,2}(?=M)', runtime)[0]
-        except:
+        except IndexError:
             m = 0
         return str(int(h) * 60 + int(m))
 
@@ -235,8 +239,8 @@ class YouTubeVideo(object):
         self.main_data = {
             'imdb_id': imdb_id,
             'title': response['snippet']['title'],
-            'video_id': response['id'],
-            'view_count': response['snippet'].get('viewCount') or 0,
+            'video_id': response['video_id'],
+            'view_count': response.get('viewCount') or 0,
             'definition': response['definition'],
             'duration': Validate.fix_duration(response['duration']),
             'channel_title': response['snippet']['channelTitle'],
@@ -251,12 +255,26 @@ class ChooseBest(object):
     """
     @staticmethod
     def choose_best(videos):
-        hd = [e for e in videos if e.main_data['definition'] == 'hd']
+
+        # Preference hd videos
+        hd = ChooseBest.get_hd_videos(videos)
         if len(hd) > 0:
             videos = hd
+
         # sort by view count
-        responses = sorted(videos, key=lambda x: int(x.main_data['view_count']), reverse=True)
+        responses = ChooseBest.sort_by_view_count(videos)
+
         try:
             return responses[0]
         except IndexError:
             return None
+
+    @staticmethod
+    def get_hd_videos(videos):
+        """Returns a list of hd videos"""
+        return [e for e in videos if e.main_data['definition'] == 'hd']
+
+    @staticmethod
+    def sort_by_view_count( videos):
+        """Sorts videos by view count"""
+        return sorted(videos, key=lambda x: int(x.main_data['view_count']), reverse=True)

@@ -1,7 +1,6 @@
 import unittest
 import os
 import sys
-from mock import patch
 
 current_dir = (os.path.abspath(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.join(current_dir, '..', '..'))
@@ -10,11 +9,13 @@ from apis.get_trailer import GetAPI, YouTubeAPI, YouTubeVideo, ChooseBest, Valid
 
 
 class TestGetAPI(unittest.TestCase):
-    """Testing RequestAPI"""
+    """Testing GetAPI"""
+
     @classmethod
     def setUpClass(cls):
         cls.get = GetAPI()
 
+    # todo patch the youtube search functions
     def test_retrieve_data(self):
         """Testing GetApi.retrieve_data"""
 
@@ -35,32 +36,71 @@ class TestGetAPI(unittest.TestCase):
         expected = ('tt0117509', 'Revolutionary Road', None, '2008-01-01', '2008')
         self.assertEqual(result, expected)
 
-    def test_get_tmdb_trailer_data_fail(self):
-        a = GetAPI.get_tmdb_trailer_data('invalid')
-        self.assertIsNone(a)
-
-    def test_get_tmdb_trailer_data_none(self):
-        a = GetAPI.get_tmdb_trailer_data('invalid')
-        self.assertIsNone(a)
-
-    def test_get_tmdb_trailer_data_pass(self):
-        a = GetAPI.get_tmdb_trailer_data('qADM67ZgYxM')
-        print(a)
-
-    def test_get_info(self):
+    def test_get_info_tmdb(self):
         """
         Top level test checking that we pull back the bes trailer for a film
         """
         request = {'imdb_id': 'tt0117509',
-                   'tmdb_main': [{'title': 'Revolutionary Road', 'release_date': '2008-01-01'}]}
+                   'tmdb_main': [{'title': 'Revolutionary Road', 'release_date': '2008-01-01'}],
+                   'tmdb_trailer': [{'video_id': 'qADM67ZgYxM'}]}
         result = self.get.get_info(request)
         expected = {
             'trailer_main': [{
+                'channel_title': 'Paramount Movies',
+                'channel_id': 'UC9YHyj7QSkkSg2pjQ7M8Khg',
+                'view_count': '1378819',
                 'imdb_id': 'tt0117509',
+                'title': 'Revolutionary Road - Trailer',
+                'published_at': '2012-10-15',
                 'video_id': 'qADM67ZgYxM',
                 'definition': 'hd',
+                'duration': '2'
+            }]
+        }
+        self.assertEqual(result, expected)
+
+    def test_get_info_no_tmdb_trailer(self):
+        """
+        Top level test checking that we pull back the bes trailer for a film
+        """
+        request = {'imdb_id': 'tt0117509',
+                   'tmdb_main': [{'title': 'Revolutionary Road', 'release_date': '2008-01-01'}],
+                   'tmdb_trailer': []}
+        result = self.get.get_info(request)
+        expected = {
+            'trailer_main': [{
+                'channel_title': 'Paramount Movies',
                 'channel_id': 'UC9YHyj7QSkkSg2pjQ7M8Khg',
-                'channel_title': 'Paramount Movies'
+                'view_count': '1378819',
+                'imdb_id': 'tt0117509',
+                'title': 'Revolutionary Road - Trailer',
+                'published_at': '2012-10-15',
+                'video_id': 'qADM67ZgYxM',
+                'definition': 'hd',
+                'duration': '2'
+            }]
+        }
+        self.assertEqual(result, expected)
+
+    def test_get_info_invalid_tmdb_trailer(self):
+        """
+        Top level test checking that we pull back the bes trailer for a film
+        """
+        request = {'imdb_id': 'tt0117509',
+                   'tmdb_main': [{'title': 'Revolutionary Road', 'release_date': '2008-01-01'}],
+                   'tmdb_trailer': [{'video_id': 'invalid'}]}
+        result = self.get.get_info(request)
+        expected = {
+            'trailer_main': [{
+                'channel_title': 'Paramount Movies',
+                'channel_id': 'UC9YHyj7QSkkSg2pjQ7M8Khg',
+                'view_count': '1378819',
+                'imdb_id': 'tt0117509',
+                'title': 'Revolutionary Road - Trailer',
+                'published_at': '2012-10-15',
+                'video_id': 'qADM67ZgYxM',
+                'definition': 'hd',
+                'duration': '2'
             }]
         }
         self.assertEqual(result, expected)
@@ -176,145 +216,117 @@ class TestYouTubeVideo(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.response = {
-            'dislikeCount': '84',
-            'duration': 'PT5M11S',
-            'projection': 'rectangular',
-            'definition': 'sd',
-            'commentCount': '120',
-            'etag': '"g7k5f8kvn67Bsl8L-Bum53neIr4/uXKmRwQj44qk2SrJnGXrybxn0ek"',
-            'video_id': 'b1Stfe7Puk0',
-            'favoriteCount': '0',
-            'snippet': {
-                'channelId': 'UC_G61kX-ORlltt4b20_Oriw',
-                'publishedAt': '2016-03-29T09:42:39.000Z',
-                'description': '',
-                'localized': {
-                    'description': '',
-                    'title': 'Letta Mbulu - Nomalizo'
-                },
-                'title': 'Letta Mbulu - Nomalizo',
-                'liveBroadcastContent': 'none',
-                'tags': ['mr.chawaks'],
-                'categoryId': '10',
-                'channelTitle': 'Mr. Chawaks'
-            },
-            'viewCount': '448635',
-            'id': 'b1Stfe7Puk0',
-            'dimension': '2d',
-            'kind': 'youtube#video',
+            'viewCount': '2196',
             'caption': 'false',
-            'likeCount': '6675',
-            'licensedContent': False
+            'favoriteCount': '0',
+            'duration': 'PT2M12S',
+            'commentCount': '2',
+            'kind': 'youtube#searchResult',
+            'etag': '"g7k5f8kvn67Bsl8L-Bum53neIr4/8PKD9P0S8VNnrAApwjApZal_kqQ"',
+            'likeCount': '3',
+            'licensedContent': False,
+            'snippet': {
+                'channelId': 'UCKZ6PGIA7btRoZWRcqj4Yxw',
+                'channelTitle': 'The Movie Planet',
+                'title': 'Revolutionary Road (2008) trailer',
+                'liveBroadcastContent': 'none',
+                'publishedAt': '2008-09-30T09:42:40.000Z',
+                'description': 'More here: http://themovieplanet.wordpress.com/2008/10/03/new-trailer-and-poster-'
+                               'revolutionary-road/ Directed by Sam Mendes Written by Justin Haythe, based '
+                               'on a novel by Richard Yates ...'
+            },
+            'definition': 'sd',
+            'dislikeCount': '1',
+            'projection': 'rectangular',
+            'video_id': 'Dz7HszUJs0A',
+            'dimension': '2d'
         }
 
     def test_get_main_data(self):
         result = YouTubeVideo('tt1234567', self.response).main_data
-        print(result)
         expected = {
-            'channel_id': 'UC_G61kX-ORlltt4b20_Oriw',
-            'duration': '5',
-            'published_at': '2016-03-29',
-            'view_count': 0,
-            'definition': 'sd',
+            'published_at': '2008-09-30',
             'imdb_id': 'tt1234567',
-            'video_id': 'b1Stfe7Puk0',
-            'title': 'Letta Mbulu - Nomalizo',
-            'channel_title': 'Mr. Chawaks'
+            'channel_id': 'UCKZ6PGIA7btRoZWRcqj4Yxw',
+            'view_count': '2196',
+            'duration': '2',
+            'channel_title': 'The Movie Planet',
+            'video_id': 'Dz7HszUJs0A',
+            'title': 'Revolutionary Road (2008) trailer',
+            'definition': 'sd'
         }
-        #self.assertEqual(expected, result)
+        self.assertEqual(expected, result)
+
 
 class TestChooseBest(unittest.TestCase):
     """Testing the ChooseBest class"""
 
-    def test_check_published_date(self):
-        self.assertTrue(ChooseBest.check_published_date('2002-01-01', '2000-01-01'))
-        self.assertFalse(ChooseBest.check_published_date('1997-01-01', '2000-01-01'))
 
-    def test_check_title(self):
-        self.assertTrue(ChooseBest.check_title('Awesome Film Trailer', 'Awesome Film'))
-        self.assertFalse(ChooseBest.check_title('Awesome Film', 'Awesome Film'))
-        self.assertFalse(ChooseBest.check_title('Awesome Trailer', 'Awesome Film'))
+    @classmethod
+    def setUpClass(cls):
+        imdb_id = 'tt0959337'
+        response = [{
+            'viewCount': '2196',
+            'caption': 'false',
+            'favoriteCount': '0',
+            'duration': 'PT2M12S',
+            'commentCount': '2',
+            'kind': 'youtube#searchResult',
+            'etag': '"g7k5f8kvn67Bsl8L-Bum53neIr4/8PKD9P0S8VNnrAApwjApZal_kqQ"',
+            'likeCount': '3',
+            'licensedContent': False,
+            'snippet': {
+                'channelId': 'UCKZ6PGIA7btRoZWRcqj4Yxw',
+                'channelTitle': 'The Movie Planet',
+                'title': 'Revolutionary Road (2008) trailer',
+                'liveBroadcastContent': 'none',
+                'publishedAt': '2008-09-30T09:42:40.000Z',
+                'description': 'More here: http://themovieplanet.wordpress.com/2008/10/03/new-trailer-and-poster-revolutionary-road/ Directed by Sam Mendes Written by Justin Haythe, based on a novel by Richard Yates ...'
+            },
+            'definition': 'sd',
+            'dislikeCount': '1',
+            'projection': 'rectangular',
+            'video_id': 'Dz7HszUJs0A',
+            'dimension': '2d'
+        }, {
+            'viewCount': '1378734',
+            'caption': 'false',
+            'favoriteCount': '0',
+            'duration': 'PT2M10S',
+            'kind': 'youtube#searchResult',
+            'etag': '"g7k5f8kvn67Bsl8L-Bum53neIr4/0BvpscI2iO9QEbHkmZcn3jO7KKk"',
+            'licensedContent': True,
+            'snippet': {
+                'channelId': 'UC9YHyj7QSkkSg2pjQ7M8Khg',
+                'channelTitle': 'Paramount Movies',
+                'title': 'Revolutionary Road - Trailer',
+                'liveBroadcastContent': 'none',
+                'publishedAt': '2012-10-15T16:50:49.000Z',
+                'description': 'Academy Award® nominee Leonardo DiCaprio* and Academy Award® winner Kate Winslet** reunite for two powerful, groundbreaking performances in Revolutionary Road. Based on the bestseller by...'
+            },
+            'definition': 'hd',
+            'projection': 'rectangular',
+            'video_id': 'qADM67ZgYxM',
+            'dimension': '2d'
+        }]
+        cls.videos = [YouTubeVideo(imdb_id, e) for e in response]
 
-    def test_check_duration(self):
-        self.assertTrue(ChooseBest.check_duration(1))
-        self.assertFalse(ChooseBest.check_duration(6))
+    def test_sort_by_view_count(self):
+        result = ChooseBest().sort_by_view_count(self.videos)
+        view_counts = [e.main_data['view_count'] for e in result]
+        self.assertTrue(all(int(view_counts[i]) > int(view_counts[i+1]) for i in range(0, len(view_counts) - 1)))
+
+    def test_get_hd(self):
+        result = ChooseBest().get_hd_videos(self.videos)
+        result = [e.main_data['video_id'] for e in result]
+        expected = ['qADM67ZgYxM']
+        self.assertEqual(result, expected)
 
     def test_choose_best(self):
-        data = [{
-            # Was published too long ago, should be dropped
-            'definition': 'hd',
-            'imdb_id': 'tt1234567',
-            'duration': 'PT3M15S',
-            'publishedAt': '1990-01-01',
-            'channelId': 'UCjmJDM5pRKbUlVIzDYYWb6g',
-            'viewCount': '100',
-            'video_id': '1',
-            'channelTitle': 'TrailerChannel',
-            'title': 'Awesome Movie - Official Trailer'
-        }, {
-            # Has bad duration
-            'definition': 'hd',
-            'imdb_id': 'tt1234567',
-            'duration': 'PT13M15S',
-            'publishedAt': '2005-01-01',
-            'channelId': 'abcde',
-            'viewCount': '100',
-            'video_id': '2',
-            'channelTitle': 'TrailerChannel',
-            'title': 'Awesome Movie - Trailer'
-        }, {
-            # Has bad title
-            'definition': 'hd',
-            'imdb_id': 'tt1234567',
-            'duration': 'PT3M15S',
-            'publishedAt': '2005-01-01',
-            'channelId': 'abcde',
-            'viewCount': '100',
-            'video_id': '3',
-            'channelTitle': 'TrailerChannel',
-            'title': 'Awesome - Trailer'
-        }, {
-            # SD trailer should be dropped
-            'definition': 'sd',
-            'imdb_id': 'tt1234567',
-            'duration': 'PT3M15S',
-            'publishedAt': '2005-01-01',
-            'channelId': 'abcde',
-            'viewCount': '100',
-            'video_id': '4',
-            'channelTitle': 'TrailerChannel',
-            'title': 'Awesome Movie - Trailer'
-        }, {
-            # HD trailer, but low view count
-            'definition': 'hd',
-            'imdb_id': 'tt1234567',
-            'duration': 'PT3M15S',
-            'publishedAt': '2005-01-01',
-            'channelId': 'abcde',
-            'viewCount': '10',
-            'video_id': '5',
-            'channelTitle': 'TrailerChannel',
-            'title': 'Awesome Movie - Trailer'
-        }, {
-            # HD trailer with high view count. Should be chosen
-            'definition': 'hd',
-            'imdb_id': 'tt1234567',
-            'duration': 'PT3M15S',
-            'publishedAt': '2005-01-01',
-            'channelId': 'abcde',
-            'viewCount': '50',
-            'video_id': '6',
-            'channelTitle': 'TrailerChannel',
-            'title': 'Awesome Movie - Trailer'
-        }]
-        # Create response classes from our responses
-        responses = [StandardisedResponse('tt1234567', e) for e in data]
-        result = ChooseBest().choose_best(responses, '2000-01-01', 'Awesome Movie')
-        # Confirm the last response was chosen
-        self.assertEqual(data[-1], result.main_data)
-
-
-
+        result = ChooseBest().choose_best(self.videos)
+        result = result.main_data['video_id']
+        expected = 'qADM67ZgYxM'
+        self.assertEqual(result, expected)
 
 
 
