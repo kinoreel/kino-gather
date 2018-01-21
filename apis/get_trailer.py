@@ -241,16 +241,23 @@ class YouTubeVideo(object):
             'imdb_id': imdb_id,
             'title': response['snippet']['title'],
             'video_id': response['video_id'],
-            'view_count': response.get('viewCount') or 0,
+            'view_count': self.parse_int(response.get('viewCount')),
             'definition': response['definition'],
             'duration': Validate.fix_duration(response['duration']),
             'channel_title': response['snippet']['channelTitle'],
             'channel_id': response['snippet']['channelId'],
             'published_at': response['snippet']['publishedAt'].split('T')[0],
-            'like_count': response.get('likeCount') or '0',
-            'dislike_count':response.get('dislikeCount') or '0',
-            'comment_count': response.get('comment_count') or '0'
+            'like_count': self.parse_int(response.get('likeCount')),
+            'dislike_count': self.parse_int(response.get('dislikeCount')),
+            'comment_count': self.parse_int(response.get('comment_count'))
         }
+
+    def parse_int(self, integer):
+        """Changes string to integer, ignores errors"""
+        try:
+            return int(integer)
+        except:
+            return integer
 
 
 class ChooseBest(object):
@@ -281,4 +288,6 @@ class ChooseBest(object):
     @staticmethod
     def sort_by_view_count( videos):
         """Sorts videos by view count"""
-        return sorted(videos, key=lambda x: int(x.main_data['view_count']), reverse=True)
+        return sorted(videos,
+                      key=lambda x: (x.main_data['view_count'] is None, x.main_data['view_count']),
+                      reverse=True)
