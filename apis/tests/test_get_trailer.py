@@ -15,7 +15,6 @@ class TestGetAPI(unittest.TestCase):
     def setUpClass(cls):
         cls.get = GetAPI()
 
-    # todo patch the youtube search functions
     def test_retrieve_data(self):
         """Testing GetApi.retrieve_data"""
 
@@ -46,15 +45,18 @@ class TestGetAPI(unittest.TestCase):
         result = self.get.get_info(request)
         expected = {
             'trailer_main': [{
-                'channel_title': 'Paramount Movies',
                 'channel_id': 'UC9YHyj7QSkkSg2pjQ7M8Khg',
-                'view_count': '1378819',
-                'imdb_id': 'tt0117509',
-                'title': 'Revolutionary Road - Trailer',
-                'published_at': '2012-10-15',
-                'video_id': 'qADM67ZgYxM',
+                'view_count': '1383642',
                 'definition': 'hd',
-                'duration': '2'
+                'imdb_id': 'tt0117509',
+                'duration': '2',
+                'dislike_count': '0',
+                'published_at': '2012-10-15',
+                'comment_count': '0',
+                'title': 'Revolutionary Road - Trailer',
+                'channel_title': 'Paramount Movies',
+                'video_id': 'qADM67ZgYxM',
+                'like_count': '0'
             }]
         }
         self.assertEqual(result, expected)
@@ -69,15 +71,18 @@ class TestGetAPI(unittest.TestCase):
         result = self.get.get_info(request)
         expected = {
             'trailer_main': [{
-                'channel_title': 'Paramount Movies',
-                'channel_id': 'UC9YHyj7QSkkSg2pjQ7M8Khg',
-                'view_count': '1378819',
-                'imdb_id': 'tt0117509',
-                'title': 'Revolutionary Road - Trailer',
-                'published_at': '2012-10-15',
                 'video_id': 'qADM67ZgYxM',
+                'imdb_id': 'tt0117509',
+                'comment_count': '0',
+                'title': 'Revolutionary Road - Trailer',
+                'duration': '2',
+                'view_count': '1383642',
                 'definition': 'hd',
-                'duration': '2'
+                'channel_title': 'Paramount Movies',
+                'published_at': '2012-10-15',
+                'channel_id': 'UC9YHyj7QSkkSg2pjQ7M8Khg',
+                'dislike_count': '0',
+                'like_count': '0'
             }]
         }
         self.assertEqual(result, expected)
@@ -92,14 +97,17 @@ class TestGetAPI(unittest.TestCase):
         result = self.get.get_info(request)
         expected = {
             'trailer_main': [{
-                'channel_title': 'Paramount Movies',
-                'channel_id': 'UC9YHyj7QSkkSg2pjQ7M8Khg',
-                'view_count': '1378819',
-                'imdb_id': 'tt0117509',
-                'title': 'Revolutionary Road - Trailer',
-                'published_at': '2012-10-15',
                 'video_id': 'qADM67ZgYxM',
+                'published_at': '2012-10-15',
+                'title': 'Revolutionary Road - Trailer',
+                'channel_title': 'Paramount Movies',
+                'imdb_id': 'tt0117509',
+                'like_count': '0',
+                'view_count': '1383642',
+                'comment_count': '0',
                 'definition': 'hd',
+                'dislike_count': '0',
+                'channel_id': 'UC9YHyj7QSkkSg2pjQ7M8Khg',
                 'duration': '2'
             }]
         }
@@ -253,7 +261,10 @@ class TestYouTubeVideo(unittest.TestCase):
             'channel_title': 'The Movie Planet',
             'video_id': 'Dz7HszUJs0A',
             'title': 'Revolutionary Road (2008) trailer',
-            'definition': 'sd'
+            'definition': 'sd',
+            'comment_count': '0',
+            'dislike_count': '1',
+            'like_count': '3'
         }
         self.assertEqual(expected, result)
 

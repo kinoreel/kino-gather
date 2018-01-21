@@ -236,6 +236,7 @@ class YouTubeVideo(object):
     def __init__(self, imdb_id, response):
 
         self.raw_response = response
+
         self.main_data = {
             'imdb_id': imdb_id,
             'title': response['snippet']['title'],
@@ -245,8 +246,11 @@ class YouTubeVideo(object):
             'duration': Validate.fix_duration(response['duration']),
             'channel_title': response['snippet']['channelTitle'],
             'channel_id': response['snippet']['channelId'],
-            'published_at': response['snippet']['publishedAt'].split('T')[0]
-            }
+            'published_at': response['snippet']['publishedAt'].split('T')[0],
+            'like_count': response.get('likeCount') or '0',
+            'dislike_count':response.get('dislikeCount') or '0',
+            'comment_count': response.get('comment_count') or '0'
+        }
 
 
 class ChooseBest(object):
