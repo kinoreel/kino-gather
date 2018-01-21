@@ -21,61 +21,49 @@ class InsertData(object):
         into the table kino.movies.
         :param data: json data holding information on films.
         """
-        youtube_trailer_data = data['trailer_main']
+        trailer_data = data['trailer_main']
 
-        sql = """insert into kino.movies2trailers2 (imdb_id, video_id, quality, channel_title, channel_id, tstamp)
+        sql = """insert into kino.movies2trailers ( imdb_id, video_id, title,  channel_id, channel_title, definition
+                                                  , duration,  published_at, view_count, like_count, dislike_count
+                                                  , comment_count, tstamp)
                  select imdb_id
                       , video_id
-                      , definition
-                      , channel_title
+                      , title
                       , channel_id
+                      , channel_title
+                      , definition
+                      , duration
+                      , published_at
+                      , view_count
+                      , like_count
+                      , dislike_count
+                      , comment_count
                       , CURRENT_DATE
-                   from json_to_recordset( %s) x (imdb_id varchar(1000), video_id varchar(100), definition varchar(2), channel_title varchar(100), channel_id varchar(100))
-                     on conflict on constraint movies2trailers2_pkey
-                     do nothing"""
+                   from json_to_recordset( %s) x ( imdb_id varchar(1000)
+                                                 , video_id varchar(100)
+                                                 , title varchar(100)
+                                                 , channel_id varchar(100)
+                                                 , channel_title varchar(100)
+                                                 , definition varchar(2)
+                                                 , duration int
+                                                 , published_at date
+                                                 , view_count int
+                                                 , like_count int
+                                                 , dislike_count int
+                                                 , comment_count int)
+                     on conflict (imdb_id)
+                     do update
+                    set video_id = excluded.video_id
+                      , title = excluded.title
+                      , channel_id = excluded.channel_id
+                      , channel_title = excluded.channel_title
+                      , definition = excluded.definition
+                      , duration = excluded.duration
+                      , published_at = excluded.published_at
+                      , view_count = excluded.view_count
+                      , like_count = excluded.like_count
+                      , dislike_count = excluded.dislike_count
+                      , comment_count = excluded.comment_count"""
 
-        self.pg.pg_cur.execute(sql, (json.dumps(youtube_trailer_data),))
+        self.pg.pg_cur.execute(sql, (json.dumps(trailer_data),))
         self.pg.pg_conn.commit()
-
-if __name__=='__main__':
-
-    from apis.get_trailer import GetAPI as trailer
-    from apis.get_tmdb import GetAPI as tmdb
-    get = trailer()
-    tmdb = tmdb()
-    ins = InsertData(PG_SERVER, PG_PORT, PG_DB, '*', '*')
-
-    dbconn = {'database': PG_DB,
-              'user': '*',
-              'password': '*',
-              'host': PG_SERVER,
-              'port': PG_PORT,
-              }
-
-    pg_conn = psycopg2.connect(**dbconn)
-    pg_cur = pg_conn.cursor()
-    sql = """select imdb_id
-                  from ( select imdb_id
-                           from trailer_quality
-                          union
-                         select imdb_id
-                           from errored
-                          where error_message = 'No trailer could be found from TMDB' ) as bad_trailers
-                  where imdb_id not in ( select imdb_id
-                                           from movies2trailers2 )
-                        """
-    imdb_ids = pg_cur.execute(sql)
-    imdb_ids = [e[0] for e in pg_cur.fetchall()]
-    for i in imdb_ids:
-        try:
-            request = {'imdb_id': i}
-            data = tmdb.get_info(request)
-            request.update(data)
-            data = get.get_info(request)
-            request.update(data)
-            print(request['trailer_main'])
-            ins.insert(request)
-        except:
-            pass
-
-
