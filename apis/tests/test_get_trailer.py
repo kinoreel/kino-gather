@@ -256,15 +256,15 @@ class TestYouTubeVideo(unittest.TestCase):
             'published_at': '2008-09-30',
             'imdb_id': 'tt1234567',
             'channel_id': 'UCKZ6PGIA7btRoZWRcqj4Yxw',
-            'view_count': '2196',
+            'view_count': 2196,
             'duration': '2',
             'channel_title': 'The Movie Planet',
             'video_id': 'Dz7HszUJs0A',
             'title': 'Revolutionary Road (2008) trailer',
             'definition': 'sd',
-            'comment_count': '0',
-            'dislike_count': '1',
-            'like_count': '3'
+            'comment_count': 0,
+            'dislike_count': 1,
+            'like_count': 3
         }
         self.assertEqual(expected, result)
 
@@ -277,7 +277,6 @@ class TestChooseBest(unittest.TestCase):
     def setUpClass(cls):
         imdb_id = 'tt0959337'
         response = [{
-            'viewCount': '2196',
             'caption': 'false',
             'favoriteCount': '0',
             'duration': 'PT2M12S',
@@ -325,7 +324,10 @@ class TestChooseBest(unittest.TestCase):
     def test_sort_by_view_count(self):
         result = ChooseBest().sort_by_view_count(self.videos)
         view_counts = [e.main_data['view_count'] for e in result]
-        self.assertTrue(all(int(view_counts[i]) > int(view_counts[i+1]) for i in range(0, len(view_counts) - 1)))
+        for i in range(0, len(view_counts) - 1):
+            (view_counts[i+1] is None and type(view_counts[i]) is int) or \
+              (view_counts[i+1] is None and view_counts[i] is None) or \
+              view_counts[i] > view_counts[i+1]
 
     def test_get_hd(self):
         result = ChooseBest().get_hd_videos(self.videos)
