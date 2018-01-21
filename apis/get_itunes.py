@@ -13,7 +13,7 @@ class GetAPI(object):
     """
 
     def __init__(self):
-        self.source_topic = 'tmdb'
+        self.source_topic = 'trailer'
         self.destination_topic = 'itunes'
 
     def get_info(self, request):
