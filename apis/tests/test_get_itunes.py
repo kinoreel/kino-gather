@@ -15,23 +15,61 @@ class TestGetAPI(unittest.TestCase):
     def setUpClass(cls):
         cls.get = GetAPI()
 
+    @responses.activate
     def test_get_info(self):
+        responses.add(responses.GET, 'http://itunes.apple.com/search',
+                      json={'results': [{
+                                'releaseDate': '1982-09-09T07:00:00Z',
+                                'trackHdRentalPrice': 3.49,
+                                'trackViewUrl': 'https://itunes.apple.com/gb/movie/blade-runner/id594314564?uo=4',
+                                'collectionHdPrice': 7.99,
+                                'trackRentalPrice': 3.49,
+                                'collectionPrice': 7.99,
+                                'trackPrice': 7.99,
+                                'trackHdPrice': 7.99,
+                                'trackName': 'Blade Runner',
+                            }, {
+                                'releaseDate': '2017-10-04T07:00:00Z',
+                                'trackViewUrl': 'https://itunes.apple.com/gb/movie/blade-runner-2049/id1287369934?uo=4',
+                                'currency': 'GBP',
+                                'trackName': 'Blade Runner 2049',
+                            }]
+                            },
+                      status=200)
         request = {'imdb_id': 'tt0083658',
                    'tmdb_main': [{'title': 'Blade Runner', 'runtime': 117, 'release_date': '1982-06-25'}]}
-        info = self.get.get_info(request)
-        expected_result = {
+        result = self.get.get_info(request)
+        expected = {
             'itunes_main': [{
-                'released': '1982-09-09',
-                'purchase_price': 7.99,
-                'rental_price': 3.49,
-                'hd_purchase_price': 7.99,
                 'title': 'Blade Runner',
-                'hd_rental_price': 3.49,
                 'imdb_id': 'tt0083658',
+                'hd_purchase_price': 7.99,
+                'released': '1982-09-09',
+                'rental_price': 3.49,
+                'hd_rental_price': 3.49,
+                'purchase_price': 7.99,
                 'url': 'https://itunes.apple.com/gb/movie/blade-runner/id594314564'
             }]
         }
-        self.assertEqual(expected_result, info)
+        self.assertEqual(result, expected)
+
+    @responses.activate
+    def test_get_info_no_film(self):
+        responses.add(responses.GET, 'http://itunes.apple.com/search',
+                      json={'results': [{
+                                'releaseDate': '2017-10-04T07:00:00Z',
+                                'trackViewUrl': 'https://itunes.apple.com/gb/movie/blade-runner-2049/id1287369934?uo=4',
+                                'currency': 'GBP',
+                                'trackName': 'Blade Runner 2049',
+                            }]
+                            },
+                      status=200)
+        request = {'imdb_id': 'tt0083658',
+                   'tmdb_main': [{'title': 'Blade Runner', 'runtime': 117, 'release_date': '1982-06-25'}]}
+        result = self.get.get_info(request)
+        expected = {'itunes_main': []}
+        self.assertEqual(result, expected)
+
 
 class TestRequestAPI(unittest.TestCase):
     """Testing GetAPI"""
@@ -133,7 +171,6 @@ class TestChooseBest(unittest.TestCase):
         We request a number of films from the YouTube API using the RequestAPI class.
         We then run the function  function and compare the result.
         """
-        # todo probably add a few more test. Small, explicit examples.
         title = 'Blade Runner'
         release_date = '1982-06-25'
         response = [{
@@ -147,7 +184,6 @@ class TestChooseBest(unittest.TestCase):
             'collectionPrice': 7.99,
             'releaseDate': '2007-10-05T07:00:00Z',
             'trackHdRentalPrice': 3.49,
-            'previewUrl': 'http://video.itunes.apple.com/apple-assets-us-std-000001/Video/3b/b2/57/mzm.rqccqdwh..640x358.h264lc.d2.p.m4v',
         }, {
             'trackHdPrice': 7.99,
             'trackPrice': 8.99,
@@ -156,7 +192,6 @@ class TestChooseBest(unittest.TestCase):
             'collectionHdPrice': 7.99,
             'collectionPrice': 8.99,
             'releaseDate': '1982-06-25T07:00:00Z',
-            'previewUrl': 'http://video.itunes.apple.com/apple-assets-us-std-000001/Video/19/b7/d3/mzm.xmrjnvye..640x354.h264lc.d2.p.m4v',
         }, {
             'trackHdPrice': 7.99,
             'trackPrice': 7.99,
@@ -167,12 +202,10 @@ class TestChooseBest(unittest.TestCase):
             'collectionPrice': 7.99,
             'releaseDate': '1982-09-09T07:00:00Z',
             'trackViewUrl': 'https://itunes.apple.com/gb/movie/blade-runner/id594314564?uo=4',
-            'previewUrl': 'http://video.itunes.apple.com/apple-assets-us-std-000001/Video/v4/42/35/bf/4235bf7f-60ce-7056-bd5b-06c409ee6731/mzvf_7920601143535253426.640x360.h264lc.D2.p.m4v',
         }, {
             'trackViewUrl': 'https://itunes.apple.com/gb/movie/blade-runner-2049/id1287369934?uo=4',
             'trackName': 'Blade Runner 2049',
             'releaseDate': '2017-10-04T07:00:00Z',
-            'previewUrl': 'http://video.itunes.apple.com/apple-assets-us-std-000001/Video128/v4/22/14/20/221420ea-517b-c293-3cb5-7cc55f6aa0d5/mzvf_7686455371161021647.640x354.h264lc.U.p.m4v',
         }]
         films = [iTunesFilm('tt0083658', e) for e in response]
         best_film = self.cb.get_best_match(films, title, release_date)
