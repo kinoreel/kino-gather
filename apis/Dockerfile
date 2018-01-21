@@ -13,8 +13,4 @@ WORKDIR /code
 
 RUN pip3 install -r requirements.py
 
-RUN sed '163d' /usr/local/lib/python3.6/site-packages/guidebox/resource.py >> resource.py
-RUN cp resource.py /usr/local/lib/python3.6/site-packages/guidebox/resource.py
-RUN rm resource.py
-
 CMD ["python3", "kafka_apis.py"]
