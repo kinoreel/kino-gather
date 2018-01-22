@@ -249,10 +249,11 @@ class YouTubeVideo(object):
             'published_at': response['snippet']['publishedAt'].split('T')[0],
             'like_count': self.parse_int(response.get('likeCount')),
             'dislike_count': self.parse_int(response.get('dislikeCount')),
-            'comment_count': self.parse_int(response.get('comment_count'))
+            'comment_count': self.parse_int(response.get('commentCount'))
         }
 
-    def parse_int(self, integer):
+    @staticmethod
+    def parse_int(integer):
         """Changes string to integer, ignores errors"""
         try:
             return int(integer)

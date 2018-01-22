@@ -262,7 +262,7 @@ class TestYouTubeVideo(unittest.TestCase):
             'video_id': 'Dz7HszUJs0A',
             'title': 'Revolutionary Road (2008) trailer',
             'definition': 'sd',
-            'comment_count': 0,
+            'comment_count': 2,
             'dislike_count': 1,
             'like_count': 3
         }
@@ -325,8 +325,8 @@ class TestChooseBest(unittest.TestCase):
         result = ChooseBest().sort_by_view_count(self.videos)
         view_counts = [e.main_data['view_count'] for e in result]
         for i in range(0, len(view_counts) - 1):
-            (view_counts[i+1] is None and type(view_counts[i]) is int) or \
-              (view_counts[i+1] is None and view_counts[i] is None) or \
+            (view_counts[i+1] is None and view_counts[i] is None) or \
+              (view_counts[i] is None and type(view_counts[i + 1]) is int) or \
               view_counts[i] > view_counts[i+1]
 
     def test_get_hd(self):
