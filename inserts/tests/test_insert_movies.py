@@ -28,7 +28,7 @@ class TestInsertMovies(unittest.TestCase):
         self.ins.insert(data)
         self.pg.pg_cur.execute('select imdb_id, title, runtime, rated, released, orig_language, plot from kino.movies')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result,[('tt2562232', 'Birdman', 119, 'R', datetime.date(2014, 8, 27), 'en', 'A fading actor best known for his portrayal of a popular superhero attempts to mount a comeback by appearing in a Broadway play. As opening night approaches, his attempts to become more altruistic, rebuild his career, and reconnect with friends and family prove more difficult than expected.')])
+        self.assertEqual(result, [('tt2562232', 'Birdman', 119, 'R', datetime.date(2014, 8, 27), 'en', 'A fading actor best known for his portrayal of a popular superhero attempts to mount a comeback by appearing in a Broadway play. As opening night approaches, his attempts to become more altruistic, rebuild his career, and reconnect with friends and family prove more difficult than expected.')])
 
         self.pg.pg_cur.execute('select language from kino.languages')
         result = self.pg.pg_cur.fetchall()

@@ -20,7 +20,8 @@ class TestInsertMovies2Streams(unittest.TestCase):
         cls.pg = Postgres(server, port, db, user, pw)
         # We insert the corresponding film into kino.movies
         sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language, plot)
-            values ('tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', 119, 'R', '2014-08-27', 'en', 'Some plot')"""
+                 values ( 'tt2562232', 'Birdman or (The Unexpected Virtue of Ignorance)', 119, 'R'
+                        , '2014-08-27', 'en', 'Some plot')"""
         cls.pg.pg_cur.execute(sql)
         cls.pg.pg_conn.commit()
 
@@ -35,13 +36,18 @@ class TestInsertMovies2Streams(unittest.TestCase):
         self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type '
                                '  from kino.movies2streams')
         result = self.pg.pg_cur.fetchall()
-        #expected = [(e['imdb_id'], 'iTunes', e['url', ]
-        expected_result = [('tt2562232', 'GooglePlay', 'https://play.google.com/store/movies/details?id=0MhS4b_yjuo', None, None, 'hd', 'rental'),
-                           ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 2.49, 'sd', 'rental'),
-                           ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 3.49, 'hd', 'rental'),
-                           ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 7.99, 'hd', 'purchase'),
-                           ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 7.99, 'sd', 'purchase'),
-                           ('tt2562232', 'YouTube', 'https://www.youtube.com/watch?v=0MhS4b_yjuo', None, None, 'hd', 'rental')]
+        expected_result = [('tt2562232', 'GooglePlay', 'https://play.google.com/store/movies/details?id=0MhS4b_yjuo',
+                            None, None, 'hd', 'rental'),
+                           ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985',
+                            '£', 3.49, 'sd', 'rental'),
+                           ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985',
+                            '£', 3.49, 'hd', 'rental'),
+                           ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985',
+                            '£', 4.99, 'hd', 'purchase'),
+                           ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985',
+                            '£', 4.99, 'sd', 'purchase'),
+                           ('tt2562232', 'YouTube', 'https://www.youtube.com/watch?v=0MhS4b_yjuo',
+                            None, None, 'hd', 'rental')]
         self.assertEqual(set(result), set(expected_result))
 
     def test_insert_movies_no_itunes(self):
@@ -52,12 +58,15 @@ class TestInsertMovies2Streams(unittest.TestCase):
         self.pg.pg_cur.execute(sql)
         self.pg.pg_conn.commit()
 
-        self.data['itunes_main'] =[]
+        self.data['itunes_main'] = []
         self.ins.insert(self.data)
-        self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type from kino.movies2streams')
+        self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type '
+                               '  from kino.movies2streams')
         result = self.pg.pg_cur.fetchall()
-        expected_result = [('tt2562232', 'GooglePlay', 'https://play.google.com/store/movies/details?id=0MhS4b_yjuo', None, None, 'hd', 'rental'),
-                           ('tt2562232', 'YouTube', 'https://www.youtube.com/watch?v=0MhS4b_yjuo', None, None, 'hd', 'rental')]
+        expected_result = [('tt2562232', 'GooglePlay', 'https://play.google.com/store/movies/details?id=0MhS4b_yjuo',
+                            None, None, 'hd', 'rental'),
+                           ('tt2562232', 'YouTube', 'https://www.youtube.com/watch?v=0MhS4b_yjuo',
+                            None, None, 'hd', 'rental')]
         self.assertEqual(set(result), set(expected_result))
 
     def test_insert_movies_no_youtube(self):
@@ -69,30 +78,25 @@ class TestInsertMovies2Streams(unittest.TestCase):
         self.pg.pg_cur.execute(sql)
         sql = """
             insert into kino.movies2streams (imdb_id, source, url, format, purchase_type)
-            values ('tt2562232', 'GooglePlay', 'https://play.google.com/store/movies/details?id=0MhS4b_yjuo', 'hd', 'rental')
+            values ('tt2562232', 'GooglePlay', 'https://play.google.com/store/movies/details?id=0MhS4b_yjuo',
+                     'hd', 'rental')
             """
         self.pg.pg_cur.execute(sql)
         self.pg.pg_conn.commit()
 
         self.data['youtube_main'] = []
         self.ins.insert(self.data)
-        self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type from kino.movies2streams')
-        result = self.pg.pg_cur.fetchall()
-        expected_result = [('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 2.49, 'sd', 'rental'),
-                           ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 3.49, 'hd', 'rental'),
-                           ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 7.99, 'hd', 'purchase'),
-                           ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 7.99, 'sd', 'purchase')]
-        self.assertEqual(set(result), set(expected_result))
-
-    def test_insert_movies_no_youtube_no_itunes(self):
-        # We insert some YouTube data and GooglePlay data, to check that it is removed from the table
-        self.data['youtube_main'] = []
-        self.data['itunes_main'] = []
-        self.ins.insert(self.data)
-        self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type'
+        self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type '
                                '  from kino.movies2streams')
         result = self.pg.pg_cur.fetchall()
-        expected_result = []
+        expected_result = [('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 3.49,
+                            'sd', 'rental'),
+                           ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 3.49,
+                            'hd', 'rental'),
+                           ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 4.99,
+                            'hd', 'purchase'),
+                           ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 4.99,
+                            'sd', 'purchase')]
         self.assertEqual(set(result), set(expected_result))
 
     @classmethod

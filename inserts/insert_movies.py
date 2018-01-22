@@ -33,7 +33,7 @@ class InsertData(object):
         self.pg.pg_cur.execute(sql, (json.dumps(tmdb_movie_data),))
         self.pg.pg_conn.commit()
 
-        # We attempt to delete our record from kino.movies first.
+        # We delete our record from kino.movies first.
         # Due to foreign keys with 'on delete cascade', this clears all records from
         # the database associated with that imdb_id.
 
