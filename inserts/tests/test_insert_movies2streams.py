@@ -11,6 +11,7 @@ db = GLOBALS.PG_DB
 user = GLOBALS.PG_USERNAME
 pw = GLOBALS.PG_PASSWORD
 
+
 class TestInsertMovies2Streams(unittest.TestCase):
 
     @classmethod
@@ -31,8 +32,10 @@ class TestInsertMovies2Streams(unittest.TestCase):
 
     def test_insert_movies(self):
         self.ins.insert(self.data)
-        self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type from kino.movies2streams')
+        self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type '
+                               '  from kino.movies2streams')
         result = self.pg.pg_cur.fetchall()
+        #expected = [(e['imdb_id'], 'iTunes', e['url', ]
         expected_result = [('tt2562232', 'GooglePlay', 'https://play.google.com/store/movies/details?id=0MhS4b_yjuo', None, None, 'hd', 'rental'),
                            ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 2.49, 'sd', 'rental'),
                            ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 3.49, 'hd', 'rental'),
@@ -49,7 +52,7 @@ class TestInsertMovies2Streams(unittest.TestCase):
         self.pg.pg_cur.execute(sql)
         self.pg.pg_conn.commit()
 
-        self.data['itunes_main'] =['no_data']
+        self.data['itunes_main'] =[]
         self.ins.insert(self.data)
         self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type from kino.movies2streams')
         result = self.pg.pg_cur.fetchall()
@@ -71,7 +74,7 @@ class TestInsertMovies2Streams(unittest.TestCase):
         self.pg.pg_cur.execute(sql)
         self.pg.pg_conn.commit()
 
-        self.data['youtube_main'] = ['no_data']
+        self.data['youtube_main'] = []
         self.ins.insert(self.data)
         self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type from kino.movies2streams')
         result = self.pg.pg_cur.fetchall()
@@ -83,10 +86,11 @@ class TestInsertMovies2Streams(unittest.TestCase):
 
     def test_insert_movies_no_youtube_no_itunes(self):
         # We insert some YouTube data and GooglePlay data, to check that it is removed from the table
-        self.data['youtube_main'] =['no_data']
-        self.data['itunes_main'] =['no_data']
+        self.data['youtube_main'] = []
+        self.data['itunes_main'] = []
         self.ins.insert(self.data)
-        self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type from kino.movies2streams')
+        self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type'
+                               '  from kino.movies2streams')
         result = self.pg.pg_cur.fetchall()
         expected_result = []
         self.assertEqual(set(result), set(expected_result))

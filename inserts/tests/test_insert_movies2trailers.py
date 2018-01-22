@@ -29,9 +29,15 @@ class TestInsertMovies2Trailers(unittest.TestCase):
 
     def test_insert_movies(self):
         self.ins.insert(data)
-        self.pg.pg_cur.execute('select imdb_id, url from kino.movies2trailers')
+        sql = """select imdb_id, video_id, title, channel_id, channel_title, definition
+                      , duration, view_count, like_count, dislike_count, comment_count
+                   from kino.movies2trailers"""
+        self.pg.pg_cur.execute(sql)
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result, [('tt2562232', 'https://www.youtube.com/watch?v=xIxMMv_LD5Q')])
+        expected = [(e['imdb_id'], e['video_id'], e['title'], e['channel_id'], e['channel_title'], e['definition'],
+                     int(e['duration']), e['view_count'], e['like_count'], e['dislike_count'], e['comment_count'])
+                    for e in data['trailer_main']]
+        self.assertEqual(set(result), set(expected))
 
     @classmethod
     def tearDownClass(cls):

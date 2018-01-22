@@ -32,14 +32,8 @@ class TestInsertMovies2Keywords(unittest.TestCase):
         self.ins.insert(data)
         self.pg.pg_cur.execute('select imdb_id, keyword from kino.movies2keywords')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result, [('tt2562232', 'times square'),
-                                  ('tt2562232', 'superhero'),
-                                  ('tt2562232', 'long take'),
-                                  ('tt2562232', 'new york city'),
-                                  ('tt2562232', 'play'),
-                                  ('tt2562232', 'broadway'),
-                                  ('tt2562232', 'actor')
-                                  ])
+        expected = [(e['imdb_id'], e['keyword']) for e in data['tmdb_keywords']]
+        self.assertEqual(set(result), set(expected))
 
     @classmethod
     def tearDownClass(cls):

@@ -13,10 +13,7 @@ pw = GLOBALS.PG_PASSWORD
 
 with open('test_data.json') as data_file:
     data = json.load(data_file)
-    # select specific data to mirror the data found in
-    # then source topic.
-    data = {'tmdb_crew': data['tmdb_crew'],
-            'tmdb_cast': data['tmdb_cast']}
+
 
 class TestInsertMovies2Persons(unittest.TestCase):
 
@@ -38,15 +35,14 @@ class TestInsertMovies2Persons(unittest.TestCase):
         # Inserted into kino.person_roles
         self.pg.pg_cur.execute('select role from kino.person_roles')
         result = [e[0] for e in self.pg.pg_cur.fetchall()]
-        result.sort()
-        self.assertEqual(result,['director', 'editor', 'screenplay'])
+        expected = [e['role'] for e in (data['tmdb_crew'])] +[e['role'] for e in (data['tmdb_cast'])]
+        self.assertEqual(set(result), set(expected))
 
         # Inserted into kino.persons
         self.pg.pg_cur.execute('select fullname from kino.persons')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result,[('Stephen Mirrione',), ('Alexander Dinelaris',),
-                                 ('Alejandro González Iñárritu',), ('Michael Keaton',),
-                                 ('Emma Stone',)])
+        expected = [(e['name'],) for e in (data['tmdb_crew'])] + [(e['name'],) for e in (data['tmdb_cast'])]
+        self.assertEqual(set(result), set(expected))
 
         # Inserted into kino.movies2persons
         sql = """select x.imdb_id, y.fullname, x.role, x.cast_order
@@ -55,16 +51,10 @@ class TestInsertMovies2Persons(unittest.TestCase):
                      on x.person_id = y.person_id"""
         self.pg.pg_cur.execute(sql)
         result = self.pg.pg_cur.fetchall()
-        print(result)
-        self.assertEqual(result,[('tt2562232', 'Michael Keaton', 'actor', 0),
-                                 ('tt2562232', 'Emma Stone', 'actor', 1),
-                                 ('tt2562232', 'Stephen Mirrione', 'editor', None),
-                                 ('tt2562232', 'Alejandro González Iñárritu', 'director', None),
-                                 ('tt2562232', 'Alejandro González Iñárritu', 'screenplay', None),
-                                 ('tt2562232', 'Alexander Dinelaris', 'screenplay', None)])
+        expected = [(e['imdb_id'], e['name'], e['role'], None) for e in (data['tmdb_crew'])] + \
+                   [(e['imdb_id'], e['name'], e['role'], e['cast_order']) for e in (data['tmdb_cast'])]
+        self.assertEqual(set(result), set(expected))
 
-        # Check that correctly return the data we need for the destination topic
-        self.assertEqual(destination_data, None)
 
     @classmethod
     def tearDownClass(cls):

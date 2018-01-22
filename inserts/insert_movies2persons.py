@@ -26,14 +26,18 @@ class InsertData(object):
 
         # Insert into kino.person_roles.
         sql = """insert into kino.person_roles (role, tstamp)
-                select role
-                     , CURRENT_DATE
-                  from json_to_recordset( %s) x (role varchar(1000))
-                 where (role) not in (select role
-                                       from kino.person_roles)
-                 group by role"""
+                 select role
+                      , CURRENT_DATE
+                  from ( select role
+                           from json_to_recordset( %s) x (role varchar(1000))
+                          union
+                         select role
+                           from json_to_recordset( %s) x (role varchar(1000)) ) as roles
+                  where (role) not in (select role
+                                         from kino.person_roles)
+                  group by role"""
 
-        self.pg.pg_cur.execute(sql, (json.dumps(crew_data), ))
+        self.pg.pg_cur.execute(sql, (json.dumps(crew_data), json.dumps(cast_data)))
 
 
         # Insert into kino.persons.

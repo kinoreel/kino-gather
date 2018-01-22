@@ -13,9 +13,7 @@ pw = GLOBALS.PG_PASSWORD
 
 with open('test_data.json') as data_file:
     data = json.load(data_file)
-    # select specific data to mirror the data found in
-    # then source topic.
-    data = {'tmdb_company': data['tmdb_company']}
+
 
 class TestInsertMovies2Persons(unittest.TestCase):
 
@@ -42,8 +40,8 @@ class TestInsertMovies2Persons(unittest.TestCase):
         # Inserted into kino.companies
         self.pg.pg_cur.execute('select name from kino.companies')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result, [('Worldview Entertainment',), ('New Regency Pictures',), ('TSG Entertainment',),
-                                  ('Le Grisbi Productions',), ('M Productions',)])
+        expected = [(e['name'],) for e in data['tmdb_company']]
+        self.assertEqual(set(result),set(expected))
 
         # Inserted into kino.movies2companies
         sql = """select x.imdb_id, y.name, x.role
@@ -52,11 +50,8 @@ class TestInsertMovies2Persons(unittest.TestCase):
                      on x.company_id = y.company_id"""
         self.pg.pg_cur.execute(sql)
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result,[('tt2562232', 'Worldview Entertainment', 'Production'),
-                                 ('tt2562232', 'New Regency Pictures', 'Production'),
-                                 ('tt2562232', 'TSG Entertainment', 'Production'),
-                                 ('tt2562232', 'Le Grisbi Productions', 'Production'),
-                                 ('tt2562232', 'M Productions', 'Production')])
+        expected = [(e['imdb_id'], e['name'], 'Production') for e in data['tmdb_company']]
+        self.assertEqual(set(result), set(expected))
 
         # Check that correctly return the data we need for the destination topic
         self.assertEqual(destination_data, None)
