@@ -14,6 +14,7 @@ pw = GLOBALS.PG_PASSWORD
 with open('test_data.json') as data_file:
     data = json.load(data_file)
 
+
 class TestInsertMovies2Trailers(unittest.TestCase):
 
     @classmethod
