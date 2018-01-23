@@ -32,7 +32,7 @@ class InsertData(object):
                  )
                  select imdb_id
                       , type
-                      , cast(value as real)
+                      , value
                       , CURRENT_DATE
                    from pivoted_data
                   where ( imdb_id, type ) not in (select imdb_id
