@@ -6,8 +6,6 @@ try:
 except ImportError:
     from inserts.postgres import Postgres
 
-from inserts.GLOBALS import PG_SERVER, PG_PORT, PG_DB, PG_USERNAME, PG_PASSWORD
-
 
 class InsertData(object):
 
