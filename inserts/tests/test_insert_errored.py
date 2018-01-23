@@ -1,9 +1,7 @@
-import json
 import unittest
-import datetime
 
 from inserts import GLOBALS
-from inserts.insert_movies import InsertData
+from inserts.insert_errored import InsertData
 from inserts.postgres import Postgres
 
 server = GLOBALS.PG_SERVER
@@ -12,8 +10,7 @@ db = GLOBALS.PG_DB
 user = GLOBALS.PG_USERNAME
 pw = GLOBALS.PG_PASSWORD
 
-with open('test_data.json') as data_file:
-    data = json.load(data_file)
+data = [{'imdb_id': 'tt1234567', 'error_message': 'ERROR'}]
 
 
 class TestInsertMovies(unittest.TestCase):
@@ -24,62 +21,55 @@ class TestInsertMovies(unittest.TestCase):
         cls.pg = Postgres(server, port, db, user, pw)
 
     def test_insert_movies(self):
-        # Insert 'old/incorrect' information into kino tables, to check that inserting into movies,
+        # Insert 'old/incorrect' information into kino tables, to check that inserting into errored
         # removes all previously stored data
 
         # movies
         self.pg.pg_cur.execute("insert into movies values"
-                               " ('tt2562232', 'invalid', 0, 'N/A',  '2000-01-01', 'invalid', 'invalid')")
+                               " ('tt1234567', 'invalid', 0, 'N/A',  '2000-01-01', 'invalid', 'invalid')")
         # movies2companies
         self.pg.pg_cur.execute("insert into companies values (0, 'invalid')")
         self.pg.pg_cur.execute("insert into movies2companies values"
-                               " ('tt2562232', 0, 'invalid')")
+                               " ('tt1234567', 0, 'invalid')")
         # movies2genres
         self.pg.pg_cur.execute("insert into genres values ('invalid')")
         self.pg.pg_cur.execute("insert into movies2genres values"
-                               " ('tt2562232', 'invalid')")
+                               " ('tt1234567', 'invalid')")
         # movies2keywords
         self.pg.pg_cur.execute("insert into movies2keywords values"
-                               " ('tt2562232', 'invalid')")
+                               " ('tt1234567', 'invalid')")
         # movies2persons
         self.pg.pg_cur.execute("insert into persons (person_id, fullname) values (0, 'invalid')")
         self.pg.pg_cur.execute("insert into movies2persons values"
-                               " ('tt2562232', 0, 'invalid', null)")
+                               " ('tt1234567', 0, 'invalid', null)")
         # movies2ratings
         self.pg.pg_cur.execute("insert into movies2ratings values"
-                               " ('tt2562232', 'invalid', 0)")
+                               " ('tt1234567', 'invalid', 0)")
         # movies2streams
         self.pg.pg_cur.execute("insert into movies2streams values"
-                               " ('tt2562232', 'invalid', 'invalid', '$', 0.00, 'hd', 'rental')")
+                               " ('tt1234567', 'invalid', 'invalid', '$', 0.00, 'hd', 'rental')")
         # movies2trailer
         self.pg.pg_cur.execute("insert into movies2trailers values "
-                               " ( 'tt2562232', 'invalid', 'invalid', 'invalid', 'invalid', 'in'"
+                               " ('tt1234567', 'invalid', 'invalid', 'invalid', 'invalid', 'in'"
                                " , 0, 0, 0, 0, 0, null)")
 
         # errored
-        self.pg.pg_cur.execute("insert into errored values ( 'tt2562232', 'invalid')")
+        self.pg.pg_cur.execute("insert into errored values ( 'tt1234567', 'invalid')")
 
         self.pg.pg_conn.commit()
 
         # Run the insert
         self.ins.insert(data)
 
-        # Check that correct information has been populated in movies
-        self.pg.pg_cur.execute('select imdb_id, title, runtime, rated, released, orig_language, plot from kino.movies')
-
+        self.pg.pg_cur.execute('select imdb_id, error_message from kino.errored')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result, [('tt2562232', 'Birdman', 119, 'R', datetime.date(2014, 8, 27), 'English',
-                                   'A fading actor best known for his portrayal of a popular superhero attempts to '
-                                   'mount a comeback by appearing in a Broadway play. As opening night approaches, '
-                                   'his attempts to become more altruistic, rebuild his career, and reconnect with '
-                                   'friends and family prove more difficult than expected.')])
-
-        self.pg.pg_cur.execute('select language from kino.languages')
-        result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result, [('English',)])
+        expected = [('tt1234567', 'ERROR')]
+        self.assertEqual(result, expected )
 
         # Check that all other information for this imdb_id has been removed from the
         # kino tables
+        self.pg.pg_cur.execute('select count(*) from kino.movies')
+        self.assertEqual([(0,)], self.pg.pg_cur.fetchall())
         self.pg.pg_cur.execute('select count(*) from kino.movies2companies')
         self.assertEqual([(0,)], self.pg.pg_cur.fetchall())
         self.pg.pg_cur.execute('select count(*) from kino.movies2genres')
@@ -94,9 +84,6 @@ class TestInsertMovies(unittest.TestCase):
         self.assertEqual([(0,)], self.pg.pg_cur.fetchall())
         self.pg.pg_cur.execute('select count(*) from kino.movies2trailers')
         self.assertEqual([(0,)], self.pg.pg_cur.fetchall())
-        self.pg.pg_cur.execute('select count(*) from kino.errored')
-        self.assertEqual([(0,)], self.pg.pg_cur.fetchall())
-
 
     @classmethod
     def tearDownClass(cls):
