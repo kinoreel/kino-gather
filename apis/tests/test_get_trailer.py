@@ -108,7 +108,7 @@ class TestGetAPI(unittest.TestCase):
                 'definition': 'hd',
                 'dislike_count': '0',
                 'channel_id': 'UC9YHyj7QSkkSg2pjQ7M8Khg',
-                'duration': '2'
+                'duration': '130'
             }]
         }
         self.assertEqual(result, expected)
@@ -214,8 +214,8 @@ class TestValidate(unittest.TestCase):
         self.assertFalse(Validate.duration(response))
 
     def test_fix_duration(self):
-        self.assertEqual(Validate.fix_duration('PT1H59M15S'), '119')
-        self.assertEqual(Validate.fix_duration('PT04M15S'), '4')
+        self.assertEqual(Validate.fix_duration('PT1H02M15S'), 135)
+        self.assertEqual(Validate.fix_duration('PT02M'), 120)
 
 
 class TestYouTubeVideo(unittest.TestCase):
@@ -257,7 +257,7 @@ class TestYouTubeVideo(unittest.TestCase):
             'imdb_id': 'tt1234567',
             'channel_id': 'UCKZ6PGIA7btRoZWRcqj4Yxw',
             'view_count': 2196,
-            'duration': '2',
+            'duration': 132,
             'channel_title': 'The Movie Planet',
             'video_id': 'Dz7HszUJs0A',
             'title': 'Revolutionary Road (2008) trailer',

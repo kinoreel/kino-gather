@@ -205,7 +205,7 @@ class Validate(object):
         Checks that the video duration is between 1 and 6 minutes
         :param response: The length of the video
         """
-        if 0 < int(Validate.fix_duration(response['duration'])) < 6:
+        if 60 < int(Validate.fix_duration(response['duration'])) < 330:
             return True
         return False
 
@@ -218,14 +218,14 @@ class Validate(object):
         """
         runtime = duration.replace('PT', '')
         try:
-            h = re.findall('\d{1,2}(?=H)', runtime)[0]
-        except IndexError:
-            h = 0
-        try:
             m = re.findall('\d{1,2}(?=M)', runtime)[0]
         except IndexError:
             m = 0
-        return str(int(h) * 60 + int(m))
+        try:
+            s = re.findall('\d{1,2}(?=S)', runtime)[0]
+        except IndexError:
+            s = 0
+        return int(m) * 60 + int(s)
 
 
 class YouTubeVideo(object):
