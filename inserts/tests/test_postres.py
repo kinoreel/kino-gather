@@ -6,7 +6,7 @@ from inserts import GLOBALS
 
 server = GLOBALS.PG_SERVER
 port = GLOBALS.PG_PORT
-db = GLOBALS.PG_DB_DEV
+db = GLOBALS.PG_DB
 user = GLOBALS.PG_USERNAME
 pw = GLOBALS.PG_PASSWORD
 

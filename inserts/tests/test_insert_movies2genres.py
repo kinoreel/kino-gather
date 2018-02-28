@@ -32,11 +32,13 @@ class TestInsertMovies2Genres(unittest.TestCase):
 
         self.pg.pg_cur.execute('select genre from kino.genres')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result, [('Drama', ), ('Comedy', )])
+        expected = [(e['genre'],) for e in data['tmdb_genre']]
+        self.assertEqual(set(result), set(expected))
 
         self.pg.pg_cur.execute('select imdb_id, genre from kino.movies2genres')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result, [('tt2562232', 'Drama'), ('tt2562232', 'Comedy')])
+        expected = [(e['imdb_id'], e['genre']) for e in data['tmdb_genre']]
+        self.assertEqual(set(result), set(expected))
 
     @classmethod
     def tearDownClass(cls):

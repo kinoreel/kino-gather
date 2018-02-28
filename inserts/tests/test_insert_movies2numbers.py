@@ -14,6 +14,7 @@ pw = GLOBALS.PG_PASSWORD
 with open('test_data.json') as data_file:
     data = json.load(data_file)
 
+
 class TestInsertMovies2Numbers(unittest.TestCase):
 
     @classmethod
@@ -31,7 +32,9 @@ class TestInsertMovies2Numbers(unittest.TestCase):
         self.ins.insert(data)
         self.pg.pg_cur.execute('select imdb_id, value, type from kino.movies2numbers')
         result = self.pg.pg_cur.fetchall()
-        self.assertEqual(result, [('tt2562232', 103215000, 'revenue'), ('tt2562232', 18000000, 'budget')])
+        expected = [(data['tmdb_main'][0]['imdb_id'], data['tmdb_main'][0]['revenue'], 'revenue'),
+                    (data['tmdb_main'][0]['imdb_id'], data['tmdb_main'][0]['budget'], 'budget')]
+        self.assertEqual(set(result), set(expected))
 
 
     @classmethod

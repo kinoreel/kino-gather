@@ -1,15 +1,15 @@
 import json
 import os
-
-from GatherException import GatherException
-
 import requests
+import re
+
+from apis.GatherException import GatherException
 
 try:
     OMDB_API = os.environ['API_KEY']
 except KeyError:
     try:
-        from GLOBALS import OMDB_API
+        from apis.GLOBALS import OMDB_API
     except ImportError:
         print("API is not known")
         exit()
@@ -18,26 +18,23 @@ except KeyError:
 class GetAPI(object):
     """
     Top level class imported by kafka_apis.py.
-    This class gets, and standardises, the response from the OMDB API
-    for a given imdb_id. The class also hold responsibility of the topic
-    it consumes from and the topic it produces to.
+    Gets and standardises data from OMDB api for a given imdb_id.
+    The class also hold responsibility of the topic it consumes from and the topic it produces to.
     """
 
     def __init__(self):
         self.source_topic = 'imdb_ids'
         self.destination_topic = 'omdb'
-        self.get_data = RequestAPI().get_omdb
-        self.standardise_data = StandardiseResponse().standardise
 
     def get_info(self, request):
         imdb_id = request['imdb_id']
-        data = self.get_data(imdb_id)
-        data = self.standardise_data(imdb_id, data)
+        data = RequestAPI().get_omdb(imdb_id)
+        data = StandardiseResponse().standardise(imdb_id, data)
         return data
 
 
 class RequestAPI(object):
-    """This class requests data for a given imdb_id from the OMDB API."""
+    """Requests data for a given imdb_id from the OMDB API."""
 
     def __init__(self, api_key=OMDB_API):
         self.api_key = api_key
@@ -59,17 +56,18 @@ class RequestAPI(object):
         else:
             raise GatherException(imdb_id, 'No response from OMDB API')
 
+
 class StandardiseResponse(object):
     """
-    This class reconstructs the response returned from the OMDB API, making
-    a new JSON object that is easier to handle for later applications.
+    This class standardises the response returned from the OMDB API,
+    removing unwanted data, and structuring the remaining data
+    so that it is easier to handle in later processes.
     """
 
     def standardise(self, imdb_id, api_data):
         """
-        We construct a new dictionary from teh API data, standardising the format
-        so we it can be handled easily in later applications.
-        :param imdb_id: The imdb_id for the film that was requested from OMDB API
+        Constructs a new dictionary from the API data.
+        :param imdb_id: The imdb_id for the requested film
         :param api_data: The raw response from the OMDB API
         :return: A standardised dictionary.
         """
@@ -80,40 +78,45 @@ class StandardiseResponse(object):
         else:
             raise GatherException(imdb_id, 'Failed standardise')
 
-    def get_main_data(self, imdb_id, api_data):
+    @staticmethod
+    def get_main_data(imdb_id, api_data):
         """
-        Gets the main data returned by the OMDB API, and constructs a dictonary
+        Gets the main data returned by the OMDB API, and constructs a dictionary
         of this information.
-        :param imdb_id: The imdb_id for the film we requested
-        :param api_data: The OMDB API response
-        :return: A single entry array containing the main info for the film.
+        :param imdb_id: The imdb_id for the requested film
+        :param api_data: The raw response from the OMDB API.
+        :return: A dictionary containing the main data from the OMDB api
         """
         try:
             main_data = [{'imdb_id': imdb_id,
                           'title': api_data['Title'],
                           'language': api_data['Language'],
-                          'rated': api_data['Rated'].replace('N/A','').replace('NOT RATED', '').replace('UNRATED', ''),
+                          'rated': api_data['Rated'].replace('N/A', '').replace('NOT RATED', '').replace('UNRATED', ''),
                           'plot': api_data['Plot'],
                           'country': api_data['Country']
                           }]
-        except:
+        except KeyError:
             raise GatherException('No main data could be found from OMDB')
         return main_data
 
-    def get_ratings_data(self, imdb_id, api_data):
+    @staticmethod
+    def get_ratings_data(imdb_id, api_data):
         """
-        Gets the rating data returned by the OMDB API, and creates an array of dictionaries
-        detailing the ratings of the films. The ratings are not standardised in the OMDB output.
-        Some are contained in the array 'Ratings', others - Metascore and IMDB - are displayed
-        in the main branch of the response.
-        There is no guarantee that any of rating information will be returned in the response.
-        :param api_data: The OMDB API response
+        Gets the rating data returned by the OMDB API, and creates a list of dictionaries
+        of ratings information.
+        :param imdb_id: The imdb_id for the requested film
+        :param api_data: The raw response from the OMDB API.
         :return: A array of dictionaries - imdb_id, source, value - for the film ratings
         """
         ratings_data = []
 
         if 'Metascore' in api_data.keys():
-            ratings_data.append({'imdb_id': imdb_id, 'source': 'metascore', 'value': api_data['Metascore']})
+            try:
+                value = int(api_data['Metascore'])
+                ratings_data.append({'imdb_id': imdb_id, 'source': 'metascore', 'value': value})
+            # Metascore is sometimes returned as 'N/A'
+            except ValueError:
+                pass
 
         if 'imdbRating' in api_data.keys():
             ratings_data.append({'imdb_id': imdb_id, 'source': 'imdb', 'value': api_data['imdbRating']})
@@ -121,8 +124,10 @@ class StandardiseResponse(object):
         if 'Ratings' in api_data.keys():
             for rating in api_data['Ratings']:
                 # Each rating is already a dictionary containing two key values - Source and Value.
-                # We construct a new dictionary for each rating.
-                ratings_data.append({'imdb_id': imdb_id, 'source': rating['Source'], 'value': rating['Value']}  )
+                # We construct a new dictionary, cleaning the rating value and adding the imdb_id
+                # for each rating.
+                value = re.match('(\d|\.)+', rating['Value']).group(0)
+                ratings_data.append({'imdb_id': imdb_id, 'source': rating['Source'], 'value': value})
 
         # Finally, do a quick hack to ensure no rating contains the value 'N/A' which the OMDB API
         # sometimes returns.

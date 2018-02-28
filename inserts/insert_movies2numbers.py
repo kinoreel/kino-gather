@@ -28,11 +28,11 @@ class InsertData(object):
                  select imdb_id
                       , unnest(array['revenue', 'budget']) as type
                       , unnest(array[revenue, budget]) as value
-                   from json_to_recordset( %s) x (imdb_id varchar(1000), revenue varchar(100), budget varchar(1000))
+                   from json_to_recordset( %s) x (imdb_id varchar(1000), revenue int, budget int)
                  )
                  select imdb_id
                       , type
-                      , cast(value as real)
+                      , value
                       , CURRENT_DATE
                    from pivoted_data
                   where ( imdb_id, type ) not in (select imdb_id
