@@ -1,27 +1,37 @@
 import json
-import psycopg2
+import os
+
+from processes.postgres import Postgres
+
 
 try:
-    from postgres import Postgres
-except ImportError:
-    from inserts.postgres import Postgres
+    DB_SERVER = os.environ['DB_SERVER']
+    DB_PORT = os.environ['DB_PORT']
+    DB_DATABASE = os.environ['DB_DATABASE']
+    DB_USER = os.environ['DB_USER']
+    DB_PASSWORD = os.environ['DB_PASSWORD']
+except KeyError:
+    try:
+        from processes.GLOBALS import DB_SERVER, DB_PORT, DB_DATABASE, DB_USER, DB_PASSWORD
+    except ImportError:
+        print("No parameters provided")
+        exit()
 
 
-class InsertData(object):
+class Main(object):
 
-    def __init__(self, server, port, database, username, password):
-        self.pg = Postgres(server, port, database, username, password)
+    def __init__(self):
+        self.pg = Postgres(DB_SERVER, DB_PORT, DB_DATABASE, DB_USER, DB_PASSWORD)
         self.source_topic = 'movies'
         self.destination_topic = 'movies2trailers'
 
-    def insert(self, data):
+    def run(self, data):
         """
         This inserts the relevant json information
         into the table kino.movies.
         :param data: json data holding information on films.
         """
         trailer_data = data['trailer_main']
-        print(trailer_data)
 
         sql = """insert into kino.movies2trailers ( imdb_id, video_id, title,  channel_id, channel_title, definition
                                                   , duration,  published_at, view_count, like_count, dislike_count

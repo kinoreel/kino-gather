@@ -79,7 +79,7 @@ class Main(object):
 class YouTubeAPI(object):
     """This class requests data for a given imdb_id from the YouTube API."""
 
-    def __init__(self, api_key=YOUTUBE_FILMS_API):
+    def __init__(self, api_key=YOUTUBE_API_KEY):
         self.api_key = api_key
         self.youtube = build('youtube', 'v3', developerKey=api_key)
 

@@ -80,7 +80,7 @@ class Main(object):
 class RequestAPI(object):
     """This class requests data for a given imdb_id from the YouTube API."""
 
-    def __init__(self, api_key=YOUTUBE_FILMS_API, http=None):
+    def __init__(self, api_key=YOUTUBE_API_KEY, http=None):
         self.api_key = api_key
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko)'

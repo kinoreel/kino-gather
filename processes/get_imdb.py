@@ -1,8 +1,12 @@
 import json
+import sys
 
 from kafka import KafkaProducer
 
-from GLOBALS import KAFKA_BROKER
+try:
+    from processes.GLOBALS import KAFKA_BROKER
+except ImportError:
+    KAFKA_BROKER = sys.argv[1]
 
 class PostIMDB(object):
 
@@ -15,7 +19,7 @@ class PostIMDB(object):
 
 if __name__ == '__main__':
     import sys
-    imdb_ids = sys.argv[0]
+    imdb_ids = sys.argv[2]
     post = PostIMDB()
     for i in imdb_ids:
         post.push_imdb_id(i)

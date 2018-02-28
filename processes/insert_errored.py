@@ -1,12 +1,27 @@
 import json
+import os
 
 from processes.postgres import Postgres
 
 
+try:
+    DB_SERVER = os.environ['DB_SERVER']
+    DB_PORT = os.environ['DB_PORT']
+    DB_DATABASE = os.environ['DB_DATABASE']
+    DB_USER = os.environ['DB_USER']
+    DB_PASSWORD = os.environ['DB_PASSWORD']
+except KeyError:
+    try:
+        from processes.GLOBALS import DB_SERVER, DB_PORT, DB_DATABASE, DB_USER, DB_PASSWORD
+    except ImportError:
+        print("No parameters provided")
+        exit()
+
+
 class Main(object):
 
-    def __init__(self, server, port, database, username, password):
-        self.pg = Postgres(server, port, database, username, password)
+    def __init__(self):
+        self.pg = Postgres(DB_SERVER, DB_PORT, DB_DATABASE, DB_USER, DB_PASSWORD)
         self.source_topic = 'errored'
         self.destination_topic = 'DONE'
 
