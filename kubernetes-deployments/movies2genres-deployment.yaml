@@ -12,3 +12,4 @@ spec:
       containers:
       - name: insert-movies2genres
         image: eu.gcr.io/kino-173106/insert-movies2genres:latest
+

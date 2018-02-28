@@ -13,7 +13,8 @@ except KeyError:
         exit()
 
 try:
-    KAFKA_BROKER = os.environ['KAFKA_BROKER']
+    KAFKA_BROKER = os.environ['CONFIG']
+    config = {'KAFKA_BROKER':}
     PG_SERVER = os.environ['PG_SERVER']
     PG_PORT = os.environ['PG_PORT']
     PG_DB = os.environ['PG_DB']
@@ -30,7 +31,7 @@ except KeyError:
 class KafkaInsertHandler(object):
 
     def __init__(self):
-        self.table_name = table_name.InsertData(PG_SERVER, PG_PORT, PG_DB, PG_USERNAME, PG_PASSWORD)
+        self.table_name = table_name.InsertData(**config)
 
         self.consumer = KafkaConsumer(group_id=self.table_name.destination_topic,
                                       bootstrap_servers=KAFKA_BROKER,
@@ -63,9 +64,6 @@ class KafkaInsertHandler(object):
                 self.producer.send(self.error_topic, json.dumps(err_msg).encode('utf-8'))
             '''
             self.consumer.commit()
-
-
-
 
 
 if __name__ == '__main__':
