@@ -2,19 +2,19 @@ import json
 import os
 import requests
 
-from apis.GatherException import GatherException
+from processes.gather_exception import GatherException
 
 try:
-    TMDB_API = os.environ['API_KEY']
+    TMDB_API_KEY = os.environ['TMDB_API_KEY']
 except KeyError:
     try:
-        from apis.GLOBALS import TMDB_API
+        from processes.GLOBALS import TMDB_API_KEY
     except ImportError:
-        print("API is not known")
+        print("No API key provided")
         exit()
 
 
-class GetAPI(object):
+class Main(object):
     """
     Top level class imported by kafka_apis.py.
     Gets and standardises data from TMDB api for a given imdb_id.
@@ -25,7 +25,7 @@ class GetAPI(object):
         self.source_topic = 'omdb'
         self.destination_topic = 'tmdb'
 
-    def get_info(self, request):
+    def run(self, request):
         imdb_id = request['imdb_id']
         data = RequestAPI().get_tmdb(imdb_id)
         data = StandardiseResponse().standardise(imdb_id, data)
@@ -35,7 +35,7 @@ class GetAPI(object):
 class RequestAPI(object):
     """This class requests data for a given imdb_id from the TMDB API."""
 
-    def __init__(self, api_key=TMDB_API):
+    def __init__(self, api_key=TMDB_API_KEY):
         self.api_key = api_key
         self.headers = {'User-Agent':
                         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}

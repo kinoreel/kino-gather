@@ -3,19 +3,19 @@ import os
 import requests
 import re
 
-from apis.GatherException import GatherException
+from processes.gather_exception import GatherException
 
 try:
-    OMDB_API = os.environ['API_KEY']
+    OMDB_API_KEY = os.environ['OMDB_API_KEY']
 except KeyError:
     try:
-        from apis.GLOBALS import OMDB_API
+        from processes.GLOBALS import OMDB_API_KEY
     except ImportError:
-        print("API is not known")
+        print("No API key provided")
         exit()
 
 
-class GetAPI(object):
+class Main(object):
     """
     Top level class imported by kafka_apis.py.
     Gets and standardises data from OMDB api for a given imdb_id.
@@ -26,7 +26,7 @@ class GetAPI(object):
         self.source_topic = 'imdb_ids'
         self.destination_topic = 'omdb'
 
-    def get_info(self, request):
+    def run(self, request):
         imdb_id = request['imdb_id']
         data = RequestAPI().get_omdb(imdb_id)
         data = StandardiseResponse().standardise(imdb_id, data)
@@ -36,7 +36,7 @@ class GetAPI(object):
 class RequestAPI(object):
     """Requests data for a given imdb_id from the OMDB API."""
 
-    def __init__(self, api_key=OMDB_API):
+    def __init__(self, api_key=OMDB_API_KEY):
         self.api_key = api_key
         self.headers = {'User-Agent':
                         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}

@@ -4,34 +4,27 @@ import sys
 from kafka import KafkaConsumer, KafkaProducer
 
 try:
-    api = __import__("get_{}".format(os.environ['API_NAME']))
-except KeyError:
-    try:
-        api = __import__("get_{}".format(sys.argv[1]))
-    except ImportError:
-        print("API is not known")
-        exit()
-
-try:
+    PROCESS = __import__(os.environ['PROCESS'])
     KAFKA_BROKER = os.environ['KAFKA_BROKER']
 except KeyError:
     try:
-        from GLOBALS import KAFKA_BROKER
+        PROCESS = __import__(sys.argv[1])
+        KAFKA_BROKER = __import__(sys.argv[2])
     except ImportError:
-        print("Specify Kafka brokers")
+        print("Incorrect parameters provided")
         exit()
 
 
 class KafkaHandler(object):
 
     def __init__(self):
-        self.api = api.GetAPI()
+        self.process = PROCESS.Main()
 
-        self.consumer = KafkaConsumer(group_id=self.api.destination_topic,
+        self.consumer = KafkaConsumer(group_id=self.process.destination_topic,
                                       bootstrap_servers=KAFKA_BROKER,
                                       auto_offset_reset='earliest')
 
-        self.consumer.subscribe(topics=[self.api.source_topic])
+        self.consumer.subscribe(topics=[self.process.source_topic])
 
         self.producer = KafkaProducer(bootstrap_servers=KAFKA_BROKER)
 
@@ -48,11 +41,11 @@ class KafkaHandler(object):
 
             try:
 
-                api_data = self.api.get_info(msg_data)
+                api_data = self.process.run(msg_data)
 
                 msg_data.update(api_data)
 
-                self.producer.send(self.api.destination_topic, json.dumps(msg_data).encode())
+                self.producer.send(self.process.destination_topic, json.dumps(msg_data).encode())
 
             except Exception as e:
 

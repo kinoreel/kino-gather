@@ -4,26 +4,25 @@ from fuzzywuzzy import fuzz
 from apiclient.discovery import build
 from datetime import datetime
 
-from apis.GatherException import GatherException
-
+from processes.gather_exception import GatherException
 
 try:
-    YOUTUBE_FILMS_API = os.environ['API_KEY']
+    YOUTUBE_API_KEY = os.environ['YOUTUBE_API_KEY']
 except KeyError:
     try:
-        from apis.GLOBALS import YOUTUBE_FILMS_API
+        from processes.GLOBALS import YOUTUBE_API_KEY
     except ImportError:
-        print("API is not known")
+        print("No API key provided")
         exit()
 
 
-class GetAPI(object):
+class Main(object):
 
     def __init__(self):
         self.source_topic = 'itunes'
         self.destination_topic = 'youtube'
 
-    def get_info(self, request):
+    def run(self, request):
 
         # Get information on film collected from upstream apis
         imdb_id, title, release_date, year, runtime, has_other_stream = self.retrieve_data(request)

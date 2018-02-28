@@ -5,7 +5,7 @@ from fuzzywuzzy import fuzz
 from datetime import datetime
 
 
-class GetAPI(object):
+class Main(object):
     """
     Top level class imported by kafka_apis.py.
     Gets and standardises the response from the iTunes API.
@@ -16,7 +16,7 @@ class GetAPI(object):
         self.source_topic = 'trailer'
         self.destination_topic = 'itunes'
 
-    def get_info(self, request):
+    def run(self, request):
 
         # Get information on film collected from upstream apis
         imdb_id, title, release_date, year = self.retrieve_data(request)

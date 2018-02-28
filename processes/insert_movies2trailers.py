@@ -25,7 +25,7 @@ class InsertData(object):
 
         sql = """insert into kino.movies2trailers ( imdb_id, video_id, title,  channel_id, channel_title, definition
                                                   , duration,  published_at, view_count, like_count, dislike_count
-                                                   , comment_count, tstamp)
+                                                  , comment_count, tstamp)
                  select imdb_id
                       , video_id
                       , title
