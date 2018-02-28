@@ -49,9 +49,11 @@ class KafkaHandler(object):
 
             except Exception as e:
 
-                err_msg = [{'imdb_id': msg_data['imdb_id'], 'error_message': str(e)}]
+                if self.process.source_topic != self.error_topic:
 
-                self.producer.send(self.error_topic, json.dumps(err_msg).encode('utf-8'))
+                    err_msg = [{'imdb_id': msg_data['imdb_id'], 'error_message': str(e)}]
+
+                    self.producer.send(self.error_topic, json.dumps(err_msg).encode('utf-8'))
 
             self.consumer.commit()
 

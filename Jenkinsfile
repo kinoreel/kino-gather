@@ -28,7 +28,8 @@ node {
         container_name = "gather-${apis[i]}"
         image_name = "${registry_url}/${maintainer_name}/${container_name}:${build_tag}"
         stage "Building ${image_name} Docker image"
-        container = docker.build("${image_name}", "--build-arg KAFKA_BROKER = ${env.KAFKA_BROKER} \
+        container = docker.build("${image_name}", "--build-arg PROCESS = ${processes[i]} \
+                                                   --build-arg KAFKA_BROKER = ${env.KAFKA_BROKER} \
                                                    --build-arg OMDB_API_KEY = ${env.OMDB_API_KEY} \
                                                    --build-arg TMDB_API_KEY = ${env.TMDB_API_KEY} \
                                                    --build-arg YOUTUBE_API_KEY = ${env.YOUTUBE_API_KEY} \
