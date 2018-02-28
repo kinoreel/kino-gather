@@ -7,18 +7,18 @@ from mock import patch
 current_dir = (os.path.abspath(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.join(current_dir, '..', '..'))
 
-from apis.get_youtube import GetAPI, RequestAPI, ChooseBest, YouTubeFilm, GatherException
+from processes.get_youtube import Main, RequestAPI, ChooseBest, YouTubeFilm, GatherException
 
 
-class TestGetAPI(unittest.TestCase):
+class TestMain(unittest.TestCase):
     """Testing RequestAPI"""
     @classmethod
     def setUpClass(cls):
-        cls.get = GetAPI()
+        cls.main = Main()
 
     # For the top level tests, we mock the RequestAPI class, rather
     # than mocking the GoogleAPI, because it is easier.
-    @patch('apis.get_youtube.RequestAPI')
+    @patch('processes.get_youtube.RequestAPI')
     def test_get_info(self, mock_request):
         """
         An integration test checking that we pull back the expected film.
@@ -53,7 +53,7 @@ class TestGetAPI(unittest.TestCase):
                    'tmdb_main': [{'title': 'Blade Runner', 'runtime': 117, 'release_date': '1982-06-25'}],
                    'itunes_main': [{'title': 'Blade Runner'}]}
 
-        result = self.get.get_info(request)
+        result = self.main.run(request)
         expected = {
             'youtube_main': [{
                 'likeCount': '321',
@@ -73,7 +73,7 @@ class TestGetAPI(unittest.TestCase):
         }
         self.assertEqual(expected, result)
 
-    @patch('apis.get_youtube.RequestAPI')
+    @patch('processes.get_youtube.RequestAPI')
     def test_get_info_no_film(self, mock_request):
         """
         An integration test checking that we pull back the expected film.
@@ -106,11 +106,11 @@ class TestGetAPI(unittest.TestCase):
                    'tmdb_main': [{'title': 'Blade Runner', 'runtime': 117, 'release_date': '1982-06-25'}],
                    'itunes_main': [{'title': 'Blade Runner'}]}
 
-        result = self.get.get_info(request)
+        result = self.main.run(request)
         expected = {'youtube_main': []}
         self.assertEqual(expected, result)
 
-    @patch('apis.get_youtube.RequestAPI')
+    @patch('processes.get_youtube.RequestAPI')
     def test_get_info_no_other_streams(self, mock_request):
         """
         An integration test checking that we pull back the expected film.
@@ -143,7 +143,7 @@ class TestGetAPI(unittest.TestCase):
                    'tmdb_main': [{'title': 'Blade Runner', 'runtime': 117, 'release_date': '1982-06-25'}],
                    'itunes_main': []}
 
-        self.failUnlessRaises(GatherException, self.get.get_info, request)
+        self.failUnlessRaises(GatherException, self.main.run, request)
 
 
 class TestRequestAPI(unittest.TestCase):

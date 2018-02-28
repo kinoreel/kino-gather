@@ -6,14 +6,14 @@ import responses
 current_dir = (os.path.abspath(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.join(current_dir, '..', '..'))
 
-from apis.get_itunes import RequestAPI, iTunesFilm, GetAPI, ChooseBest
+from processes.get_itunes import RequestAPI, iTunesFilm, Main, ChooseBest
 
 
-class TestGetAPI(unittest.TestCase):
+class TestMain(unittest.TestCase):
     """Testing RequestAPI"""
     @classmethod
     def setUpClass(cls):
-        cls.get = GetAPI()
+        cls.main = Main()
 
     @responses.activate
     def test_get_info(self):
@@ -38,7 +38,7 @@ class TestGetAPI(unittest.TestCase):
                       status=200)
         request = {'imdb_id': 'tt0083658',
                    'tmdb_main': [{'title': 'Blade Runner', 'runtime': 117, 'release_date': '1982-06-25'}]}
-        result = self.get.get_info(request)
+        result = self.main.run(request)
         expected = {
             'itunes_main': [{
                 'title': 'Blade Runner',
@@ -66,7 +66,7 @@ class TestGetAPI(unittest.TestCase):
                       status=200)
         request = {'imdb_id': 'tt0083658',
                    'tmdb_main': [{'title': 'Blade Runner', 'runtime': 117, 'release_date': '1982-06-25'}]}
-        result = self.get.get_info(request)
+        result = self.main.run(request)
         expected = {'itunes_main': []}
         self.assertEqual(result, expected)
 

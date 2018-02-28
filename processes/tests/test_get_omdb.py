@@ -6,14 +6,14 @@ import responses
 current_dir = (os.path.abspath(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.join(current_dir, '..', '..'))
 
-from apis.get_omdb import GetAPI, RequestAPI, StandardiseResponse, GatherException
+from processes.get_omdb import Main, RequestAPI, StandardiseResponse, GatherException
 
 
-class TestGetAPI(unittest.TestCase):
+class TestMain(unittest.TestCase):
     """Testing GetAPI"""
     @classmethod
     def setUpClass(cls):
-        cls.get = GetAPI()
+        cls.main = Main()
 
     @responses.activate
     def test_get_info(self):
@@ -46,7 +46,7 @@ class TestGetAPI(unittest.TestCase):
                             }, status=200)
         # Check get_info for a correct imdb_id
         request = {'imdb_id': 'tt0083658'}
-        result = self.get.get_info(request)
+        result = self.main.run(request)
         expected = {
             'omdb_ratings': [{
                 'source': 'imdb',

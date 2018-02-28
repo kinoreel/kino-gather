@@ -5,15 +5,15 @@ import sys
 current_dir = (os.path.abspath(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.join(current_dir, '..', '..'))
 
-from apis.get_trailer import GetAPI, YouTubeAPI, YouTubeVideo, ChooseBest, Validate
+from processes.get_trailer import Main, YouTubeAPI, YouTubeVideo, ChooseBest, Validate
 
 
-class TestGetAPI(unittest.TestCase):
+class TestMain(unittest.TestCase):
     """Testing GetAPI"""
 
     @classmethod
     def setUpClass(cls):
-        cls.get = GetAPI()
+        cls.main = Main()
 
     def test_retrieve_data(self):
         """Testing GetApi.retrieve_data"""
@@ -21,7 +21,7 @@ class TestGetAPI(unittest.TestCase):
         request = {'imdb_id': 'tt0117509',
                    'tmdb_main': [{'title': 'Revolutionary Road', 'release_date': '2008-01-01'}],
                    'tmdb_trailer': [{'video_id': 'qADM67ZgYxM'}]}
-        result = GetAPI.retrieve_data(request)
+        result = Main.retrieve_data(request)
         expected = ('tt0117509', 'Revolutionary Road', 'qADM67ZgYxM', '2008-01-01', '2008')
         self.assertEqual(result, expected)
 
@@ -31,7 +31,7 @@ class TestGetAPI(unittest.TestCase):
         request = {'imdb_id': 'tt0117509',
                    'tmdb_main': [{'title': 'Revolutionary Road', 'release_date': '2008-01-01'}],
                    'tmdb_trailer': []}
-        result = GetAPI.retrieve_data(request)
+        result = Main.retrieve_data(request)
         expected = ('tt0117509', 'Revolutionary Road', None, '2008-01-01', '2008')
         self.assertEqual(result, expected)
 
@@ -42,7 +42,7 @@ class TestGetAPI(unittest.TestCase):
         request = {'imdb_id': 'tt0117509',
                    'tmdb_main': [{'title': 'Revolutionary Road', 'release_date': '2008-01-01'}],
                    'tmdb_trailer': [{'video_id': 'qADM67ZgYxM'}]}
-        result = self.get.get_info(request)
+        result = self.main.run(request)
         expected = {
             'trailer_main': [{
                 'channel_id': 'UC9YHyj7QSkkSg2pjQ7M8Khg',
@@ -68,7 +68,7 @@ class TestGetAPI(unittest.TestCase):
         request = {'imdb_id': 'tt0117509',
                    'tmdb_main': [{'title': 'Revolutionary Road', 'release_date': '2008-01-01'}],
                    'tmdb_trailer': []}
-        result = self.get.get_info(request)
+        result = self.main.run(request)
         expected = {
             'trailer_main': [{
                 'video_id': 'qADM67ZgYxM',
@@ -94,7 +94,7 @@ class TestGetAPI(unittest.TestCase):
         request = {'imdb_id': 'tt0117509',
                    'tmdb_main': [{'title': 'Revolutionary Road', 'release_date': '2008-01-01'}],
                    'tmdb_trailer': [{'video_id': 'invalid'}]}
-        result = self.get.get_info(request)
+        result = self.main.run(request)
         expected = {
             'trailer_main': [{
                 'video_id': 'qADM67ZgYxM',

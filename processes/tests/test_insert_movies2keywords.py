@@ -1,25 +1,33 @@
-import json
 import unittest
+import os
+import json
 
-from inserts import GLOBALS
-from inserts.insert_movies2keywords import InsertData
-from inserts.postgres import Postgres
+from processes.insert_movies2keywords import Main
+from processes.postgres import Postgres
 
-server = GLOBALS.PG_SERVER
-port = GLOBALS.PG_PORT
-db = GLOBALS.PG_DB
-user = GLOBALS.PG_USERNAME
-pw = GLOBALS.PG_PASSWORD
+try:
+    DB_SERVER = os.environ['DB_SERVER']
+    DB_PORT = os.environ['DB_PORT']
+    DB_DATABASE = os.environ['DB_DATABASE']
+    DB_USER = os.environ['DB_USER']
+    DB_PASSWORD = os.environ['DB_PASSWORD']
+except KeyError:
+    try:
+        from processes.GLOBALS import DB_SERVER, DB_PORT, DB_DATABASE, DB_USER, DB_PASSWORD
+    except ImportError:
+        print("No parameters provided")
+        exit()
 
 with open('test_data.json') as data_file:
     data = json.load(data_file)
+
 
 class TestInsertMovies2Keywords(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.ins = InsertData(server, port, db, user, pw)
-        cls.pg = Postgres(server, port, db, user, pw)
+        cls.main = Main()
+        cls.pg = Postgres(DB_SERVER, DB_PORT, DB_DATABASE, DB_USER, DB_PASSWORD)
         # We insert the corresponding film into kino.movies
         # due to the foreign key constraint.
         sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language, plot)
@@ -28,8 +36,8 @@ class TestInsertMovies2Keywords(unittest.TestCase):
         cls.pg.pg_conn.commit()
 
     def test_insert_movies(self):
-        self.ins.insert(data)
-        self.ins.insert(data)
+        self.main.run(data)
+        self.main.run(data)
         self.pg.pg_cur.execute('select imdb_id, keyword from kino.movies2keywords')
         result = self.pg.pg_cur.fetchall()
         expected = [(e['imdb_id'], e['keyword']) for e in data['tmdb_keywords']]
@@ -37,7 +45,7 @@ class TestInsertMovies2Keywords(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.pg = Postgres(server, port, db, user, pw)
+        cls.pg = Postgres(DB_SERVER, DB_PORT, DB_DATABASE, DB_USER, DB_PASSWORD)
         cls.pg.pg_cur.execute('delete from kino.movies2keywords')
         cls.pg.pg_cur.execute('delete from kino.movies')
         cls.pg.pg_conn.commit()

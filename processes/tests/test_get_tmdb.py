@@ -6,14 +6,14 @@ import responses
 current_dir = (os.path.abspath(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.join(current_dir, '..', '..'))
 
-from apis.get_tmdb import GetAPI, RequestAPI, StandardiseResponse, GatherException
+from processes.get_tmdb import Main, RequestAPI, StandardiseResponse, GatherException
 
 
-class TestGetAPI(unittest.TestCase):
+class TestMain(unittest.TestCase):
     """Testing GetAPI"""
     @classmethod
     def setUpClass(cls):
-        cls.get = GetAPI()
+        cls.main = Main()
 
     @responses.activate
     def test_get_info(self):
@@ -194,7 +194,7 @@ class TestGetAPI(unittest.TestCase):
         request = {'imdb_id': 'tt0083658'}
         expected_keys = ['tmdb_main', 'tmdb_cast', 'tmdb_crew', 'tmdb_company', 'tmdb_genre', 'tmdb_keywords',
                          'tmdb_trailer']
-        info = self.get.get_info(request)
+        info = self.main.run(request)
         self.assertEqual(set(info.keys()), set(expected_keys))
 
 
