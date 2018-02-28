@@ -41,10 +41,7 @@ class TestInsertMovies2Numbers(unittest.TestCase):
         result = self.pg.pg_cur.fetchall()
         expected = [(data['tmdb_main'][0]['imdb_id'], data['tmdb_main'][0]['revenue'], 'revenue'),
                     (data['tmdb_main'][0]['imdb_id'], data['tmdb_main'][0]['budget'], 'budget')]
-        print(set(result))
-        print(set(expected))
         self.assertEqual(set(result), set(expected))
-
 
     @classmethod
     def tearDownClass(cls):
