@@ -23,7 +23,7 @@ class Main(object):
     """
     def __init__(self):
         self.source_topic = 'tmdb'
-        self.destination_topic = 'itunes'
+        self.destination_topic = 'trailer'
 
     def run(self, request):
 

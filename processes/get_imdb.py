@@ -8,6 +8,7 @@ try:
 except ImportError:
     KAFKA_BROKER = sys.argv[1]
 
+
 class PostIMDB(object):
 
     def __init__(self):
@@ -15,6 +16,7 @@ class PostIMDB(object):
 
     def push_imdb_id(self, imdb_id):
         data = {'imdb_id': imdb_id}
+        print('pushing'+imdb_id)
         self.producer.send('imdb_ids', json.dumps(data).encode())
 
 if __name__ == '__main__':
