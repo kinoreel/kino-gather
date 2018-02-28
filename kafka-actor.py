@@ -2,22 +2,20 @@ import json
 import os
 import sys
 from kafka import KafkaConsumer, KafkaProducer
+import importlib
 
 try:
-    PROCESS = __import__(os.environ['PROCESS'])
+    PROCESS = importlib.import_module('processes.{0}'.format(os.environ['PROCESS']))
     KAFKA_BROKER = os.environ['KAFKA_BROKER']
 except KeyError:
-    try:
-        PROCESS = __import__(sys.argv[1])
-        KAFKA_BROKER = __import__(sys.argv[2])
-    except ImportError:
-        print("Incorrect parameters provided")
-        exit()
+    PROCESS = importlib.import_module('processes.{0}'.format(sys.argv[1]))
+    KAFKA_BROKER = sys.argv[2]
 
 
 class KafkaHandler(object):
 
     def __init__(self):
+
         self.process = PROCESS.Main()
 
         self.consumer = KafkaConsumer(group_id=self.process.destination_topic,
@@ -36,7 +34,9 @@ class KafkaHandler(object):
         Call the correct APi
         Sends the results of the API call to the next topic
         """
+
         for message in self.consumer:
+
             msg_data = json.loads(message.value.decode('utf-8'))
 
             try:
