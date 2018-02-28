@@ -51,7 +51,7 @@ class TestInsertMovies(unittest.TestCase):
         # movies2persons
         self.pg.pg_cur.execute("insert into persons (person_id, fullname) values (0, 'invalid')")
         self.pg.pg_cur.execute("insert into movies2persons values"
-                               " ('tt2562232', 0, 'invalid', null)")
+                               " ('tt2562232', 0, 'invalid')")
         # movies2ratings
         self.pg.pg_cur.execute("insert into movies2ratings values"
                                " ('tt2562232', 'invalid', 0)")

@@ -2,7 +2,7 @@ import unittest
 import os
 import json
 
-from processes.insert_movies2genres import Main
+from processes.insert_movies2companies import Main
 from processes.postgres import Postgres
 
 try:
@@ -23,7 +23,7 @@ with open('test_data.json') as data_file:
     data = json.load(data_file)
 
 
-class TestInsertMovies2Persons(unittest.TestCase):
+class TestInsertMovies2Companies(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -38,6 +38,7 @@ class TestInsertMovies2Persons(unittest.TestCase):
 
 
     def test_insert_movies2companies(self):
+
         destination_data = self.main.run(data)
 
         # Inserted into kino.company_roles
