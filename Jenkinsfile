@@ -51,7 +51,7 @@ node {
                     , 'insert_movies2streams'
                     , 'insert_movies2trailers'
                     , 'insert_errored'
-                    ]];
+                    ];
 
 
     for (i = 0; i <processes.size(); i++) {
