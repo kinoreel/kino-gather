@@ -45,7 +45,7 @@ node {
 
     for (i = 0; i <processes.size(); i++) {
 
-        sh "kubectl apply kubernetes-deployments/${processes[i]}-deployment.yaml"
+        sh "kubectl apply -f kubernetes-deployments/${processes[i]}-deployment.yaml"
 
     }
 
