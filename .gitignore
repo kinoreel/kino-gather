@@ -3,3 +3,5 @@
 *.iml
 *.json
 GLOBALS.py
+secrets.yaml
+scratch
