@@ -1,14 +1,23 @@
 apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
 kind: Deployment
 metadata:
-  name: gather-itunes
+  name: get-itunes
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: gather-itunes
+        app: get-itunes
     spec:
       containers:
-      - name: gather-itunes
-        image: eu.gcr.io/kino-173106/gather-itunes:latest
+      - name: get-itunes
+        image: kinoreel/gather:latest
+        imagePullPolicy: Always
+        env:
+          - name: PROCESS
+            value: "get_itunes"
+          - name: KAFKA_BROKER
+            valueFrom:
+              secretKeyRef:
+                name: kino-secrets
+                key: kafka_broker

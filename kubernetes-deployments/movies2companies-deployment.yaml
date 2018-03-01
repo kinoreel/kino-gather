@@ -11,4 +11,38 @@ spec:
     spec:
       containers:
       - name: insert-movies2companies
-        image: eu.gcr.io/kino-173106/insert-movies2companies:latest
+        image: kinoreel/gather:latest
+        imagePullPolicy: Always
+        env:
+          - name: PROCESS
+            value: "insert_movies2companies"
+          - name: KAFKA_BROKER
+            valueFrom:
+              secretKeyRef:
+                name: kino-secrets
+                key: kafka_broker
+          - name: DB_SERVER
+            valueFrom:
+              secretKeyRef:
+                name: kino-secrets
+                key: gather_db_server
+          - name: DB_PORT
+            valueFrom:
+              secretKeyRef:
+                name: kino-secrets
+                key: gather_db_port
+          - name: DB_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: kino-secrets
+                key: gather_db_database
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: kino-secrets
+                key: gather_db_user
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: kino-secrets
+                key: gather_db_password
