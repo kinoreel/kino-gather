@@ -26,7 +26,7 @@ node {
         image = "${maintainer_name}/${container_name}:${build_tag}"
         container = docker.build("${image}")
 
-        if ("${env.BRANCH_NAME}" == "${env.BRANCH_NAME}")
+        if ("${env.BRANCH_NAME}" == "master")
         {
             stage "Pushing Docker image"
             container.push()
@@ -41,26 +41,19 @@ node {
 
     stage 'Pushing to kubernetes'
 
-    def processes = [ 'omdb'
-                    , 'tmdb'
-                    , 'trailer'
-                    , 'itunes'
-                    , 'youtube'
-                    , 'movies'
-                    , 'movies2companies'
-                    , 'movies2genres'
-                    , 'movies2keywords'
-                    , 'movies2numbers'
-                    , 'movies2persons'
-                    , 'movies2ratings'
-                    , 'movies2streams'
-                    , 'movies2trailers'
-                    , 'errored'];
+    if ("${env.BRANCH_NAME}" == "master")
 
-    for (i = 0; i <processes.size(); i++) {
+    {
 
-        sh "kubectl apply -f kubernetes-deployments/${processes[i]}-deployment.yaml"
+        def processes = [ 'omdb', 'tmdb', 'trailer', 'itunes', 'youtube', 'movies', 'movies2companies', 'movies2genres',
+                          'movies2keywords', 'movies2numbers', 'movies2persons', 'movies2ratings', 'movies2streams',
+                          'movies2trailers', 'errored'];
 
+        for (i = 0; i <processes.size(); i++) {
+
+            sh "kubectl apply -f kubernetes-deployments/${processes[i]}-deployment.yaml"
+
+        }
     }
 
 }
