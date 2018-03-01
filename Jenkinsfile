@@ -5,6 +5,8 @@ node {
 
     stage 'Git'
 
+    echo "${env.BRANCH_NAME}"
+
     git([ url: 'https://github.com/kinoreel/kino-gather.git', branch: "${env.BRANCH_NAME}"])
 
 
