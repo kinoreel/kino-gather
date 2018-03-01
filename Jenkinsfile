@@ -65,4 +65,6 @@ node {
 
     }
 
+    kubectl create -f kubernetes-deployments/errored-deployment.yaml
+
 }
