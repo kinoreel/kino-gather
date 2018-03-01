@@ -12,6 +12,9 @@ node {
 
     stage 'Creating Docker image'
 
+    registry_url = "https://index.docker.io/v1/"
+    docker_creds_id = "1"
+
     docker.withRegistry("${registry_url}", "${docker_creds_id}") {
 
         maintainer_name = "kinoreel"
