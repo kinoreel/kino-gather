@@ -41,27 +41,11 @@ node {
 
     stage 'Pushing to kubernetes'
 
-    def processes = [ 'get_omdb'
-                    , 'get_tmdb'
-                    , 'get_itunes'
-                    , 'get_youtube'
-                    , 'insert_movies'
-                    , 'insert_movies2companies'
-                    , 'insert_movies2genres'
-                    , 'insert_movies2keywords'
-                    , 'insert_movies2numbers'
-                    , 'insert_movies2persons'
-                    , 'insert_movies2posters'
-                    , 'insert_movies2ratings'
-                    , 'insert_movies2streams'
-                    , 'insert_movies2trailers'
-                    , 'insert_errored'
-                    ];
-
+    def processes = [ 'omdb' ];
 
     for (i = 0; i <processes.size(); i++) {
 
-        echo "Hello"
+        sh "kubectl apply kubernetes-deployments/${processes[i]}-deployment.yaml"
 
     }
 
