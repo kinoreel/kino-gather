@@ -41,7 +41,22 @@ node {
 
     stage 'Pushing to kubernetes'
 
-    def processes = [ 'omdb' ];
+    def processes = [ 'omdb'
+                    , 'tmdb'
+                    , 'trailer'
+                    , 'itunes'
+                    , 'youtube'
+                    , 'movies'
+                    , 'movies2companies'
+                    , 'movies2genres'
+                    , 'movies2keywords'
+                    , 'movies2numbers'
+                    , 'movies2persons'
+                    , 'movies2posters'
+                    , 'movies2ratings'
+                    , 'movies2streams'
+                    , 'movies2trailers'
+                    , 'errored'];
 
     for (i = 0; i <processes.size(); i++) {
 
