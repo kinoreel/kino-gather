@@ -52,7 +52,6 @@ node {
                     , 'movies2keywords'
                     , 'movies2numbers'
                     , 'movies2persons'
-                    , 'movies2posters'
                     , 'movies2ratings'
                     , 'movies2streams'
                     , 'movies2trailers'
