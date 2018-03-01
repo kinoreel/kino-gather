@@ -7,8 +7,21 @@ spec:
   template:
     metadata:
       labels:
-        app: gather-omdb
+        app: get-omdb
     spec:
       containers:
-      - name: gather-omdb
-        image: eu.gcr.io/kino-173106/gather-omdb:latest
+      - name: get-omdb
+        image: kinoreel/gather:latest
+        env:
+          - name: PROCESS
+            value: "get_omdb"
+          - name: KAFKA_BROKER
+            valueFrom:
+              secretKeyRef:
+                name: kino-secrets
+                key: kafka_broker
+          - name: OMDB_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: kino-secrets
+                key: omdb_api_key
