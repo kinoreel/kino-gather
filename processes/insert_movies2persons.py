@@ -50,7 +50,7 @@ class Main(object):
                   group by role"""
 
         self.pg.pg_cur.execute(sql, (json.dumps(crew_data), json.dumps(cast_data)))
-
+        self.pg.pg_conn.commit()
 
         # Insert into kino.persons.
         sql = """insert into kino.persons (fullname, tstamp)
@@ -66,7 +66,9 @@ class Main(object):
                          ) z
                  where z.name not in (select fullname
                                        from kino.persons )"""
+
         self.pg.pg_cur.execute(sql, (json.dumps(crew_data), json.dumps(cast_data)))
+        self.pg.pg_conn.commit()
 
         # Insert into kino.movies2persons
         sql = """insert into kino.movies2persons (imdb_id, person_id, role, cast_order, tstamp)
@@ -93,7 +95,6 @@ class Main(object):
                      do nothing"""
 
         self.pg.pg_cur.execute(sql, (json.dumps(cast_data), json.dumps(crew_data)))
-
         self.pg.pg_conn.commit()
 
 

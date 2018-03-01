@@ -42,6 +42,7 @@ class Main(object):
               '''
 
         self.pg.pg_cur.execute(sql)
+        self.pg.pg_conn.commit()
 
         # Insert in companies.
         sql = '''insert into kino.companies (name)
@@ -52,6 +53,7 @@ class Main(object):
                  '''
 
         self.pg.pg_cur.execute(sql, (json.dumps(company_data),))
+        self.pg.pg_conn.commit()
 
         # Insert movies2companies.
         sql = """ insert into kino.movies2companies(imdb_id, company_id, role)

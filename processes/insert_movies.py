@@ -65,7 +65,6 @@ class Main(object):
         self.pg.pg_cur.execute(sql)
         self.pg.pg_conn.commit()
 
-
         sql = """insert into kino.movies (imdb_id, title, runtime, rated, released, orig_language, plot, tstamp)
                  select x.imdb_id
                       , y.title
@@ -82,6 +81,7 @@ class Main(object):
                    join kino.iso2language z
                      on y.original_language = z.iso3166
               """
+
         self.pg.pg_cur.execute(sql, (json.dumps(omdb_movie_data), json.dumps(tmdb_movie_data)))
         self.pg.pg_conn.commit()
 

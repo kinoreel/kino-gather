@@ -53,6 +53,7 @@ class Main(object):
                    set url = excluded.url
                   """
             self.pg.pg_cur.execute(sql, (json.dumps(youtube_data), ))
+            self.pg.pg_conn.commit()
 
         else:
             sql = """
@@ -60,6 +61,7 @@ class Main(object):
                  where source in ('GooglePlay', 'YouTube') and imdb_id = '{0}'""".format(imdb_id)
 
             self.pg.pg_cur.execute(sql)
+            self.pg.pg_conn.commit()
 
         if itunes_data != []:
 
@@ -82,6 +84,7 @@ class Main(object):
                    set url = excluded.url
                 """
             self.pg.pg_cur.execute(sql, (json.dumps(itunes_data), ))
+            self.pg.pg_conn.commit()
 
         else:
 
@@ -90,5 +93,4 @@ class Main(object):
                  where source = 'iTunes' and imdb_id = '{0}'""".format(imdb_id)
 
             self.pg.pg_cur.execute(sql, (json.dumps(youtube_data),))
-
-        self.pg.pg_conn.commit()
+            self.pg.pg_conn.commit()
