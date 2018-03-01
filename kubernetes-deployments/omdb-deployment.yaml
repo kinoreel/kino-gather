@@ -1,7 +1,7 @@
 apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
 kind: Deployment
 metadata:
-  name: gather-omdb
+  name: get-omdb
 spec:
   replicas: 1
   template:
@@ -12,6 +12,7 @@ spec:
       containers:
       - name: get-omdb
         image: kinoreel/gather:latest
+        imagePullPolicy: Always
         env:
           - name: PROCESS
             value: "get_omdb"

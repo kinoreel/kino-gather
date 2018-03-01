@@ -12,6 +12,7 @@ spec:
       containers:
       - name: insert-movies2keywords
         image: kinoreel/gather:latest
+        imagePullPolicy: Always
         env:
           - name: PROCESS
             value: "insert_movies2keywords"

@@ -12,6 +12,7 @@ spec:
       containers:
       - name: get-tmdb
         image: kinoreel/gather:latest
+        imagePullPolicy: Always
         env:
           - name: PROCESS
             value: "get_tmdb"

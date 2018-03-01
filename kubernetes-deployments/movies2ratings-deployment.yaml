@@ -12,6 +12,7 @@ spec:
       containers:
       - name: insert-movies2ratings
         image: kinoreel/gather:latest
+        imagePullPolicy: Always
         env:
           - name: PROCESS
             value: "insert_movies2ratings"
