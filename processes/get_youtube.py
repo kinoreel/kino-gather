@@ -19,7 +19,7 @@ except KeyError:
 class Main(object):
 
     def __init__(self):
-        self.source_topic = 'itunes'
+        self.source_topic = 'amazon'
         self.destination_topic = 'youtube'
 
     def run(self, request):
@@ -71,7 +71,7 @@ class Main(object):
         runtime = request['tmdb_main'][0]['runtime']
         year = release_date[0:4]
         has_other_stream = True
-        if request['itunes_main'] == []:
+        if request['itunes_main'] == [] and request['amazon_main'] == []:
             has_other_stream = False
         return imdb_id, title, release_date, year, runtime, has_other_stream
 
