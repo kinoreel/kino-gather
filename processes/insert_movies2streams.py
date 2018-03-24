@@ -37,12 +37,14 @@ class Main(object):
         if youtube_data != []:
 
             sql = """
-                insert into kino.movies2streams (imdb_id, source, url,  format, purchase_type, tstamp)
+                insert into kino.movies2streams (imdb_id, source, url,  currency, price,  format, purchase_type, tstamp)
                 select *
                   from ( select x.imdb_id
                               ,  unnest(array['GooglePlay', 'YouTube']) as source
                               ,  unnest(array['https://play.google.com/store/movies/details?id=' || x.video_id,
                                               'https://www.youtube.com/watch?v=' || x.video_id]) as url
+                              , '£' as currency
+                              , 2.49 as price
                               , x.definition as format
                               , 'rental' as purchase_type
                               , CURRENT_DATE

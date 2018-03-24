@@ -44,7 +44,7 @@ class TestInsertMovies2Streams(unittest.TestCase):
                                '  from kino.movies2streams')
         result = self.pg.pg_cur.fetchall()
         expected_result = [('tt2562232', 'GooglePlay', 'https://play.google.com/store/movies/details?id=0MhS4b_yjuo',
-                            None, None, 'hd', 'rental'),
+                            '£', 2.49, 'hd', 'rental'),
                            ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985',
                             '£', 3.49, 'sd', 'rental'),
                            ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985',
@@ -54,7 +54,7 @@ class TestInsertMovies2Streams(unittest.TestCase):
                            ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985',
                             '£', 4.99, 'sd', 'purchase'),
                            ('tt2562232', 'YouTube', 'https://www.youtube.com/watch?v=0MhS4b_yjuo',
-                            None, None, 'hd', 'rental')]
+                            '£', 2.49, 'hd', 'rental')]
         self.assertEqual(set(result), set(expected_result))
 
     def test_insert_movies_no_itunes(self):
@@ -71,9 +71,9 @@ class TestInsertMovies2Streams(unittest.TestCase):
                                '  from kino.movies2streams')
         result = self.pg.pg_cur.fetchall()
         expected_result = [('tt2562232', 'GooglePlay', 'https://play.google.com/store/movies/details?id=0MhS4b_yjuo',
-                            None, None, 'hd', 'rental'),
+                            '£', 2.49, 'hd', 'rental'),
                            ('tt2562232', 'YouTube', 'https://www.youtube.com/watch?v=0MhS4b_yjuo',
-                            None, None, 'hd', 'rental')]
+                            '£', 2.49, 'hd', 'rental')]
         self.assertEqual(set(result), set(expected_result))
 
     def test_insert_movies_no_youtube(self):
