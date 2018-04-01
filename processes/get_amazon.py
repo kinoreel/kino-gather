@@ -3,6 +3,7 @@ import os
 import hmac
 import hashlib
 import base64
+import time
 from bs4 import BeautifulSoup
 from datetime import datetime
 from fuzzywuzzy import fuzz
@@ -26,7 +27,7 @@ class Main(object):
 
     def __init__(self):
         self.source_topic = 'itunes'
-        self.destination_topic = 'youtube'
+        self.destination_topic = 'amazon'
 
     def run(self, request):
 
@@ -60,6 +61,7 @@ class Main(object):
         runtime = request['tmdb_main'][0]['runtime']
         return imdb_id, title, release_date, runtime
 
+
 class RequestAPI(object):
     """Requests data for a given imdb_id from the OMDB API."""
 
@@ -78,7 +80,7 @@ class RequestAPI(object):
         url = 'http://webservices.amazon.co.uk/onca/xml'
         parameters = 'AWSAccessKeyId=AKIAJCZNP6FPLXEFGTRA&' \
                      'AssociateTag=kinoproject-21&' \
-                     'Keywords='+title+'&' \
+                     'Keywords='+self.rfc_3986_encode(title)+'&' \
                      'Operation=ItemSearch&' \
                      'ResponseGroup=ItemAttributes%2COffers&' \
                      'SearchIndex=All&' \
@@ -87,7 +89,22 @@ class RequestAPI(object):
         signature = self.get_signature(parameters, self.api_key)
         encoded_signature = self.rfc_3986_encode(signature.decode('utf-8'))
         url = '{0}?{1}&Signature={2}'.format(url, parameters, encoded_signature)
-        html = requests.get(url, headers=self.headers)
+        response = self.request_api(url)
+        return response
+
+    def request_api(self, url):
+        """
+        Amazon has throttling, therefore we run a number of retries with increasing waits
+        if we hit status 503.
+        :param url: The api url
+        :return: html response
+        """
+        max_retries = 5
+        for i in range(0,max_retries):
+            html = requests.get(url, headers=self.headers)
+            if html.status_code!=503:
+                return html.text
+            time.sleep(i)
         return html.text
 
     def rfc_3986_encode(self, string):
@@ -109,7 +126,7 @@ class RequestAPI(object):
         return timestamp
 
     def get_signature(self, url_params, aws_secret_key):
-        signature = hmac.new(key= bytes(aws_secret_key, 'latin-1'),
+        signature = hmac.new(key=bytes(aws_secret_key, 'latin-1'),
                              msg='GET\nwebservices.amazon.co.uk\n/onca/xml\n{0}'.format(url_params).encode('utf-8'),
                              digestmod=hashlib.sha256).digest()
         signature = base64.b64encode(signature).strip()
@@ -142,13 +159,19 @@ class StandardiseResponse (object):
             'title': item.find('title').text,
             'url': item.find('detailpageurl').text,
             'productType': item.find('producttypename').text,
-            'binding': item.find('binding').text,
+            'binding': self.get_binding(item),
             'runtime': self.get_runtime(item),
             'released': self.get_release_date(item),
             'price': self.get_price(item),
             'currency': self.get_currency(item)
         }
         return main_data
+
+    def get_binding(self, item):
+        try:
+            return item.find('binding').text
+        except AttributeError:
+            return None
 
     def get_price(self, item):
         try:
@@ -277,3 +300,10 @@ class ChooseBest(object):
         if days < 0:
             return abs(round(days/30))
         return 0
+
+if __name__=='__main__':
+    a = Main()
+    request = {'imdb_id': 'tt3155242',
+               'tmdb_main': [{'title': 'Partisan', 'runtime': 94, 'release_date': '2016-01-08'}]}
+    result = a.run(request)
+    print(result)
