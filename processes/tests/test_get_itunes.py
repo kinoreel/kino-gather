@@ -130,6 +130,31 @@ class TestiTunesFilm(unittest.TestCase):
         self.assertEqual(release_date, '1982-09-09')
 
 
+    def test_fix_title(self):
+        """Testing fix_title"""
+        result = iTunesFilm.fix_title('Hello World (2017)')
+        self.assertEqual(result, 'Hello World')
+
+        result = iTunesFilm.fix_title('Hello World (1918)')
+        self.assertEqual(result, 'Hello World')
+
+        result = iTunesFilm.fix_title('Hello (2017) World')
+        self.assertEqual(result, 'Hello (2017) World')
+
+        result = iTunesFilm.fix_title('Hello World 2017')
+        self.assertEqual(result, 'Hello World 2017')
+
+        result = iTunesFilm.fix_title('Hello World (2300)')
+        self.assertEqual(result, 'Hello World (2300)')
+
+
+
+
+def test_fix_release_date(self):
+    """Testing fix_release_date"""
+    release_date = iTunesFilm.fix_release_date('1982-09-09T07:00:00Z')
+    self.assertEqual(release_date, '1982-09-09')
+
 class TestChooseBest(unittest.TestCase):
 
     @classmethod
