@@ -77,6 +77,7 @@ class Main(object):
             self.pg.pg_conn.commit()
 
         if amazon_data != []:
+
             sql = """
                 insert into kino.movies2streams (imdb_id, source, url,  currency, price,  format, purchase_type, tstamp)
                 select *
@@ -85,8 +86,8 @@ class Main(object):
                               ,  url
                               , '£' as currency
                               ,  price as price
-                              , 'hd' as format
-                              , 'rental' as purchase_type
+                              , 'sd' as format
+                              , 'purchase' as purchase_type
                               , CURRENT_DATE
                            from json_to_recordset(%s) x (imdb_id varchar(1000), url varchar(1000), price real)
                         )  as data
