@@ -14,6 +14,8 @@ try:
 except KeyError:
     try:
         from processes.GLOBALS import DB_SERVER, DB_PORT, DB_DATABASE, DB_USER, DB_PASSWORD
+        if DB_DATABASE == 'kino':
+            raise
     except ImportError:
         print("No parameters provided")
         exit()
