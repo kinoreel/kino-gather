@@ -311,6 +311,8 @@ class ChooseBest(object):
                         'UCeWzte2dR3JMxhDgv-PWqTw',  # Not English
                         'UCTxYD92kxevI1I1-oITiQzg',  # Tv show trailers
                         'UCoviJXnjahw_A2vRGsSIL_w',  # Not English
+                        'UCuF-f_kairxTjOyHSItrmtg',  # Annoying opening
+                        'UCB6--dF0CNpvoL13f3-OBNw',  # Channel for Lebanese model/actress
                         ]
         for id in bad_channels:
             if id == channelId:
