@@ -313,6 +313,7 @@ class ChooseBest(object):
                         'UCoviJXnjahw_A2vRGsSIL_w',  # Not English
                         'UCuF-f_kairxTjOyHSItrmtg',  # Annoying opening
                         'UCB6--dF0CNpvoL13f3-OBNw',  # Channel for Lebanese model/actress
+                        'UCRuJMENPfFiMYoqCXleDLLQ',  # Annoying opening
                         ]
         for id in bad_channels:
             if id == channelId:
