@@ -58,7 +58,12 @@ class TestInsertMovies2Streams(unittest.TestCase):
                            ('tt2562232', 'YouTube', 'https://www.youtube.com/watch?v=0MhS4b_yjuo',
                             '£', 2.49, 'hd', 'rental'),
                            ('tt2562232', 'Amazon', 'https://www.amazon.co.uk/Lion-Dev-Patel/dp/B06XPMT8FF', '£', 3.49,
-                            'hd', 'rental')]
+                            'sd', 'purchase'),
+                           ('tt2562232', 'Amazon', 'https://www.amazon.co.uk/Lion-Dev-Patel/dp/B06XPMT8FF', '£', 3.49,
+                            'hd', 'rental'),
+                           ('tt2562232', 'Amazon', 'https://www.amazon.co.uk/Lion-Dev-Patel/dp/B06XPMT8FF', '£', 2.49,
+                            'sd', 'rental')
+                           ]
         self.assertEqual(set(result), set(expected_result))
 
     def test_insert_movies_no_itunes(self):
@@ -67,12 +72,18 @@ class TestInsertMovies2Streams(unittest.TestCase):
         self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type '
                                '  from kino.movies2streams')
         result = self.pg.pg_cur.fetchall()
+        print(result)
         expected_result = [('tt2562232', 'GooglePlay', 'https://play.google.com/store/movies/details?id=0MhS4b_yjuo',
                             '£', 2.49, 'hd', 'rental'),
                            ('tt2562232', 'YouTube', 'https://www.youtube.com/watch?v=0MhS4b_yjuo',
                             '£', 2.49, 'hd', 'rental'),
                            ('tt2562232', 'Amazon', 'https://www.amazon.co.uk/Lion-Dev-Patel/dp/B06XPMT8FF', '£', 3.49,
-                            'hd', 'rental')]
+                            'sd', 'purchase'),
+                           ('tt2562232', 'Amazon', 'https://www.amazon.co.uk/Lion-Dev-Patel/dp/B06XPMT8FF', '£', 3.49,
+                            'hd', 'rental'),
+                           ('tt2562232', 'Amazon', 'https://www.amazon.co.uk/Lion-Dev-Patel/dp/B06XPMT8FF', '£', 2.49,
+                            'sd', 'rental')
+                           ]
         self.assertEqual(set(result), set(expected_result))
 
     def test_insert_movies_no_youtube(self):
@@ -90,11 +101,15 @@ class TestInsertMovies2Streams(unittest.TestCase):
                            ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 4.99,
                             'sd', 'purchase'),
                            ('tt2562232', 'Amazon', 'https://www.amazon.co.uk/Lion-Dev-Patel/dp/B06XPMT8FF', '£', 3.49,
-                            'hd', 'rental')]
+                            'sd', 'purchase'),
+                           ('tt2562232', 'Amazon', 'https://www.amazon.co.uk/Lion-Dev-Patel/dp/B06XPMT8FF', '£', 3.49,
+                            'hd', 'rental'),
+                           ('tt2562232', 'Amazon', 'https://www.amazon.co.uk/Lion-Dev-Patel/dp/B06XPMT8FF', '£', 2.49,
+                            'sd', 'rental')]
         self.assertEqual(set(result), set(expected_result))
 
     def test_insert_movies_no_amazon(self):
-        self.data['amzon_main'] = []
+        self.data['amazon_main'] = []
         self.main.run(self.data)
         self.pg.pg_cur.execute('select imdb_id, source, url, currency, price, format, purchase_type '
                                '  from kino.movies2streams')
@@ -107,8 +122,6 @@ class TestInsertMovies2Streams(unittest.TestCase):
                             'hd', 'purchase'),
                            ('tt2562232', 'iTunes', 'https://itunes.apple.com/gb/movie/birdman/id928608985', '£', 4.99,
                             'sd', 'purchase'),
-                           ('tt2562232', 'Amazon', 'https://www.amazon.co.uk/Lion-Dev-Patel/dp/B06XPMT8FF', '£', 3.49,
-                            'hd', 'rental'),
                            ('tt2562232', 'GooglePlay', 'https://play.google.com/store/movies/details?id=0MhS4b_yjuo',
                             '£', 2.49, 'hd', 'rental'),
                            ('tt2562232', 'YouTube', 'https://www.youtube.com/watch?v=0MhS4b_yjuo',

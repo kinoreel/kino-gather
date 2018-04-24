@@ -85,9 +85,9 @@ class Main(object):
                               , 'Amazon' as source
                               ,  url
                               , '£' as currency
-                              ,  price as price
-                              , 'sd' as format
-                              , 'purchase' as purchase_type
+                              , unnest(array[price, 2.49, 3.49 ]) as price
+                              , unnest(array['sd', 'sd', 'hd']) as format
+                              , unnest(array['purchase', 'rental', 'rental']) as purchase_type
                               , CURRENT_DATE
                            from json_to_recordset(%s) x (imdb_id varchar(1000), url varchar(1000), price real)
                         )  as data
