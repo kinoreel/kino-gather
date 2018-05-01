@@ -1,5 +1,6 @@
 import requests
 import json
+import re
 
 from fuzzywuzzy import fuzz
 from datetime import datetime
@@ -79,7 +80,7 @@ class iTunesFilm(object):
     def __init__(self, imdb_id, response):
         self.raw_response = response
         self.main_data = {'imdb_id': imdb_id,
-                          'title': response['trackName'],
+                          'title': self.fix_title(response['trackName']),
                           'url': response['trackViewUrl'].split('?')[0],
                           'released': self.fix_release_date(response['releaseDate']),
                           'hd_rental_price': response.get('trackHdRentalPrice'),
@@ -96,6 +97,17 @@ class iTunesFilm(object):
         """
         release_date = release_date.split('T')[0]
         return release_date
+
+    @staticmethod
+    def fix_title(title):
+        """
+        Removes any years afte the title name becuase this fucks up scoring.
+        :param title: The title of the film returned by the iTunes api
+        :return: The same title, removed of any year in parenthesis
+        """
+        title = re.sub('\((20|19)\d{2}\)$', '', title).strip()
+        return title
+
 
 class ChooseBest(object):
     """
@@ -143,6 +155,7 @@ class ChooseBest(object):
         :param requested_title: The title was are comparing to.
         :return: An integer score between 0 and 100. Higher is better
         """
+
         title_score = fuzz.ratio(title.lower(), requested_title.lower())
         return title_score
 
@@ -161,3 +174,11 @@ class ChooseBest(object):
         days_diff = abs((requested_release_date - release_date).days)
         months_diff = round(days_diff/30,2)
         return months_diff
+
+
+if __name__=='__main__':
+    a = Main()
+    request = {'imdb_id': 'tt2543164',
+               'tmdb_main': [{'title': 'Arrival', 'runtime': 116, 'release_date': '2016-11-10'}]}
+    result = a.run(request)
+    print(result)

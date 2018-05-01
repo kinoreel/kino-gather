@@ -3,6 +3,8 @@ import os
 
 from processes.postgres import Postgres
 
+from processes.gather_exception import GatherException
+
 
 try:
     DB_SERVER = os.environ['DB_SERVER']
@@ -81,8 +83,9 @@ class Main(object):
                    join kino.iso2language z
                      on y.original_language = z.iso3166
               """
-
         self.pg.pg_cur.execute(sql, (json.dumps(omdb_movie_data), json.dumps(tmdb_movie_data)))
+        if self.pg.pg_cur.rowcount != 1:
+            raise GatherException(omdb_movie_data[0]['imdb_id'], 'No insert into movies, most likely due to a new language')
         self.pg.pg_conn.commit()
 
         return data

@@ -37,9 +37,11 @@ class Main(object):
             # directly querying the YouTube api, we cannot guarantee
             # we return the trailer for the correct film.
             if response:
-                # Return api data to kafka stream
                 video = YouTubeVideo(imdb_id, response)
-                return {'trailer_main': [video.main_data]}
+                # CHeck the title and duration
+                if ChooseBest.check_title(video.main_data['title']) and video.main_data['duration'] < 300:
+                    # Return api data to kafka stream
+                    return {'trailer_main': [video.main_data]}
 
         # If there was no response when searching for the tmdb trailer,
         # search YouTube for trailers
@@ -55,7 +57,7 @@ class Main(object):
         else:
             # If we could not find a trailer we can't do much
             # so throw an error to prevent further streaming.
-            GatherException('Could not find a trailer')
+            raise GatherException(imdb_id, 'Could not find a trailer')
 
     @staticmethod
     def retrieve_data(request):
@@ -268,16 +270,28 @@ class ChooseBest(object):
     @staticmethod
     def choose_best(videos):
 
+        for i in videos:
+            print(i.main_data)
+
+        # Remove videos with bad titles
+        videos = [e for e in videos if ChooseBest.check_title(e.main_data['title'])]
+
+        # Remove bad channels
+        videos = [e for e in videos if ChooseBest.check_channel_id(e.main_data['channel_id'])]
+
+        # Remove long videos
+        videos = [e for e in videos if e.main_data['duration'] < 300]
+
         # Preference hd videos
         hd = ChooseBest.get_hd_videos(videos)
         if len(hd) > 0:
             videos = hd
 
-        # sort by view count
-        responses = ChooseBest.sort_by_view_count(videos)
+        if len(videos) == 0:
+            return None
 
         try:
-            return responses[0]
+            return videos[0]
         except IndexError:
             return None
 
@@ -287,8 +301,49 @@ class ChooseBest(object):
         return [e for e in videos if e.main_data['definition'] == 'hd']
 
     @staticmethod
+    def check_channel_id(channelId):
+        """
+        Determines if channelId is from a channel that we do not want.
+        :param videos: The YoutTUbe channel Id
+        :return: Boolean - True if title is good, else False
+        """
+        bad_channels = ['UCzJd9BfQlXUVilNh0ewMt4Q',  # Trailers for interpretative dance films
+                        'UCeWzte2dR3JMxhDgv-PWqTw',  # Not English
+                        'UCTxYD92kxevI1I1-oITiQzg',  # Tv show trailers
+                        'UCoviJXnjahw_A2vRGsSIL_w',  # Not English
+                        'UCuF-f_kairxTjOyHSItrmtg',  # Annoying opening
+                        'UCB6--dF0CNpvoL13f3-OBNw',  # Channel for Lebanese model/actress
+                        'UCRuJMENPfFiMYoqCXleDLLQ',  # Annoying opening
+                        ]
+        for id in bad_channels:
+            if id == channelId:
+                return False
+        return True
+
+    @staticmethod
+    def check_title(video_title):
+        """
+        Determines if title for trailer is acceptable.
+        :param videos: The video title
+        :return: Boolean - True if title is good, else False
+        """
+        bad_phrases = ['full movie']
+        for phrase in bad_phrases:
+            if phrase in video_title.lower():
+                return False
+        return True
+
+    @staticmethod
     def sort_by_view_count( videos):
         """Sorts videos by view count"""
         return sorted(videos,
                       key=lambda x: (x.main_data['view_count'] is None, x.main_data['view_count']),
                       reverse=True)
+
+if __name__=='__main__':
+    a = Main()
+    request = {'imdb_id': 'tt5221584',
+               'tmdb_main': [{'title': 'Aquarius', 'runtime': 140, 'release_date': '2016-09-01'}],
+               'tmdb_trailer':[{'video_id':'234235'}]}
+    result = a.run(request)
+    print(result)

@@ -34,33 +34,26 @@ class Main(object):
         imdb_id = data['imdb_id']
         itunes_data = data['itunes_main']
         youtube_data = data['youtube_main']
+        amazon_data = data['amazon_main']
+
         if youtube_data != []:
 
             sql = """
-                insert into kino.movies2streams (imdb_id, source, url,  format, purchase_type, tstamp)
+                insert into kino.movies2streams (imdb_id, source, url,  currency, price,  format, purchase_type, tstamp)
                 select *
                   from ( select x.imdb_id
                               ,  unnest(array['GooglePlay', 'YouTube']) as source
                               ,  unnest(array['https://play.google.com/store/movies/details?id=' || x.video_id,
                                               'https://www.youtube.com/watch?v=' || x.video_id]) as url
+                              , '£' as currency
+                              , 2.49 as price
                               , x.definition as format
                               , 'rental' as purchase_type
                               , CURRENT_DATE
                            from json_to_recordset(%s) x (imdb_id varchar(1000), video_id varchar(1000), definition varchar(1000))
                         )  as data
-                    on conflict (imdb_id, source, format, purchase_type)
-                    do update
-                   set url = excluded.url
                   """
             self.pg.pg_cur.execute(sql, (json.dumps(youtube_data), ))
-            self.pg.pg_conn.commit()
-
-        else:
-            sql = """
-                delete from kino.movies2streams
-                 where source in ('GooglePlay', 'YouTube') and imdb_id = '{0}'""".format(imdb_id)
-
-            self.pg.pg_cur.execute(sql)
             self.pg.pg_conn.commit()
 
         if itunes_data != []:
@@ -79,18 +72,25 @@ class Main(object):
                            from json_to_recordset(%s) x ( imdb_id varchar(1000), url varchar(1000), rental_price real
                                                         , hd_rental_price real, purchase_price real, hd_purchase_price real)
                        ) as y
-                    on conflict (imdb_id, source, format, purchase_type)
-                    do update
-                   set url = excluded.url
                 """
             self.pg.pg_cur.execute(sql, (json.dumps(itunes_data), ))
             self.pg.pg_conn.commit()
 
-        else:
+        if amazon_data != []:
 
             sql = """
-                delete from kino.movies2streams
-                 where source = 'iTunes' and imdb_id = '{0}'""".format(imdb_id)
-
-            self.pg.pg_cur.execute(sql, (json.dumps(youtube_data),))
+                insert into kino.movies2streams (imdb_id, source, url,  currency, price,  format, purchase_type, tstamp)
+                select *
+                  from ( select x.imdb_id
+                              , 'Amazon' as source
+                              ,  url
+                              , '£' as currency
+                              , unnest(array[price, 2.49, 3.49 ]) as price
+                              , unnest(array['sd', 'sd', 'hd']) as format
+                              , unnest(array['purchase', 'rental', 'rental']) as purchase_type
+                              , CURRENT_DATE
+                           from json_to_recordset(%s) x (imdb_id varchar(1000), url varchar(1000), price real)
+                        )  as data
+                  """
+            self.pg.pg_cur.execute(sql, (json.dumps(amazon_data),))
             self.pg.pg_conn.commit()
