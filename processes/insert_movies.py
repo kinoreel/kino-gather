@@ -88,7 +88,7 @@ class Main(object):
             raise GatherException(omdb_movie_data[0]['imdb_id'], 'No insert into movies, most likely due to a new language')
         self.pg.pg_conn.commit()
 
-        sql = """insert into kino.kino_ratings (imdb_id, rating) values (%s, 3)"""
+        sql = """insert into kino.kino_ratings (imdb_id, rating) values (%s, 3) on conflict do nothing"""
 
         self.pg.pg_cur.execute(sql, (imdb_id,))
         self.pg.pg_conn.commit()
