@@ -33,11 +33,15 @@ class KafkaHandler(object):
 
         for message in self.consumer:
 
+            print(message)
             msg_data = json.loads(message.value.decode('utf-8'))
 
             try:
 
+                print(msg_data)
                 api_data = self.process.run(msg_data)
+
+                print(api_data)
 
                 if api_data:
                     msg_data.update(api_data)
@@ -45,6 +49,8 @@ class KafkaHandler(object):
                     self.producer.send(self.process.destination_topic, json.dumps(msg_data).encode())
 
             except Exception:
+
+                print(exception)
 
                 if self.process.source_topic != self.error_topic:
 
