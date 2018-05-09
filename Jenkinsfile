@@ -45,7 +45,7 @@ node {
 
     {
 
-        def processes = [ 'omdb', 'tmdb', 'trailer', 'itunes', 'youtube', 'movies', 'movies2companies', 'movies2genres',
+        def processes = [ 'omdb', 'tmdb', 'trailer', 'itunes', 'youtube', 'amazon', 'movies', 'movies2companies', 'movies2genres',
                           'movies2keywords', 'movies2numbers', 'movies2persons', 'movies2ratings', 'movies2streams',
                           'movies2trailers', 'errored'];
 
