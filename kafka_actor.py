@@ -50,7 +50,7 @@ class KafkaHandler(object):
 
             except Exception:
 
-                print(exception)
+                print('exception')
 
                 if self.process.source_topic != self.error_topic:
 
