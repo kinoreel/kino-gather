@@ -1,0 +1,23 @@
+apiVersion: apps/v1 # for versions before 1.6.0 use extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kino-gather-api
+  namespace: default
+  labels:
+    app: kino-gather-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kino-gather-api
+  template:
+    metadata:
+      labels:
+        app: kino-gather-api
+    spec:
+      containers:
+        - name: kino-gather-api
+          image: unrufflednightingale/kino-gather-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000

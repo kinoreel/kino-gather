@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: kino-gather-api-ingress
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+    - hosts:
+        - gather.unruffled-nightingale.com
+      secretName: kino-gather-api-tls
+  rules:
+    - host: gather.unruffled-nightingale.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: kino-gather-api
+              servicePort: 80

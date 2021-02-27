@@ -33,8 +33,8 @@ class Main(object):
         # If there is no response and we have not collected any
         # other streams from upstream apis, then raise an error
         # to prevent any further processing of record.
-        if response is None and not has_other_stream:
-            raise GatherException(imdb_id, 'No streams found')
+        # if response is None and not has_other_stream:
+        #     raise GatherException(imdb_id, 'No streams found')
 
         # Create YouTubeFilm instances from the response from the api
         films = [YouTubeFilm(imdb_id, e) for e in response]
@@ -46,8 +46,8 @@ class Main(object):
         # If there are no good matches, and we have not collected any
         # other streams from upstream apis, then raise an error
         # to prevent any further processing of record.
-        if film is None and not has_other_stream:
-            raise GatherException(imdb_id, 'No streams found')
+        # if film is None and not has_other_stream:
+        #     raise GatherException(imdb_id, 'No streams found')
 
         # If there are no good matches, but we have collected a stream from
         # an upstream api, then we want to continue processing the records, but
@@ -107,10 +107,10 @@ class RequestAPI(object):
         for film in response:
             video_id = film['id']['videoId']
             info = film['snippet']
-            content_details = self.get_content_details(video_id, http=content_details_http)
-            get_stats = self.get_stats(video_id, http=stats_http)
-            info.update(content_details)
-            info.update(get_stats)
+            # content_details = self.get_content_details(video_id, http=content_details_http)
+            video_stats = self.get_stats(video_id, http=stats_http)
+            info.update(video_stats['items'][0]['contentDetails'])
+            info.update(video_stats['items'][0]['statistics'])
             info.update({'video_id': video_id})
             youtube_data.append(info)
 
@@ -157,11 +157,10 @@ class RequestAPI(object):
         :param http: Needed in mocking the response of the api.
         :return: A JSON object containing the response from youtube.
         """
-        response = self.youtube.videos().list(
-            part='statistics',
+        return self.youtube.videos().list(
+            part=['statistics', 'contentDetails'],
             id=video_id
         ).execute(http=http)
-        return response['items'][0]['statistics']
 
 
 class YouTubeFilm(object):
@@ -265,12 +264,11 @@ class ChooseBest(object):
         :param req_release_date: The release date of the requested film
         :return: The film with the best match score, or None if no match score is greater than 85.
         """
-        match_scores = [ChooseBest.get_match_score(e.main_data['title'],
+        match_scores = [ChooseBest.get_match_score(e.main_data['channelId'],
+                                                   e.main_data['title'],
                                                    e.main_data['duration'],
-                                                   e.main_data['publishedAt'],
                                                    req_title,
-                                                   req_runtime,
-                                                   req_release_date)
+                                                   req_runtime)
                         for e in films]
         if len(match_scores) == 0:
             return None
@@ -280,20 +278,25 @@ class ChooseBest(object):
         return films[match_scores.index(max(match_scores))]
 
     @staticmethod
-    def get_match_score(title, runtime, release_date, requested_title, requested_runtime, requested_release_date):
+    def get_match_score(channel_id, title, runtime, requested_title, requested_runtime):
         """
         This returns a match score for a film returned by the YouTube API, constructed
         from the title score minus the runtime score.
+        :param channel_id: The id of the video channel
         :param title: The title of the film returned by the YouTube API.
         :param runtime: The runtime of the film returned by the YouTube API
         :param requested_title: The title of the requested film.
         :param requested_runtime: The runtime of the requested film.
         :return: A score out of 100.
         """
+        accepted_channels = [
+            'UCigibLQE1B6tc4Itxj7p5FA',
+        ]
+        if channel_id in accepted_channels: return 100
+
         title_score = ChooseBest.get_title_score(title, requested_title)
         runtime_score = ChooseBest.get_runtime_score(runtime, requested_runtime)
-        release_date_score = ChooseBest.get_release_date_score(release_date, requested_release_date)
-        match_score = title_score - (runtime_score + release_date_score)
+        match_score = title_score - (runtime_score)
         return match_score
 
     @staticmethod

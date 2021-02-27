@@ -97,18 +97,19 @@ class YouTubeAPI(object):
             part='snippet',
             id=video_id,
         ).execute()
+
         try:
             response = response['items'][0]
         except IndexError:
             return
         response['video_id'] = video_id
         if response:
-            response.update(self.get_content_details(video_id))
-            response.update(self.get_stats(video_id))
+            video_stats = self.get_stats(video_id)
+            response.update(video_stats['items'][0]['contentDetails'])
+            response.update(video_stats['items'][0]['statistics'])
 
         if Validate.validate(response):
             return response
-
 
     def search_by_string(self, string):
         """
@@ -128,8 +129,10 @@ class YouTubeAPI(object):
         for video in response:
             video_id = video['id']['videoId']
             video['video_id'] = video_id
-            video.update(self.get_content_details(video_id))
-            video.update(self.get_stats(video_id))
+            video_stats = self.get_stats(video_id)
+
+            video.update(video_stats['items'][0]['contentDetails'])
+            video.update(video_stats['items'][0]['statistics'])
 
         response = [e for e in response if Validate.validate(e)]
         return response
@@ -154,11 +157,10 @@ class YouTubeAPI(object):
         :param video_id: The youtube video id.
         :return: A JSON object containing the response from youtube.
         """
-        response = self.youtube.videos().list(
-            part='statistics',
+        return self.youtube.videos().list(
+            part=['statistics', 'contentDetails'],
             id=video_id
         ).execute()
-        return response['items'][0]['statistics']
 
 
 class Validate(object):
@@ -269,9 +271,6 @@ class ChooseBest(object):
     """
     @staticmethod
     def choose_best(videos):
-
-        for i in videos:
-            print(i.main_data)
 
         # Remove videos with bad titles
         videos = [e for e in videos if ChooseBest.check_title(e.main_data['title'])]

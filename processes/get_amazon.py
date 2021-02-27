@@ -30,16 +30,16 @@ class Main(object):
         self.destination_topic = 'amazon'
 
     def run(self, request):
-
         # Get information on film collected from upstream apis
         imdb_id, title, release_date, runtime = self.retrieve_data(request)
 
-        api_response = RequestAPI().get_amazon(title)
-
-        standardised_data = StandardiseResponse(api_response).standardise()
-
-        film = ChooseBest.get_best_match(standardised_data, title, runtime, release_date)
-
+        # TODO fix amazon api so we can actually gather data
+        # api_response = RequestAPI().get_amazon(title)
+        #
+        # standardised_data = StandardiseResponse(api_response).standardise()
+        #
+        # film = ChooseBest.get_best_match(standardised_data, title, runtime, release_date)
+        film = None
         if film is None:
             return {'amazon_main': []}
 
@@ -68,7 +68,7 @@ class RequestAPI(object):
     def __init__(self, api_key=AWS_API_KEY):
         self.api_key = api_key
         self.headers = {'User-Agent':
-                        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+                            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
     def get_amazon(self, title):
         """
@@ -78,14 +78,15 @@ class RequestAPI(object):
         :return: A JSON object containing the response for the given imdb_id.
         """
         url = 'http://webservices.amazon.co.uk/onca/xml'
-        parameters = 'AWSAccessKeyId=AKIAJCZNP6FPLXEFGTRA&' \
-                     'AssociateTag=kinoproject-21&' \
-                     'Keywords='+self.rfc_3986_encode(title)+'&' \
-                     'Operation=ItemSearch&' \
-                     'ResponseGroup=ItemAttributes%2COffers&' \
-                     'SearchIndex=All&' \
-                     'Service=AWSECommerceService&' \
-                     'Timestamp=' + self.rfc_3986_encode(self.get_timestamp())
+        parameters = 'AWSAccessKeyId=AKIAJKQ27VUSOVVCZSWA' \
+                     'AssociateTag=kinoproject-21' \
+                     'Keywords=' + self.rfc_3986_encode(title) + '&' \
+                                                                 'Operation=ItemSearch&' \
+                                                                 'ResponseGroup=ItemAttributes%2COffers&' \
+                                                                 'SearchIndex=All&' \
+                                                                 'Service=AWSECommerceService&' \
+                                                                 'Timestamp=' + self.rfc_3986_encode(
+            self.get_timestamp())
         signature = self.get_signature(parameters, self.api_key)
         encoded_signature = self.rfc_3986_encode(signature.decode('utf-8'))
         url = '{0}?{1}&Signature={2}'.format(url, parameters, encoded_signature)
@@ -100,9 +101,9 @@ class RequestAPI(object):
         :return: html response
         """
         max_retries = 5
-        for i in range(0,max_retries):
+        for i in range(0, max_retries):
             html = requests.get(url, headers=self.headers)
-            if html.status_code!=503:
+            if html.status_code != 503:
                 return html.text
             time.sleep(i)
         return html.text
@@ -133,7 +134,7 @@ class RequestAPI(object):
         return signature
 
 
-class StandardiseResponse (object):
+class StandardiseResponse(object):
     """
     This class standardises the response returned from the OMDB API,
     removing unwanted data, and structuring the remaining data
@@ -175,7 +176,7 @@ class StandardiseResponse (object):
 
     def get_price(self, item):
         try:
-            return int(item.find('amount').text)/100
+            return int(item.find('amount').text) / 100
         except AttributeError:
             return None
 
@@ -233,7 +234,7 @@ class ChooseBest(object):
 
     @staticmethod
     def get_amazon_video_products(items):
-        return [e for e in items if e['productType'] == 'DOWNLOADABLE_MOVIE' and e['binding'] == 'Amazon Video' ]
+        return [e for e in items if e['productType'] == 'DOWNLOADABLE_MOVIE' and e['binding'] == 'Amazon Video']
 
     @staticmethod
     def get_match_score(title, runtime, release_date, requested_title, requested_runtime, requested_release_date):
@@ -296,12 +297,13 @@ class ChooseBest(object):
         # If the upload date is greater then the release date then we return
         # the number of months it as uploaded before it was released. This will
         # be taken away from the match score.
-        days = (upload_date-requested_release_date).days
+        days = (upload_date - requested_release_date).days
         if days < 0:
-            return abs(round(days/30))
+            return abs(round(days / 30))
         return 0
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     a = Main()
     request = {'imdb_id': 'tt3155242',
                'tmdb_main': [{'title': 'Partisan', 'runtime': 94, 'release_date': '2016-01-08'}]}

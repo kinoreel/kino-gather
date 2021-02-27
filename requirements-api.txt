@@ -1,9 +1,9 @@
 kafka-python
+psycopg2
 google-api-python-client
 requests
 fuzzywuzzy
 bs4
 responses
-mock
 flask
 flask_cors
