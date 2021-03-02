@@ -18,7 +18,9 @@ from processes.insert_movies2ratings import Main as insert_movies2ratings
 from processes.insert_movies2streams import Main as insert_movies2streams
 from processes.insert_movies2trailers import Main as insert_movies2trailers
 
+
 class IntegrationTest(unittest.TestCase):
+
     def test(self):
         imdb_id = "tt5451118"
         payload = {'imdb_id': imdb_id}
