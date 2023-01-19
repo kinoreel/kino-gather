@@ -37,10 +37,28 @@ def get_api(imdb_id):
 
         payload = {'imdb_id': imdb_id}
         response = get_omdb().run({'imdb_id': imdb_id})
+        try:
+            rotten_tom_score = [e for e in response['omdb_ratings'] if e["source"] == "Rotten Tomatoes"][0]['value']
+        except:
+            raise AttributeError(f"Unable to find rotten tomatoes rating")
+        if int(rotten_tom_score) < 50:
+            raise AttributeError(f"Score is too low - Rotten Tomatoes: {rotten_tom_score}")
+
+        try:
+            imdb_score = [e for e in response['omdb_ratings'] if e["source"] == "imdb"][0]['value']
+        except:
+            raise AttributeError(f"Unable to find imdb rating")
+        if float(imdb_score) < 5:
+            raise AttributeError(f"Score is too low - IMDB: {imdb_score}")
+
         payload.update(response)
         response = get_tmdb().run(payload)
+        if response['tmdb_main'][0]['runtime'] < 60:
+            raise AttributeError(f"Runtime is too low - {response['tmdb_main']['runtime']}")
+
         payload.update(response)
         response = get_trailer().run(payload)
+
         payload.update(response)
         # response = get_itunes().run(payload)
         # payload.update(response)
