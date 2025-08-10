@@ -1,45 +1,24 @@
 import json
-import os
-import requests
 import re
+
+import requests
 
 from processes.gather_exception import GatherException
 
-try:
-    OMDB_API_KEY = os.environ['OMDB_API_KEY']
-except KeyError:
-    try:
-        from processes.GLOBALS import OMDB_API_KEY
-    except ImportError:
-        print("No API key provided")
-        exit()
 
+class Omdb:
 
-class Main(object):
-    """
-    Top level class imported by kafka_apis.py.
-    Gets and standardises data from OMDB api for a given imdb_id.
-    The class also hold responsibility of the topic it consumes from and the topic it produces to.
-    """
-
-    def __init__(self):
-        self.source_topic = 'imdb_ids'
-        self.destination_topic = 'omdb'
-
-    def run(self, request):
-        imdb_id = request['imdb_id']
-        data = RequestAPI().get_omdb(imdb_id)
-        data = StandardiseResponse().standardise(imdb_id, data)
-        return data
-
-
-class RequestAPI(object):
-    """Requests data for a given imdb_id from the OMDB API."""
-
-    def __init__(self, api_key=OMDB_API_KEY):
+    def __init__(self, api_key: str):
         self.api_key = api_key
-        self.headers = {'User-Agent':
-                        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'
+        }
+
+    def run(self, request: dict):
+        imdb_id = request['imdb_id']
+        response = self.get_omdb(imdb_id)
+        data = self.format_response(imdb_id, response)
+        return data
 
     def get_omdb(self, imdb_id):
         """
@@ -56,15 +35,7 @@ class RequestAPI(object):
         else:
             raise GatherException(imdb_id, 'No response from OMDB API')
 
-
-class StandardiseResponse(object):
-    """
-    This class standardises the response returned from the OMDB API,
-    removing unwanted data, and structuring the remaining data
-    so that it is easier to handle in later processes.
-    """
-
-    def standardise(self, imdb_id, api_data):
+    def format_response(self, imdb_id, api_data):
         """
         Constructs a new dictionary from the API data.
         :param imdb_id: The imdb_id for the requested film
@@ -73,13 +44,13 @@ class StandardiseResponse(object):
         """
         main_data = self.get_main_data(imdb_id, api_data)
         ratings_data = self.get_ratings_data(imdb_id, api_data)
-        if ratings_data and main_data:
-            return {'omdb_main': main_data, 'omdb_ratings': ratings_data}
-        else:
-            raise GatherException(imdb_id, 'Failed standardise')
+        if ratings_data is None:
+            GatherException(imdb_id, 'OMDB cannot find ratings for film')
+        if main_data is None:
+            GatherException(imdb_id, 'OMDB cannot find ratings for film')
+        return {'omdb_main': main_data, 'omdb_ratings': ratings_data}
 
-    @staticmethod
-    def get_main_data(imdb_id, api_data):
+    def get_main_data(self, imdb_id, api_data):
         """
         Gets the main data returned by the OMDB API, and constructs a dictionary
         of this information.
@@ -87,20 +58,22 @@ class StandardiseResponse(object):
         :param api_data: The raw response from the OMDB API.
         :return: A dictionary containing the main data from the OMDB api
         """
+        if api_data.get('Genre') == 'Short':
+            raise GatherException(imdb_id, 'OMDB states that this film is a short film')
         try:
-            main_data = [{'imdb_id': imdb_id,
-                          'title': api_data['Title'],
-                          'language': api_data['Language'],
-                          'rated': api_data['Rated'].replace('N/A', '').replace('NOT RATED', '').replace('UNRATED', ''),
-                          'plot': api_data['Plot'],
-                          'country': api_data['Country']
-                          }]
+            main_data = [{
+                'imdb_id': imdb_id,
+                'title': api_data['Title'],
+                'language': api_data['Language'],
+                'rated': api_data['Rated'].replace('N/A', '').replace('NOT RATED', '').replace('UNRATED', ''),
+                'plot': api_data['Plot'],
+                'country': api_data['Country']
+            }]
         except KeyError:
             raise GatherException('No main data could be found from OMDB')
         return main_data
 
-    @staticmethod
-    def get_ratings_data(imdb_id, api_data):
+    def get_ratings_data(self, imdb_id, api_data):
         """
         Gets the rating data returned by the OMDB API, and creates a list of dictionaries
         of ratings information.

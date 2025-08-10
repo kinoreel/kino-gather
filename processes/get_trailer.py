@@ -2,37 +2,22 @@ import os
 import re
 from apiclient.discovery import build
 
+from processes.config import Config
 from processes.gather_exception import GatherException
 
 
-try:
-    YOUTUBE_API_KEY = os.environ['YOUTUBE_API_KEY']
-except KeyError:
-    try:
-        from processes.GLOBALS import YOUTUBE_API_KEY
-    except ImportError:
-        print("No API key provided")
-        exit()
-
-
-class Main(object):
-    """
-    Top level class imported by kafka_apis.py.
-    Gets and standardises data from YouTube api, searching for trailers
-    The class also hold responsibility of the topic it consumes from and the topic it produces to.
-    """
-    def __init__(self):
-        self.source_topic = 'tmdb'
-        self.destination_topic = 'trailer'
+class Youtube:
+    def __init__(self, api_key):
+        self.api_key = api_key
+        self.youtube = build('youtube', 'v3', developerKey=api_key)
 
     def run(self, request):
-
         # Get information on film collected from upstream apis
         imdb_id, title, suggested_video_id, release_date, year = self.retrieve_data(request)
 
         # Get the youtube api response for the video id provided by the tmdb api
         if suggested_video_id:
-            response = YouTubeAPI().search_by_id(suggested_video_id)
+            response = self.search_by_id(suggested_video_id)
             # We preference tmdb. Whilst quality tends to be better when
             # directly querying the YouTube api, we cannot guarantee
             # we return the trailer for the correct film.
@@ -76,14 +61,6 @@ class Main(object):
         release_date = request['tmdb_main'][0]['release_date']
         year = release_date[0:4]
         return imdb_id, title, tmdb_trailer, release_date, year
-
-
-class YouTubeAPI(object):
-    """This class requests data for a given imdb_id from the YouTube API."""
-
-    def __init__(self, api_key=YOUTUBE_API_KEY):
-        self.api_key = api_key
-        self.youtube = build('youtube', 'v3', developerKey=api_key)
 
     def search_by_id(self, video_id):
         """
@@ -189,7 +166,7 @@ class Validate(object):
 
     @staticmethod
     def title(response):
-        bad_words = ['german', 'deutsch', 'spanish', 'españa', 'espana']
+        bad_words = [' german ', ' deutsch ', ' spanish ', ' españa ', ' espana']
         for word in bad_words:
             if word in response['title'].lower():
                 return False
@@ -333,16 +310,19 @@ class ChooseBest(object):
         return True
 
     @staticmethod
-    def sort_by_view_count( videos):
+    def sort_by_view_count(videos):
         """Sorts videos by view count"""
         return sorted(videos,
                       key=lambda x: (x.main_data['view_count'] is None, x.main_data['view_count']),
                       reverse=True)
 
-if __name__=='__main__':
-    a = Main()
-    request = {'imdb_id': 'tt5221584',
-               'tmdb_main': [{'title': 'Aquarius', 'runtime': 140, 'release_date': '2016-09-01'}],
-               'tmdb_trailer':[{'video_id':'234235'}]}
-    result = a.run(request)
+
+if __name__ == '__main__':
+    yt = Youtube(api_key=Config.from_env().YOUTUBE_API_KEY)
+    request = {
+        'imdb_id': 'tt5221584',
+        'tmdb_main': [{'title': 'Aquarius', 'runtime': 140, 'release_date': '2016-09-01'}],
+        'tmdb_trailer': [{'video_id': '234235'}]
+    }
+    result = yt.run(request)
     print(result)

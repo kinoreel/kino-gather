@@ -1,44 +1,23 @@
 import json
-import os
+
 import requests
 
 from processes.gather_exception import GatherException
 
-try:
-    TMDB_API_KEY = os.environ['TMDB_API_KEY']
-except KeyError:
-    try:
-        from processes.GLOBALS import TMDB_API_KEY
-    except ImportError:
-        print("No API key provided")
-        exit()
 
+class Tmdb:
 
-class Main(object):
-    """
-    Top level class imported by kafka_apis.py.
-    Gets and standardises data from TMDB api for a given imdb_id.
-    The class also hold responsibility of the topic it consumes from and the topic it produces to.
-    """
-
-    def __init__(self):
-        self.source_topic = 'omdb'
-        self.destination_topic = 'tmdb'
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'
+        }
 
     def run(self, request):
         imdb_id = request['imdb_id']
-        data = RequestAPI().get_tmdb(imdb_id)
-        data = StandardiseResponse().standardise(imdb_id, data)
+        response = self.get_tmdb(imdb_id)
+        data = self.format_response(imdb_id, response)
         return data
-
-
-class RequestAPI(object):
-    """This class requests data for a given imdb_id from the TMDB API."""
-
-    def __init__(self, api_key=TMDB_API_KEY):
-        self.api_key = api_key
-        self.headers = {'User-Agent':
-                        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
     def get_tmdb(self, imdb_id):
         """
@@ -57,14 +36,7 @@ class RequestAPI(object):
         else:
             raise GatherException(imdb_id, 'No response from TMDB API')
 
-
-class StandardiseResponse(object):
-    """
-    This class reconstructs the response returned from the TMDB API, making
-    a new JSON object that is easier to handle for later applications.
-    """
-
-    def standardise(self, imdb_id, api_data):
+    def format_response(self, imdb_id, api_data):
         """
         We construct a new dictionary from teh API data, standardising the format
         so we it can be handled easily in later applications.
@@ -195,7 +167,7 @@ class StandardiseResponse(object):
                   e['iso_639_1'].lower() == 'en']
 
         try:
-            best_trailer = StandardiseResponse.sort_videos_list(videos)[0]
+            best_trailer = Tmdb.sort_videos_list(videos)[0]
         except IndexError:
             return []
 

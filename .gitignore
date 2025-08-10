@@ -8,3 +8,4 @@ scratch
 kino-config.yaml
 venv
 */__pycache__
+.env
