@@ -6,13 +6,13 @@ from processes.get_tmdb import Tmdb
 from processes.get_trailer import Youtube
 from processes.insert_errored import execute as insert_errored
 from processes.insert_movies import execute as insert_movies
-from processes.insert_movies2companies import Main as insert_movies2companies
-from processes.insert_movies2genres import Main as insert_movies2genres
-from processes.insert_movies2keywords import Main as insert_movies2keywords
-from processes.insert_movies2numbers import Main as insert_movies2numbers
-from processes.insert_movies2persons import Main as insert_movies2persons
-from processes.insert_movies2ratings import Main as insert_movies2ratings
-from processes.insert_movies2trailers import Main as insert_movies2trailers
+from processes.insert_movies2companies import execute as insert_movies2companies
+from processes.insert_movies2genres import execute as insert_movies2genres
+from processes.insert_movies2keywords import execute as insert_movies2keywords
+from processes.insert_movies2numbers import execute as insert_movies2numbers
+from processes.insert_movies2persons import execute as insert_movies2persons
+from processes.insert_movies2ratings import execute as insert_movies2ratings
+from processes.insert_movies2trailers import execute as insert_movies2trailers
 from processes.postgres import Postgres
 
 logger = logging.getLogger(__name__)
@@ -42,19 +42,20 @@ def get_film(imdb_id):
 
         payload.update(response)
         insert_movies(payload, postgres)
-        insert_movies2companies().run(payload)
-        insert_movies2keywords().run(payload)
-        insert_movies2numbers().run(payload)
-        insert_movies2persons().run(payload)
-        insert_movies2ratings().run(payload)
-        insert_movies2genres().run(payload)
-        insert_movies2trailers().run(payload)
+        insert_movies2companies(payload, postgres)
+        insert_movies2keywords(payload, postgres)
+        insert_movies2numbers(payload, postgres)
+        insert_movies2persons(payload, postgres)
+        insert_movies2ratings(payload, postgres)
+        insert_movies2genres(payload, postgres)
+        insert_movies2trailers(payload, postgres)
         logger.info('Got.. %s', imdb_id)
         return payload
     except Exception as e:
         logger.info('Failed to get.. %s', imdb_id)
-
-        err_msg = [{'imdb_id': imdb_id,
-                    'error_message': str(e)}]
-        insert_errored(err_msg, postgres)
+        err_msg = {
+            'imdb_id': imdb_id,
+            'error_message': str(e)
+        }
+        insert_errored([err_msg], postgres)
         return err_msg

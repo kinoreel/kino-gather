@@ -32,7 +32,7 @@ class Youtube:
         # search YouTube for trailers
         string = '{0} ({1}) Trailer HD'.format(title, year)
 
-        videos = [YouTubeVideo(imdb_id, e) for e in YouTubeAPI().search_by_string(string)]
+        videos = [YouTubeVideo(imdb_id, e) for e in self.search_by_string(string)]
 
         # Choose the best video
         best_video = ChooseBest().choose_best(videos)
