@@ -12,3 +12,6 @@ push-image:
 	docker push unrufflednightingale/kino-gather-api:latest
 
 build-and-push-image: build-image push-image
+
+create-kino-database-snapshot:
+    sh backup_kino.sh
